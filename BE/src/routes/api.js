@@ -7,10 +7,11 @@ const routerAPI = express.Router();
 
 routerAPI.all("*", jwt);
 
-routerAPI.get("/", (req, res) => {
-    return res.status(200).json("Hello API");
-})
+// routerAPI.get("/", (req, res) => {
+//     return res.status(200).json("Hello API");
+// })
 
+//route for user
 routerAPI.post("/register", createUser);
 routerAPI.post("/login", userLogin);
 routerAPI.get("/users", getAllUsers);
