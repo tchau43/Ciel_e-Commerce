@@ -15,6 +15,6 @@ routerAPI.all("*", jwt);
 routerAPI.post("/register", createUser);
 routerAPI.post("/login", userLogin);
 routerAPI.get("/users", getAllUsers);
-routerAPI.get("/user", delay, getUser);
+routerAPI.get("/user", getUser);
 
 module.exports = routerAPI
