@@ -11,10 +11,14 @@ routerAPI.all("*", jwt);
 //     return res.status(200).json("Hello API");
 // })
 
-//route for user
+//route for register - login
 routerAPI.post("/register", createUser);
 routerAPI.post("/login", userLogin);
-routerAPI.get("/users", getAllUsers);
-routerAPI.get("/user", getUser);
+
+//route for admin
+routerAPI.get("/admin/users", getAllUsers);
+
+//route for user
+routerAPI.get("/user/info", getUser);
 
 module.exports = routerAPI
