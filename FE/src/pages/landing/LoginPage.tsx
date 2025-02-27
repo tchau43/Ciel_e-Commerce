@@ -1,5 +1,10 @@
 const LoginPage: React.FC = () => {
-  return <>aiywdiyu</>;
+  return (
+    
+    <>
+      <label></label>
+    </>
+  );
 };
 
 export default LoginPage;
