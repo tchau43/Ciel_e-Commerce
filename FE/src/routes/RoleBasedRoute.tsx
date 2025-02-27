@@ -10,6 +10,14 @@ interface RoleBasedRouteProps {
 const RoleBasedRoute = ({ allowedRoles, children }: RoleBasedRouteProps) => {
   const { token, role } = getAuthCredentials();
 
+  if (window.location.pathname === "/") {
+    return (
+      <>
+        <Navigate to="/home" />
+      </>
+    );
+  }
+
   // Check if the current route is a public route that doesn't need authentication
   const isPublicRoute =
     window.location.pathname === "/landing" ||

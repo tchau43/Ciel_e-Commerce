@@ -9,6 +9,7 @@ import AdminDashBoardPage from "./pages/admin/AdminDashBoardPage.tsx";
 import AdminUserManagementPage from "./pages/admin/AdminUserManagementPage .tsx";
 import AdminLayout from "./components/layout/admin/AdminLayout.tsx";
 import UserLayout from "./components/layout/user/UserLayout.tsx";
+import UserHomePage from "./pages/user/UserHomePage.tsx";
 
 function LoadingSpinner() {
   return (
@@ -24,7 +25,7 @@ function App() {
       <Suspense fallback={<LoadingSpinner />}>
         <Routes>
           {/* Route for LandingPage, Login, Register - not require authenticated */}
-          <Route path="/landing" element={<LandingPage />} />
+          <Route path="/home" element={<LandingPage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
 
@@ -54,7 +55,7 @@ function App() {
               </RoleBasedRoute>
             }
           >
-            <Route index element={<AdminDashBoardPage />} />
+            <Route index element={<UserHomePage />} />
             <Route path="users" element={<AdminUserManagementPage />} />
           </Route>
         </Routes>
