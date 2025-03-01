@@ -48,7 +48,7 @@ function App() {
           <Route
             path="/*"
             element={
-              <RoleBasedRoute allowedRoles={[Role.USER]}>
+              <RoleBasedRoute allowedRoles={[Role.CUSTOMER]}>
                 <Suspense fallback={<LoadingSpinner />}>
                   <UserLayout />
                 </Suspense>
@@ -56,7 +56,7 @@ function App() {
             }
           >
             <Route index element={<UserHomePage />} />
-            <Route path="users" element={<AdminUserManagementPage />} />
+            {/* <Route path="users" element={<AdminUserManagementPage />} /> */}
           </Route>
         </Routes>
       </Suspense>

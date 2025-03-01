@@ -1,13 +1,13 @@
 export enum Role {
   ADMIN = "ADMIN",
-  USER = "USER",
+  CUSTOMER = "CUSTOMER",
 }
 
 export type UserInfo = {
   // id: string;
   email?: string;
   name: string;
-}
+};
 
 export declare type LoginInput = {
   email: string;
@@ -24,4 +24,3 @@ export declare type RegisterInput = {
   email: string;
   password: string;
 };
-

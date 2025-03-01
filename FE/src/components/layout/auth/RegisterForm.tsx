@@ -1,4 +1,4 @@
-import { useRegisterMutation } from "@/services/auth/userRegisterMutation";
+import { useRegisterMutation } from "@/services/auth/registerMutation";
 import { RegisterInput } from "@/types/dataTypes";
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";

@@ -1,4 +1,4 @@
-import { useLoginMutation } from "@/services/auth/userLoginMutation";
+import { useLoginMutation } from "@/services/auth/loginMutation";
 import { LoginInput, Role } from "@/types/dataTypes";
 import { setAuthCredentials } from "@/utils/authUtil";
 import React, { useState } from "react";
@@ -27,7 +27,7 @@ const LoginForm: React.FC = () => {
             name: user.name,
             email: user.email,
           };
-          const role: Role = user.role || "USER";
+          const role: Role = user.role || "CUSTOMER";
 
           if (EC === 0 && accessToken) {
             setAuthCredentials(accessToken, role, userInfo);
@@ -35,7 +35,8 @@ const LoginForm: React.FC = () => {
             console.log("Login failed");
           }
           console.log("hello ", user.name);
-          navigate("/");
+          if (role === "ADMIN") navigate("/admin");
+          else navigate("/");
         },
         onError: (error) => {
           console.log(error);

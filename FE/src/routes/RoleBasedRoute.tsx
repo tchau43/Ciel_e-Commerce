@@ -1,6 +1,7 @@
 import React from "react";
 import { Navigate, Outlet } from "react-router-dom";
 import { getAuthCredentials } from "../utils/authUtil";
+import AdminLayout from "@/components/layout/admin/AdminLayout";
 
 interface RoleBasedRouteProps {
   allowedRoles: string[];
@@ -10,6 +11,7 @@ interface RoleBasedRouteProps {
 const RoleBasedRoute = ({ allowedRoles, children }: RoleBasedRouteProps) => {
   const { token, role } = getAuthCredentials();
 
+  // console.log(token);
   if (window.location.pathname === "/") {
     return (
       <>
@@ -20,7 +22,7 @@ const RoleBasedRoute = ({ allowedRoles, children }: RoleBasedRouteProps) => {
 
   // Check if the current route is a public route that doesn't need authentication
   const isPublicRoute =
-    window.location.pathname === "/landing" ||
+    window.location.pathname === "/home" ||
     window.location.pathname === "/login" ||
     window.location.pathname === "/register";
 
