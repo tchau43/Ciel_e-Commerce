@@ -19,7 +19,7 @@ const createUserService = async (name, email, password) => {
             name: name,
             email: email,
             password: hashPassword,
-            role: "CUSTOMER",
+            role: "USER",
         })
         return result;
     } catch (error) {
@@ -49,6 +49,7 @@ const userLoginService = async (email, password) => {
                     user: {
                         email: user.email,
                         name: user.name,
+                        role: user.role,
                     }
                 };
             }

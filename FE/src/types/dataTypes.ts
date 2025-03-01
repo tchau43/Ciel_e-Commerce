@@ -4,9 +4,9 @@ export enum Role {
 }
 
 export type UserInfo = {
-  id: string;
+  // id: string;
   email?: string;
-  fullName: string;
+  name: string;
 }
 
 export declare type LoginInput = {
@@ -24,3 +24,4 @@ export declare type RegisterInput = {
   email: string;
   password: string;
 };
+

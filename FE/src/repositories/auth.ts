@@ -9,4 +9,6 @@ class User extends Base{
   login = async (url: string, variables: LoginInput) => {
     return this.http<LoginInput>(url, "post", variables);
   };
-}
+};
+
+export default new User();
