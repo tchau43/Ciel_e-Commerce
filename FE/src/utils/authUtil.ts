@@ -9,13 +9,13 @@ export function getAuthCredentials() {
 }
 
 export function setAuthCredentials(token: string, role: Role, userInfo: UserInfo) {
-  localStorage.setItem("token", token);
+  localStorage.setItem("access_token", token);
   localStorage.setItem("role", role);
   localStorage.setItem("userInfo", JSON.stringify(userInfo));
 }
 
 export function clearAuthCredentials() {
-  localStorage.removeItem("token");
+  localStorage.removeItem("access_token");
   localStorage.removeItem("role");
   localStorage.removeItem("userInfo");
 }

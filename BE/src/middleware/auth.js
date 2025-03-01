@@ -20,6 +20,7 @@ const verifyToken = (req, res, next) => {
         return res.status(401).json({ message: "Token is missing." });
     }
 
+    // console.log("req", req);
     try {
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
         // Attach the decoded token (user data) to req.user

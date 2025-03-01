@@ -11,23 +11,4 @@ export default class Base {
     return (http as any)[type](url, variables, options);
   };
 
-  // all = async (url: string) => {
-  //   return this.http(url, "get");
-  // };
-
-  // find = async (url: string) => {
-  //   return this.http(url, "get");
-  // };
-
-  // create = async (url: string, variables: C) => {
-  //   return this.http<C>(url, "post", variables);
-  // };
-
-  // update = async (url: string, variables: U) => {
-  //   return this.http<U>(url, "put", variables);
-  // };
-
-  // delete = async (url: string) => {
-  //   return this.http(url, "delete");
-  // };
 }
