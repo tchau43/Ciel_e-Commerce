@@ -1,5 +1,5 @@
 const express = require('express');
-const { createUser, userLogin, getAllUsers, getUser } = require('../controllers/userController');
+const { createUser, userLogin, getAllUsers, getUserById, updateUserbyId } = require('../controllers/userController');
 const delay = require('../middleware/delay');
 const jwt = require('../middleware/auth');
 
@@ -17,8 +17,9 @@ routerAPI.post("/login", userLogin);
 
 //route for admin
 routerAPI.get("/admin/users", getAllUsers);
+routerAPI.put("/admin/updateUserById/:id", updateUserbyId);
 
 //route for user
-routerAPI.get("/user/info", getUser);
+routerAPI.get("/user/:id", getUserById);
 
 module.exports = routerAPI

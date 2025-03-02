@@ -80,8 +80,37 @@ const getAllUsersService = async () => {
   }
 };
 
+const getUserByIdService = async (id) => {
+  try {
+    const users = await User.findById(
+      id
+    );
+    return users;
+  } catch (error) {
+    console.log(error);
+    return null;
+  }
+};
+
+const updateUserbyIdService = async (id, name, email, status, role) => {
+  try {
+    const user = await User.findByIdAndUpdate(
+      id, {
+      name, email, status, role
+    });
+    return user;
+  } catch (error) {
+    console.log(error);
+    return null;
+  }
+};
+
+
+
 module.exports = {
   createUserService,
   userLoginService,
   getAllUsersService,
+  updateUserbyIdService,
+  getUserByIdService
 };
