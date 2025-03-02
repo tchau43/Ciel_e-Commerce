@@ -26,10 +26,8 @@ const LoginForm: React.FC = () => {
           const userInfo = {
             name: user.name,
             email: user.email,
-            status: user.status,
-            image: user.image,
           };
-          const role: Role = user.role || "CUSTOMER";
+          const role: Role = user.role || "USER";
 
           if (EC === 0 && accessToken) {
             setAuthCredentials(accessToken, role, userInfo);
@@ -37,8 +35,7 @@ const LoginForm: React.FC = () => {
             console.log("Login failed");
           }
           console.log("hello ", user.name);
-          if (role === "ADMIN") navigate("/admin");
-          else navigate("/");
+          navigate("/");
         },
         onError: (error) => {
           console.log(error);
