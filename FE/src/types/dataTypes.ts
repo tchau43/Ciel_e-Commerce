@@ -24,3 +24,14 @@ export declare type RegisterInput = {
   email: string;
   password: string;
 };
+
+
+export declare type User = {
+  createdDate: string;
+  email: string;
+  name: string | null;
+  _id: number;
+  imageUrl: string | null;
+  role: string;
+  status: boolean;
+}

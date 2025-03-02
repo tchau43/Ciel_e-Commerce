@@ -10,6 +10,7 @@ import AdminUserManagementPage from "./pages/admin/AdminUserManagementPage .tsx"
 import AdminLayout from "./components/layout/admin/AdminLayout.tsx";
 import UserLayout from "./components/layout/user/UserLayout.tsx";
 import UserHomePage from "./pages/user/UserHomePage.tsx";
+import EditUserPage from "./pages/user/EditUserPage.tsx";
 
 function LoadingSpinner() {
   return (
@@ -42,6 +43,7 @@ function App() {
           >
             <Route index element={<AdminDashBoardPage />} />
             <Route path="users" element={<AdminUserManagementPage />} />
+            <Route path="editUser/:id" element={<EditUserPage />} />
           </Route>
 
           {/* Route for user */}
@@ -56,7 +58,6 @@ function App() {
             }
           >
             <Route index element={<UserHomePage />} />
-            {/* <Route path="users" element={<AdminUserManagementPage />} /> */}
           </Route>
         </Routes>
       </Suspense>

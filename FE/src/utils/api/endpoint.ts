@@ -14,5 +14,7 @@ export const API_ENDPOINTS = {
   USER_COMMENTS: `${VITE_API_VERSION}/user-comments`,
   USERS: `${VITE_API_VERSION}/admin/users`,
   ALL_REVIEWS: `${VITE_API_VERSION}/admin/all-comments`,
-  LOGOUT: `${VITE_API_VERSION}/users/logout`, 
+  LOGOUT: `${VITE_API_VERSION}/users/logout`,
+  USER: (id: string) => `${VITE_API_VERSION}/user/${id}`, // Convert to function
+  UPDATE_USER: (id: string) => `${VITE_API_VERSION}/admin/updateUserById/${id}`, // ✅ New update function
 };
