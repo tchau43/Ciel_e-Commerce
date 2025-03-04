@@ -1,6 +1,7 @@
 export enum Role {
   ADMIN = "ADMIN",
   CUSTOMER = "CUSTOMER",
+  MODERATOR = "MODERATOR",
 }
 
 export type UserInfo = {
@@ -25,7 +26,6 @@ export declare type RegisterInput = {
   password: string;
 };
 
-
 export declare type User = {
   createdDate: string;
   email: string;
@@ -34,4 +34,4 @@ export declare type User = {
   imageUrl: string | null;
   role: string;
   status: boolean;
-}
+};
