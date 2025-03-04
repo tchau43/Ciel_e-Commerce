@@ -37,7 +37,8 @@ const LoginForm: React.FC = () => {
             console.log("Login failed");
           }
           console.log("hello ", user.name);
-          if (role === "ADMIN") navigate("/admin");
+          if (role === Role.ADMIN) navigate("/admin");
+          else if (role === Role.CUSTOMER) navigate("/");
           else navigate("/");
         },
         onError: (error) => {
