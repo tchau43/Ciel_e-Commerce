@@ -1,11 +1,26 @@
-const express = require('express');
-const { createUser, userLogin, getAllUsers, getUserById, updateUserbyId } = require('../controllers/userController');
-const delay = require('../middleware/delay');
-const jwt = require('../middleware/auth');
+const express = require("express");
+const {
+  createUser,
+  userLogin,
+  getAllUsers,
+  getUserById,
+  updateUserbyId,
+} = require("../controllers/userController");
+
+const {
+  createProduct,
+  getAllProducts,
+  getProductById,
+  getProductsByName,
+  updateProduct,
+  deleteProduct,
+} = require("../controllers/productController");
+// const delay = require("../middleware/delay");
+const verifyToken = require("../middleware/auth");
 
 const routerAPI = express.Router();
 
-routerAPI.all("*", jwt);
+routerAPI.all("*", verifyToken);
 
 // routerAPI.get("/", (req, res) => {
 //     return res.status(200).json("Hello API");
@@ -22,4 +37,14 @@ routerAPI.put("/admin/updateUserById/:id", updateUserbyId);
 //route for user
 routerAPI.get("/user/:id", getUserById);
 
-module.exports = routerAPI
+//category
+
+//product
+routerAPI.get("/product", getAllProducts);
+routerAPI.get("/product/:id", getProductById);
+routerAPI.get("/product", getProductsByName);
+routerAPI.post("/product", createProduct);
+routerAPI.put("/product/:id", updateProduct);
+routerAPI.delete("/product/:id", deleteProduct);
+
+module.exports = routerAPI;
