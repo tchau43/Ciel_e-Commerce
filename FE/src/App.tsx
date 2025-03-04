@@ -1,8 +1,8 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import LoginPage from "./pages/landing/LoginPage.tsx";
+import LoginPage from "./pages/auth/LoginPage.tsx";
 import { Suspense } from "react";
-import LandingPage from "./pages/landing/LandingPage.tsx";
-import RegisterPage from "./pages/landing/RegisterPage.tsx";
+import LandingPage from "./pages/LandingPage.tsx";
+import RegisterPage from "./pages/auth/RegisterPage.tsx";
 import RoleBasedRoute from "./routes/RoleBasedRoute.tsx";
 import { Role } from "./types/dataTypes.ts";
 import AdminDashBoardPage from "./pages/admin/AdminDashBoardPage.tsx";
@@ -11,6 +11,10 @@ import AdminLayout from "./components/layout/admin/AdminLayout.tsx";
 import UserLayout from "./components/layout/user/UserLayout.tsx";
 import UserHomePage from "./pages/user/UserHomePage.tsx";
 import EditUserPage from "./pages/user/EditUserPage.tsx";
+import ProductPage from "./pages/product/ProductPage.tsx";
+import ProductDescription from "./components/product/ProductDescription.tsx";
+import Product from "./components/product/Product.tsx";
+import ProductMoreInfo from "./components/product/ProductMoreInfo.tsx";
 
 function LoadingSpinner() {
   return (
@@ -26,7 +30,7 @@ function App() {
       <Suspense fallback={<LoadingSpinner />}>
         <Routes>
           {/* Route for LandingPage, Login, Register - not require authenticated */}
-          <Route path="/home" element={<LandingPage />} />
+          <Route path="/landing" element={<LandingPage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
 
@@ -58,6 +62,19 @@ function App() {
             }
           >
             <Route index element={<UserHomePage />} />
+            <Route
+              path="product/*"
+              element={
+                // <Suspense fallback={<LoadingSpinner />}>
+                <ProductPage />
+                // </Suspense>
+              }
+            >
+              <Route path="id/*" element={<Product />}>
+                <Route index element={<ProductDescription />}></Route>
+                <Route path="more" element={<ProductMoreInfo />}></Route>
+              </Route>
+            </Route>
           </Route>
         </Routes>
       </Suspense>
