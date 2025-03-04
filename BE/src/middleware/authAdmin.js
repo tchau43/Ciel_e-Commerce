@@ -1,7 +1,7 @@
 require('dotenv').config();
 const jwt = require('jsonwebtoken');
 
-const verifyToken = (req, res, next) => {
+const verifyAdmin = (req, res, next) => {
     const whiteList = ["/", '/register', "/login"];
 
     if (whiteList.includes(req.path)) {
@@ -31,8 +31,7 @@ const verifyToken = (req, res, next) => {
         console.error("Token verification error:", error);
         return res.status(403).json({ message: "Invalid token." });
     }
+
 }
 
-const verifyAdmin = () => {}
-
-module.exports = verifyToken;
+module.exports = verifyAdmin;
