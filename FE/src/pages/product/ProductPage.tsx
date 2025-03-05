@@ -1,10 +1,19 @@
-import { Outlet } from "react-router-dom";
+import CategoriesList from "@/components/product/CategoriesList";
+import ProductsList from "@/components/product/ProductsList";
+// import { Outlet } from "react-router-dom";
 
 const ProductPage = () => {
   return (
     <>
-      ProductPage
-      <Outlet></Outlet>
+      <div className="size-full flex justify-between">
+        <div>
+          <CategoriesList />
+        </div>
+        <div>
+          <ProductsList />
+        </div>
+        {/* <Outlet></Outlet> */}
+      </div>
     </>
   );
 };

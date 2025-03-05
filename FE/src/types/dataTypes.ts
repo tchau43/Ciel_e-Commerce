@@ -35,3 +35,8 @@ export declare type User = {
   role: string;
   status: boolean;
 };
+
+export declare type Category = {
+  name: string;
+  description: string;
+};
