@@ -69,11 +69,10 @@ function App() {
                 <ProductPage />
                 // </Suspense>
               }
-            >
-              <Route path="id/*" element={<Product />}>
-                <Route index element={<ProductDescription />}></Route>
-                <Route path="more" element={<ProductMoreInfo />}></Route>
-              </Route>
+            ></Route>
+            <Route path="product/id/*" element={<Product />}>
+              <Route index element={<ProductDescription />}></Route>
+              <Route path="more" element={<ProductMoreInfo />}></Route>
             </Route>
           </Route>
         </Routes>
