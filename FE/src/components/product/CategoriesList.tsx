@@ -10,8 +10,8 @@ interface CategoriesListProps {
 const CategoriesList = ({ data }: CategoriesListProps) => {
   const navigate = useNavigate();
   const [checkedCate, setCheckedCate] = useState<string[]>(
-    data.map((d) => d._id)
-    // []
+    // data.map((d) => d._id)
+    []
   );
 
   const handleCheckboxChange = (cateId: string) => {

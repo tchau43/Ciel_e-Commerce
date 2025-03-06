@@ -5,8 +5,8 @@ class Product extends Base {
     return this.http(url, "get");
   };
 
-  getProductByCategory = (url: string, variables: string) => {
-    const res = this.http<string>(url, "get", variables);
+  getProductByCategory = (url: string) => {
+    const res = this.http<string>(url, "get");
     // console.log("res", res);
     return res;
   };
