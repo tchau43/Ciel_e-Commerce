@@ -10,10 +10,13 @@ export const useGetProductsByCategoryQuery = (
   return useQuery<ProductData[]>({
     queryKey: ["product"],
     queryFn: () => {
-      return product.getProductByCategory(
-        API_ENDPOINTS.PRODUCTS_BY_CATEGORY,
-        params
-      );
+      // if ()
+      console.log("params1", params);
+      if (params) {
+        return product.getProductByCategory(
+          API_ENDPOINTS.PRODUCTS_BY_CATEGORY + `?${params}`
+        );
+      } else return;
     },
     enabled: params.length > 0, // Don't fetch products unless there are selected categories
     ...option,
