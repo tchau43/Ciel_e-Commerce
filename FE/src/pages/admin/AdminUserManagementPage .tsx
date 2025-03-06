@@ -13,6 +13,8 @@ const AdminUserManagementPage: React.FC = () => {
     refetchOnWindowFocus: false,
   });
   console.log("data", data);
+  if (isLoading)
+    return <p className="text-center text-gray-600">Loading user data...</p>;
 
   // Now TypeScript knows that `data` is a `User[]`
   return (

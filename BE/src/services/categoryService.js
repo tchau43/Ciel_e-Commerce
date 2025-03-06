@@ -19,4 +19,13 @@ const createCategoryService = async (categoryData) => {
   }
 };
 
-module.exports = { createCategoryService };
+const getAllCategoriesService = async () => {
+  try {
+    const categories = await Category.find({});
+    return categories;
+  } catch (error) {
+    throw new Error("Error get all categories: " + error.message);
+  }
+}
+
+module.exports = { createCategoryService, getAllCategoriesService };

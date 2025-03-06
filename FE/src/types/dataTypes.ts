@@ -32,11 +32,20 @@ export declare type User = {
   name: string | null;
   _id: number;
   imageUrl: string | null;
-  role: string;
+  role: Role;
   status: boolean;
 };
 
-export declare type Category = {
+export declare type CategoryData = {
+  _id: string;
   name: string;
   description: string;
+};
+
+export declare type ProductData = {
+  _id: string;
+  name: string;
+  price: string;
+  category: CategoryData[];
+  images: string;
 };

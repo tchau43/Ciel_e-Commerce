@@ -105,8 +105,6 @@ const updateUserbyIdService = async (id, name, email, status, role) => {
   }
 };
 
-
-
 module.exports = {
   createUserService,
   userLoginService,
