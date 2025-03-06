@@ -1,8 +1,9 @@
+import { CategoryData } from "@/types/dataTypes";
 import Base from "../base";
 
 class Category extends Base {
   getAllCetegories = async (url: string) => {
-    this.http(url, "get");
+    return this.http<CategoryData[]>(url, "get");
   };
 }
 

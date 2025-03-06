@@ -14,9 +14,11 @@ const {
   getProductsByName,
   updateProduct,
   deleteProduct,
+  getProductsByCategory,
 } = require("../controllers/productController");
 // const delay = require("../middleware/delay");
 const verifyToken = require("../middleware/auth");
+const { getAllCategories } = require("../controllers/categoryController");
 
 const routerAPI = express.Router();
 
@@ -38,9 +40,11 @@ routerAPI.put("/admin/updateUserById/:id", updateUserbyId);
 routerAPI.get("/user/:id", getUserById);
 
 //category
+routerAPI.get("/categories", getAllCategories);
 
 //product
-routerAPI.get("/product", getAllProducts);
+routerAPI.get("/products", getAllProducts);
+routerAPI.get("/productsByCategory", getProductsByCategory);
 routerAPI.get("/product/:id", getProductById);
 routerAPI.get("/product", getProductsByName);
 routerAPI.post("/product", createProduct);

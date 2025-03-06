@@ -4,6 +4,7 @@ const productSchema = new mongoose.Schema(
   {
     name: { type: String, required: true },
     price: { type: Number, required: true, min: 0 },
+    shortDescription: String,
     description: String,
     category: [
       {
@@ -17,6 +18,7 @@ const productSchema = new mongoose.Schema(
     status: { type: String, enum: ["active", "inactive"], default: "active" },
     quantity_in_stock: { type: Number, min: 0, default: 0 },
     images: [String],
+    moreInfomation: String,
   },
   { timestamps: true }
 );

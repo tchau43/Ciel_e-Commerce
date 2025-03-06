@@ -5,6 +5,7 @@ const {
   getProductByIdService,
   getProductsByNameService,
   updateProductService,
+  getProductsByCategoryService,
 } = require("../services/productService");
 
 const createProduct = async (req, res) => {
@@ -25,7 +26,9 @@ const getProductById = async (req, res) => {
 };
 
 const getProductsByName = async (req, res) => {
+  console.log("req", req)
   const { name } = req.query; // Assuming the search term is passed as a query parameter
+  console.log("name", name)
   if (!name) {
     return res.status(400).json({ message: "Keyword is required for search" });
   }
@@ -51,6 +54,19 @@ const deleteProduct = async (req, res) => {
   res.status(200).json(data);
 };
 
+const getProductsByCategory = async (req, res) => {
+  // console.log("req", req)
+  const { category } = req.query; // Categories will come as an array of category IDs
+  console.log("category", category)
+  if (!category) {
+    return res.status(400).json({ message: "No categories selected." });
+  }
+  const categoryIds = Array.isArray(category) ? category : category.split(",");
+  const data = await getProductsByCategoryService(categoryIds);
+  console.log("data", data)
+  res.status(200).json(data);
+}
+
 module.exports = {
   createProduct,
   getAllProducts,
@@ -58,4 +74,5 @@ module.exports = {
   getProductsByName,
   updateProduct,
   deleteProduct,
+  getProductsByCategory,
 };
