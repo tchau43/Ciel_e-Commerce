@@ -24,10 +24,11 @@ const LoginForm: React.FC = () => {
           const { EC, accessToken, user } = response;
 
           const userInfo = {
+            _id: user._id,
             name: user.name,
             email: user.email,
-            status: user.status,
-            image: user.image,
+            // status: user.status,
+            // image: user.image,
           };
           const role: Role = user.role || "CUSTOMER";
 

@@ -14,9 +14,12 @@ const {
   getProductsByName,
   updateProduct,
   deleteProduct,
+  getProductsByCategory,
 } = require("../controllers/productController");
 // const delay = require("../middleware/delay");
 const verifyToken = require("../middleware/auth");
+const { getAllCategories, createCategory } = require("../controllers/categoryController");
+const { updateProductToCart } = require("../controllers/cartController");
 
 const routerAPI = express.Router();
 
@@ -38,13 +41,19 @@ routerAPI.put("/admin/updateUserById/:id", updateUserbyId);
 routerAPI.get("/user/:id", getUserById);
 
 //category
+routerAPI.get("/categories", getAllCategories);
+routerAPI.post("/category", createCategory);
 
 //product
-routerAPI.get("/product", getAllProducts);
+routerAPI.get("/products", getAllProducts);
+routerAPI.get("/productsByCategory", getProductsByCategory);
 routerAPI.get("/product/:id", getProductById);
 routerAPI.get("/product", getProductsByName);
 routerAPI.post("/product", createProduct);
 routerAPI.put("/product/:id", updateProduct);
 routerAPI.delete("/product/:id", deleteProduct);
+
+//cart
+routerAPI.post("/cart", updateProductToCart)
 
 module.exports = routerAPI;

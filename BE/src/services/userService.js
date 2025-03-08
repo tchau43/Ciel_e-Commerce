@@ -47,6 +47,7 @@ const userLoginService = async (email, password) => {
           EC: 0,
           accessToken,
           user: {
+            _id: user._id,
             email: user.email,
             name: user.name,
             role: user.role,
@@ -104,8 +105,6 @@ const updateUserbyIdService = async (id, name, email, status, role) => {
     return null;
   }
 };
-
-
 
 module.exports = {
   createUserService,

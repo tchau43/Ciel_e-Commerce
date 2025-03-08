@@ -5,7 +5,7 @@ export enum Role {
 }
 
 export type UserInfo = {
-  // id: string;
+  _id: string;
   email?: string;
   name: string;
 };
@@ -32,6 +32,31 @@ export declare type User = {
   name: string | null;
   _id: number;
   imageUrl: string | null;
-  role: string;
+  role: Role;
   status: boolean;
+};
+
+export declare type CategoryData = {
+  _id: string;
+  name: string;
+  description: string;
+};
+
+export declare type ProductData = {
+  _id: string;
+  name: string;
+  price: string;
+  category: CategoryData;
+  images: string;
+  tags: string[];
+  quantity_in_stock: number;
+  shortDescription: string;
+  description: string;
+  moreInfomation: string;
+};
+
+export declare type CartData = {
+  userId: string;
+  productId: string;
+  changeQuantity: number;
 };

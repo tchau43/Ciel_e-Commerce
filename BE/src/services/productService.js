@@ -36,7 +36,7 @@ const getAllProductsService = async () => {
 
 const getProductByIdService = async (id) => {
   try {
-    const product = await Product.findById(id);
+    const product = await Product.findById(id).populate("category");
     if (!product) {
       throw new Error("Product not found");
     }
@@ -89,6 +89,23 @@ const deleteProductService = async (id) => {
   }
 };
 
+const getProductsByCategoryService = async (categories) => {
+  try {
+    // Find products where the category matches any of the categoryIds
+    const products = await Product.find({ category: { $in: categories } }).populate("category");
+
+    if (products.length === 0) {
+      return [];
+    }
+
+    return products;
+  } catch (error) {
+    console.error(error);
+    throw new Error("Error founding product by category: " + error.message);
+  }
+};
+
+
 module.exports = {
   createProductService,
   getAllProductsService,
@@ -96,4 +113,5 @@ module.exports = {
   getProductsByNameService,
   updateProductService,
   deleteProductService,
+  getProductsByCategoryService
 };

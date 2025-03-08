@@ -15,6 +15,8 @@ import ProductPage from "./pages/product/ProductPage.tsx";
 import ProductDescription from "./components/product/ProductDescription.tsx";
 import Product from "./components/product/Product.tsx";
 import ProductMoreInfo from "./components/product/ProductMoreInfo.tsx";
+import ProductWrapper from "./components/product/ProductWrapper.tsx";
+import CartPage from "./pages/cart/CartPage.tsx";
 
 function LoadingSpinner() {
   return (
@@ -69,12 +71,13 @@ function App() {
                 <ProductPage />
                 // </Suspense>
               }
-            >
-              <Route path="id/*" element={<Product />}>
-                <Route index element={<ProductDescription />}></Route>
-                <Route path="more" element={<ProductMoreInfo />}></Route>
-              </Route>
+            ></Route>
+            <Route path="product/:id/*" element={<ProductWrapper />}>
+              {/* <Route path="product/:id/*" element={<Product />} /> */}
+              <Route index element={<ProductDescription />}></Route>
+              <Route path="more" element={<ProductMoreInfo />}></Route>
             </Route>
+            <Route path="cart/" element={<CartPage />}></Route>
           </Route>
         </Routes>
       </Suspense>
