@@ -1,4 +1,4 @@
-import http from "../utils/api/axios.ts"
+import http from "../utils/api/axios.ts";
 
 // export default class Base<C, U> {
 export default class Base {
@@ -10,5 +10,4 @@ export default class Base {
   ) => {
     return (http as any)[type](url, variables, options);
   };
-
 }

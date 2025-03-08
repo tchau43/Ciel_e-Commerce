@@ -7,8 +7,11 @@ class Product extends Base {
 
   getProductByCategory = (url: string) => {
     const res = this.http<string>(url, "get");
-    // console.log("res", res);
     return res;
+  };
+
+  getProductById = (url: string) => {
+    return this.http(url, "get");
   };
 }
 

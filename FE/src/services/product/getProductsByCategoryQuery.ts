@@ -8,17 +8,21 @@ export const useGetProductsByCategoryQuery = (
   option?: any
 ): UseQueryResult<ProductData[]> => {
   return useQuery<ProductData[]>({
-    queryKey: ["product"],
+    // Use queryKey based on params, so the query is re-triggered when params change
+    queryKey: ["products", params], // queryKey should change with params
     queryFn: () => {
-      // if ()
-      console.log("params1", params);
+      console.log("Fetching products with params:", params);
       if (params) {
+        // If params are set, fetch products by category
         return product.getProductByCategory(
-          API_ENDPOINTS.PRODUCTS_BY_CATEGORY + `?${params}`
+          `${API_ENDPOINTS.PRODUCTS_BY_CATEGORY}?${params}`
         );
-      } else return;
+      } else {
+        // Otherwise, fetch all products
+        return product.getAllProducts(API_ENDPOINTS.PRODUCTS);
+      }
     },
-    enabled: params.length > 0, // Don't fetch products unless there are selected categories
+    enabled: true, // Only fetch if params are available (non-empty string)
     ...option,
   });
 };

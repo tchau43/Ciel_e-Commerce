@@ -18,7 +18,8 @@ const {
 } = require("../controllers/productController");
 // const delay = require("../middleware/delay");
 const verifyToken = require("../middleware/auth");
-const { getAllCategories } = require("../controllers/categoryController");
+const { getAllCategories, createCategory } = require("../controllers/categoryController");
+const { updateProductToCart } = require("../controllers/cartController");
 
 const routerAPI = express.Router();
 
@@ -41,6 +42,7 @@ routerAPI.get("/user/:id", getUserById);
 
 //category
 routerAPI.get("/categories", getAllCategories);
+routerAPI.post("/category", createCategory);
 
 //product
 routerAPI.get("/products", getAllProducts);
@@ -50,5 +52,8 @@ routerAPI.get("/product", getProductsByName);
 routerAPI.post("/product", createProduct);
 routerAPI.put("/product/:id", updateProduct);
 routerAPI.delete("/product/:id", deleteProduct);
+
+//cart
+routerAPI.post("/cart", updateProductToCart)
 
 module.exports = routerAPI;

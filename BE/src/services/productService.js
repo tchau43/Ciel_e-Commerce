@@ -36,7 +36,7 @@ const getAllProductsService = async () => {
 
 const getProductByIdService = async (id) => {
   try {
-    const product = await Product.findById(id);
+    const product = await Product.findById(id).populate("category");
     if (!product) {
       throw new Error("Product not found");
     }
@@ -95,7 +95,7 @@ const getProductsByCategoryService = async (categories) => {
     const products = await Product.find({ category: { $in: categories } }).populate("category");
 
     if (products.length === 0) {
-      throw new Error("Product not found");
+      return [];
     }
 
     return products;

@@ -3,6 +3,7 @@ import { ProductData } from "@/types/dataTypes";
 import ProductIntro from "./ProductIntro";
 import { useEffect, useState } from "react";
 import { Button } from "../ui/button";
+import { useNavigate } from "react-router-dom";
 
 interface ProductsListProps {
   data: ProductData[];
