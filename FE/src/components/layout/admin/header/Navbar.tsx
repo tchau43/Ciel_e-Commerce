@@ -17,7 +17,7 @@ const Navbar: React.FC = () => {
         Users Management
       </NavLink>
       <NavLink
-        to="/"
+        to="/login"
         className="mx-2 hover:underline hover:text-blue-500"
         onClick={handleLogout}
       >

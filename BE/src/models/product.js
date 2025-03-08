@@ -6,13 +6,12 @@ const productSchema = new mongoose.Schema(
     price: { type: Number, required: true, min: 0 },
     shortDescription: String,
     description: String,
-    category: [
-      {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "Category",
-        required: true,
-      },
-    ],
+    category:
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Category",
+      required: true,
+    },
     tags: [String],
     brand: String,
     status: { type: String, enum: ["active", "inactive"], default: "active" },

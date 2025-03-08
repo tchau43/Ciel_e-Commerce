@@ -21,6 +21,7 @@ const getAllProducts = async (req, res) => {
 
 const getProductById = async (req, res) => {
   const { id } = req.params;
+  console.log("id", id)
   const data = await getProductByIdService(id);
   res.status(200).json(data);
 };
