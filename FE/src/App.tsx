@@ -17,6 +17,7 @@ import Product from "./components/product/Product.tsx";
 import ProductMoreInfo from "./components/product/ProductMoreInfo.tsx";
 import ProductWrapper from "./components/product/ProductWrapper.tsx";
 import CartPage from "./pages/cart/CartPage.tsx";
+import InvoicePage from "./pages/invoice/InvoicePage.tsx";
 
 function LoadingSpinner() {
   return (
@@ -78,6 +79,7 @@ function App() {
               <Route path="more" element={<ProductMoreInfo />}></Route>
             </Route>
             <Route path="cart/" element={<CartPage />}></Route>
+            <Route path="invoice/" element={<InvoicePage />}></Route>
           </Route>
         </Routes>
       </Suspense>
