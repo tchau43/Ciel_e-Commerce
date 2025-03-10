@@ -21,15 +21,15 @@ const getAllProducts = async (req, res) => {
 
 const getProductById = async (req, res) => {
   const { id } = req.params;
-  console.log("id", id)
+  // console.log("id", id)
   const data = await getProductByIdService(id);
   res.status(200).json(data);
 };
 
 const getProductsByName = async (req, res) => {
-  console.log("req", req)
+  // console.log("req", req)
   const { name } = req.query; // Assuming the search term is passed as a query parameter
-  console.log("name", name)
+  // console.log("name", name)
   if (!name) {
     return res.status(400).json({ message: "Keyword is required for search" });
   }
@@ -58,13 +58,13 @@ const deleteProduct = async (req, res) => {
 const getProductsByCategory = async (req, res) => {
   // console.log("req", req)
   const { category } = req.query; // Categories will come as an array of category IDs
-  console.log("category", category)
+  // console.log("category", category)
   if (!category) {
     return res.status(400).json({ message: "No categories selected." });
   }
   const categoryIds = Array.isArray(category) ? category : category.split(",");
   const data = await getProductsByCategoryService(categoryIds);
-  console.log("data", data)
+  // console.log("data", data)
   res.status(200).json(data);
 }
 

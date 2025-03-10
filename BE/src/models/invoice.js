@@ -27,7 +27,7 @@ const invoiceSchema = new mongoose.Schema({
     state: String,
     country: String,
     zipCode: String
-  }
+  },
 }, { timestamps: true });
 
 const Invoice = mongoose.model('Invoice', invoiceSchema);
