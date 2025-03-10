@@ -8,6 +8,7 @@ export type UserInfo = {
   _id: string;
   email?: string;
   name: string;
+  address: string;
 };
 
 export declare type LoginInput = {
@@ -55,8 +56,28 @@ export declare type ProductData = {
   moreInfomation: string;
 };
 
-export declare type CartData = {
+export declare type UpdateCartItemData = {
   userId: string;
-  productId: string;
+  productId: ProductData["_id"];
   changeQuantity: number;
+};
+
+export declare type CartItemData = {
+  product: ProductData;
+  quantity: number;
+  _id: string;
+};
+
+export declare type CartData = {
+  _id: string;
+  user: string;
+  items: CartItemData[];
+  totalPrice: number;
+};
+
+export declare type InvoiceInputData = {
+  userId: string;
+  productsList: CartItemData[];
+  payment: string;
+  address: string;
 };
