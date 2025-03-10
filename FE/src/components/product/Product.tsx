@@ -8,15 +8,15 @@ import {
 } from "react-router-dom";
 import ProductByCategory from "./ProductByCategory";
 import { useEffect, useState } from "react";
-import { useUpdateCartMutation } from "@/services/cart/updateCartMutation";
 import { getAuthCredentials } from "@/utils/authUtil";
+import { useAddProductToCartMutation } from "@/services/cart/addProductToCartMutation";
 
 const Product = () => {
   const navigate = useNavigate();
   const currentUrl = window.location.href;
   const [quantity, setQuantity] = useState<number>(1);
   const { id } = useParams();
-  const { mutate: updateCart, isPending } = useUpdateCartMutation();
+  const { mutate: updateCart, isPending } = useAddProductToCartMutation();
   const {
     data: product,
     isLoading,

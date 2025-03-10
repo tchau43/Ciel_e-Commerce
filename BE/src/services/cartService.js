@@ -22,29 +22,7 @@ const createCartService = async (cartData) => {
 };
 
 
-const addProductToCartService = async ({ userId, productId, quantity = 1 }) => {
-    try {
-        const cart = await Cart.findOne({ user: userId })
-        if (!cart) {
-            // Optionally, create a new cart if one doesn't exist
-            cart = new Cart({ user: userId, items: [] });
-        }
-        const productIndex = cart.items.findIndex(item => item.product.toString() === productId)
-
-        if (productIndex > -1) {
-            cart.items[productIndex].quantity += quantity;
-        }
-        else {
-            cart.items.push({ product: productId, quantity })
-        }
-        cart.save();
-        return cart;
-    } catch (error) {
-        throw new Error("Error adding product cart: " + error.message);
-    }
-}
-
-const updateProductToCartService = async (userId, productId, changeQuantity) => {
+const addProductToCartService = async (userId, productId, changeQuantity) => {
     try {
         // console.log("userId, productId, changeQuantity", userId, productId, changeQuantity)
         changeQuantity = parseInt(changeQuantity, 10);
@@ -60,6 +38,7 @@ const updateProductToCartService = async (userId, productId, changeQuantity) => 
                 cart.items.splice(productIndex, 1);
             }
         }
+
         else {
             await cart.items.push({ product: productId, quantity: changeQuantity })
         }
@@ -70,6 +49,44 @@ const updateProductToCartService = async (userId, productId, changeQuantity) => 
     }
 }
 
+const updateProductToCartService = async (userId, productId, changeQuantity) => {
+    try {
+        // console.log("userId, productId, changeQuantity", userId, productId, changeQuantity)
+        changeQuantity = parseInt(changeQuantity, 10);
+        let cart = await Cart.findOne({ user: userId })
+        if (!cart) {
+            cart = await new Cart({ user: userId, items: [] });
+        }
+
+        const productIndex = await cart.items.findIndex(item => item.product.toString() === productId)
+        if (productIndex > -1) {
+            cart.items[productIndex].quantity = changeQuantity;
+            if (cart.items[productIndex].quantity <= 0) {
+                cart.items.splice(productIndex, 1);
+            }
+        }
+
+        else {
+            await cart.items.push({ product: productId, quantity: changeQuantity })
+        }
+        await cart.save()
+        return cart;
+    } catch (error) {
+        throw new Error(`Error Changing Cart: ${error.message}`);
+    }
+}
+
+const getCartInforService = async (userId) => {
+    try {
+        let cart = await Cart.findOne({ user: userId }).populate("items.product");
+        if (!cart) {
+            cart = await new Cart({ user: userId, items: [] });
+        }
+        return cart
+    } catch (error) {
+        throw new Error(`Error Changing Cart: ${error.message}`);
+    }
+}
 
 // const updateCartItemQuantity = async ({ userId, productId, change }) => {
 //     try {
@@ -103,4 +120,4 @@ const updateProductToCartService = async (userId, productId, changeQuantity) => 
 // };
 
 
-module.exports = { createCartService, addProductToCartService, updateProductToCartService };
+module.exports = { createCartService, addProductToCartService, updateProductToCartService, getCartInforService };

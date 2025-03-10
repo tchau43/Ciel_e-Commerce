@@ -19,7 +19,8 @@ const {
 // const delay = require("../middleware/delay");
 const verifyToken = require("../middleware/auth");
 const { getAllCategories, createCategory } = require("../controllers/categoryController");
-const { updateProductToCart } = require("../controllers/cartController");
+const { updateProductToCart, getCartInfor, addProductToCart } = require("../controllers/cartController");
+const { createInvoice } = require("../controllers/invoiceController");
 
 const routerAPI = express.Router();
 
@@ -54,6 +55,12 @@ routerAPI.put("/product/:id", updateProduct);
 routerAPI.delete("/product/:id", deleteProduct);
 
 //cart
-routerAPI.post("/cart", updateProductToCart)
+routerAPI.post("/cart/updateCart", updateProductToCart)
+routerAPI.post("/cart/addToCart", addProductToCart)
+routerAPI.get("/cart/:userId", getCartInfor)
+
+//invoice
+routerAPI.post("/invoice/create", createInvoice)
+
 
 module.exports = routerAPI;

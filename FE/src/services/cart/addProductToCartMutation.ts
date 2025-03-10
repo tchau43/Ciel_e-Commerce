@@ -1,13 +1,13 @@
-import Cart from "@/repositories/cart/cart";
 import { UpdateCartItemData } from "@/types/dataTypes";
-import { API_ENDPOINTS } from "@/utils/api/endpoint";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import Cart from "@/repositories/cart/cart";
+import { API_ENDPOINTS } from "@/utils/api/endpoint";
 
-export const useUpdateCartMutation = () => {
+export const useAddProductToCartMutation = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: ({ variables }: { variables: UpdateCartItemData }) => {
-      return Cart.updateCart(API_ENDPOINTS.UPDATE_CART, variables);
+      return Cart.updateCart(API_ENDPOINTS.ADD_TO_CART, variables);
     },
     onSuccess: () => {
       // Invalidate the cart query to trigger a refetch
