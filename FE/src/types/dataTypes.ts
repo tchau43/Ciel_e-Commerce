@@ -81,3 +81,12 @@ export declare type InvoiceInputData = {
   payment: string;
   address: string;
 };
+
+export declare type StripeData = {
+  amount: number;
+};
+
+// Add to your dataTypes.ts
+export interface StripePaymentIntent {
+  clientSecret: string;
+}

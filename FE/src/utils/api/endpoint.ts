@@ -12,7 +12,7 @@ export const API_ENDPOINTS = {
   ADD_TO_CART: `${VITE_API_VERSION}/cart/addToCart`,
   CART: (id: string) => `${VITE_API_VERSION}/cart/${id}`,
   CREATE_INVOICE: `${VITE_API_VERSION}/invoice/create`,
-  FAVOUR: `${VITE_API_VERSION}/favourite`,
+  STRIPE: `${VITE_API_VERSION}/invoice/stripe`,
   USERSURVEY: `${VITE_API_VERSION}/user-survey`,
   COMMENT: `${VITE_API_VERSION}/comments`,
   USER_COMMENTS: `${VITE_API_VERSION}/user-comments`,

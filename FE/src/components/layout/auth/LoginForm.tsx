@@ -27,6 +27,7 @@ const LoginForm: React.FC = () => {
             _id: user._id,
             name: user.name,
             email: user.email,
+            address: user.address,
             // status: user.status,
             // image: user.image,
           };
