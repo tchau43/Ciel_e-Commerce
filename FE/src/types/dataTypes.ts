@@ -75,9 +75,14 @@ export declare type CartData = {
   totalPrice: number;
 };
 
+export declare type InvoiceProductInputData = {
+  productId: string;
+  quantity: number;
+};
+
 export declare type InvoiceInputData = {
   userId: string;
-  productsList: CartItemData[];
+  productsList: InvoiceProductInputData[];
   payment: string;
   address: string;
 };

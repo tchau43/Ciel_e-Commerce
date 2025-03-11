@@ -18,7 +18,9 @@ import ProductMoreInfo from "./components/product/ProductMoreInfo.tsx";
 import ProductWrapper from "./components/product/ProductWrapper.tsx";
 import CartPage from "./pages/cart/CartPage.tsx";
 import InvoicePage from "./pages/invoice/InvoicePage.tsx";
-import StripePaymentForm from "./pages/invoice/StripePaymentForm.tsx";
+import StripePaymentForm from "./components/stripe/StripePayment.tsx";
+import StripeForm from "./components/stripe/StripeForm.tsx";
+import StripePayment from "./components/stripe/StripePayment.tsx";
 
 function LoadingSpinner() {
   return (
@@ -61,6 +63,7 @@ function App() {
               <RoleBasedRoute allowedRoles={[Role.CUSTOMER]}>
                 <Suspense fallback={<LoadingSpinner />}>
                   <UserLayout />
+                  {/* <StripePayment /> */}
                 </Suspense>
               </RoleBasedRoute>
             }

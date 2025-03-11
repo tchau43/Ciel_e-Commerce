@@ -10,9 +10,9 @@ const InvoicePage = () => {
   const { userInfo } = getAuthCredentials();
   const { mutate: invoice, isError, isPending } = useCreateInvoiceMutation();
   const [paymentMethod, setPaymentMethod] = useState("pending");
-  const { cartItems, total } = location.state || {
-    cartItems: [],
-    total: 0,
+  const { cartItems, total } = (location.state || {}) as {
+    cartItems: CartItemData[];
+    total: number;
   };
 
   // Handle dropdown change
@@ -41,17 +41,22 @@ const InvoicePage = () => {
     }
 
     // Existing COD logic
-    invoice({
-      variables: {
-        userId: userInfo._id,
-        address: userInfo.address,
-        productsList: cartItems.map((c: CartItemData) => ({
-          productId: c.product._id,
-          quantity: c.quantity,
-        })),
-        payment: paymentMethod,
+    invoice(
+      {
+        variables: {
+          userId: userInfo._id,
+          address: userInfo.address,
+          productsList: cartItems.map((c: CartItemData) => ({
+            productId: c.product._id,
+            quantity: c.quantity,
+          })),
+          payment: paymentMethod,
+        },
       },
-    });
+      {
+        onSuccess: () => navigate("/product"),
+      }
+    );
   };
 
   return (
