@@ -51,6 +51,7 @@ const userLoginService = async (email, password) => {
             email: user.email,
             name: user.name,
             role: user.role,
+            address: user.address,
           },
         };
       } else {
@@ -83,9 +84,7 @@ const getAllUsersService = async () => {
 
 const getUserByIdService = async (id) => {
   try {
-    const users = await User.findById(
-      id
-    );
+    const users = await User.findById(id);
     return users;
   } catch (error) {
     console.log(error);
@@ -95,9 +94,11 @@ const getUserByIdService = async (id) => {
 
 const updateUserbyIdService = async (id, name, email, status, role) => {
   try {
-    const user = await User.findByIdAndUpdate(
-      id, {
-      name, email, status, role
+    const user = await User.findByIdAndUpdate(id, {
+      name,
+      email,
+      status,
+      role,
     });
     return user;
   } catch (error) {
@@ -111,5 +112,5 @@ module.exports = {
   userLoginService,
   getAllUsersService,
   updateUserbyIdService,
-  getUserByIdService
+  getUserByIdService,
 };

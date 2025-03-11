@@ -18,6 +18,7 @@ import ProductMoreInfo from "./components/product/ProductMoreInfo.tsx";
 import ProductWrapper from "./components/product/ProductWrapper.tsx";
 import CartPage from "./pages/cart/CartPage.tsx";
 import InvoicePage from "./pages/invoice/InvoicePage.tsx";
+import StripePaymentForm from "./pages/invoice/StripePaymentForm.tsx";
 
 function LoadingSpinner() {
   return (
@@ -80,6 +81,10 @@ function App() {
             </Route>
             <Route path="cart/" element={<CartPage />}></Route>
             <Route path="invoice/" element={<InvoicePage />}></Route>
+            <Route
+              path="invoice/stripe"
+              element={<StripePaymentForm />}
+            ></Route>
           </Route>
         </Routes>
       </Suspense>
