@@ -1,34 +1,27 @@
-import {
-  Elements,
-  CardElement,
-  useStripe,
-  useElements,
-} from "@stripe/react-stripe-js";
-import { loadStripe } from "@stripe/stripe-js";
-import { useEffect, useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
 import { useCreateInvoiceMutation } from "@/services/invoice/createInvoiceMutation";
 import { CartItemData } from "@/types/dataTypes";
 import { getAuthCredentials } from "@/utils/authUtil";
-import { useCreateStripePaymentMutation } from "@/services/invoice/createStripePaymentMutation";
+import {
+  CardElement,
+  PaymentElement,
+  useElements,
+  useStripe,
+} from "@stripe/react-stripe-js";
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
-// Initialize Stripe with the publishable key
-const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
-
-const StripeForm = ({
-  clientSecret,
-  total,
-  cartItems,
-}: {
+interface StripeFormProps {
   clientSecret: string;
   total: number;
   cartItems: CartItemData[];
-}) => {
+}
+
+const StripeForm = ({ clientSecret, total, cartItems }: StripeFormProps) => {
   const stripe = useStripe();
   const elements = useElements();
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
-  const { mutate: createInvoice } = useCreateInvoiceMutation();
+  const { mutate: invoice } = useCreateInvoiceMutation();
   const { userInfo } = getAuthCredentials();
   const navigate = useNavigate();
 
@@ -38,14 +31,21 @@ const StripeForm = ({
 
     setIsProcessing(true);
     try {
+      const cardElement = elements.getElement(CardElement);
+      if (!cardElement) {
+        setErrorMessage("Card element not found");
+        setIsProcessing(false);
+        return;
+      }
       const { error, paymentIntent } = await stripe.confirmCardPayment(
         clientSecret,
         {
           payment_method: {
-            card: elements.getElement(CardElement)!,
+            card: cardElement,
           },
         }
       );
+      console.log("paymentIntent:", paymentIntent);
 
       if (error) {
         setErrorMessage(error.message || "Payment failed");
@@ -54,17 +54,20 @@ const StripeForm = ({
       }
 
       if (paymentIntent?.status === "succeeded") {
-        createInvoice(
+        invoice(
           {
             variables: {
               userId: userInfo._id,
               address: userInfo.address,
-              productsList: cartItems,
+              productsList: cartItems.map((c: CartItemData) => ({
+                productId: c.product._id,
+                quantity: c.quantity,
+              })),
               payment: "paid",
             },
           },
           {
-            onSuccess: () => navigate("/order-success"),
+            onSuccess: () => navigate("/product"),
           }
         );
       }
@@ -115,55 +118,4 @@ const StripeForm = ({
   );
 };
 
-const StripePaymentForm = () => {
-  const location = useLocation();
-  const navigate = useNavigate();
-  const { cartItems, total } = (location.state || {}) as {
-    cartItems: CartItemData[];
-    total: number;
-  };
-
-  const {
-    mutate: createPaymentIntent,
-    data: paymentIntent,
-    isPending,
-    error,
-  } = useCreateStripePaymentMutation();
-
-  useEffect(() => {
-    if (!cartItems?.length || !total) {
-      navigate("/cart", { replace: true });
-      return;
-    }
-    if (total > 0) {
-      createPaymentIntent({ variables: { amount: total } });
-    }
-  }, [total, cartItems, createPaymentIntent, navigate]);
-
-  if (error) return <div className="text-red-500">Error: {error.message}</div>;
-  if (isPending)
-    return <div className="text-center p-4">Loading payment...</div>;
-
-  // Log the paymentIntent to debug
-  console.log("paymentIntent:", paymentIntent);
-
-  // Ensure clientSecret is available before rendering Elements
-  const clientSecret = paymentIntent?.clientSecret;
-  if (!clientSecret) {
-    return (
-      <div className="text-red-500">Error: clientSecret not available</div>
-    );
-  }
-
-  return (
-    <Elements stripe={stripePromise} options={{ clientSecret }}>
-      <StripeForm
-        clientSecret={clientSecret}
-        total={total}
-        cartItems={cartItems}
-      />
-    </Elements>
-  );
-};
-
-export default StripePaymentForm;
+export default StripeForm;
