@@ -1,4 +1,4 @@
-const { createInvoiceService } = require("../services/invoiceService");
+const { createInvoiceService, getInvoiceService } = require("../services/invoiceService");
 
 const createInvoice = async (req, res) => {
     const { userId, productsList, payment, address } = req.body
@@ -17,4 +17,14 @@ const createInvoice = async (req, res) => {
     }
 }
 
-module.exports = { createInvoice };
+const getInvoice = async (req, res) => {
+    const { userId } = req.body
+    try {
+        const data = await getInvoiceService(userId);
+        res.status(201).json(data);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+}
+
+module.exports = { createInvoice, getInvoice };

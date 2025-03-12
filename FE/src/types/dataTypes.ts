@@ -28,10 +28,10 @@ export declare type RegisterInput = {
 };
 
 export declare type User = {
+  _id: number;
   createdDate: string;
   email: string;
   name: string | null;
-  _id: number;
   imageUrl: string | null;
   role: Role;
   status: boolean;
@@ -80,7 +80,7 @@ export declare type InvoiceProductInputData = {
   quantity: number;
 };
 
-export declare type InvoiceInputData = {
+export declare type InvoiceRequest = {
   userId: string;
   productsList: InvoiceProductInputData[];
   payment: string;
@@ -91,7 +91,11 @@ export declare type StripeData = {
   amount: number;
 };
 
-// Add to your dataTypes.ts
-export interface StripePaymentIntent {
-  clientSecret: string;
-}
+export declare type InvoiceResponse = {
+  _id: string;
+  user: Partial<User>;
+  items: ProductData[];
+  totalAmount: number;
+  paymentStatus: string;
+  createdAt: string;
+};
