@@ -13,14 +13,14 @@ import UserHomePage from "./pages/user/UserHomePage.tsx";
 import EditUserPage from "./pages/user/EditUserPage.tsx";
 import ProductPage from "./pages/product/ProductPage.tsx";
 import ProductDescription from "./components/product/ProductDescription.tsx";
-import Product from "./components/product/Product.tsx";
 import ProductMoreInfo from "./components/product/ProductMoreInfo.tsx";
 import ProductWrapper from "./components/product/ProductWrapper.tsx";
 import CartPage from "./pages/cart/CartPage.tsx";
+import PaymentPage from "./pages/payment/PaymentPage.tsx";
+import StripePaymentPage from "./pages/payment/StripePaymentPage.tsx";
 import InvoicePage from "./pages/invoice/InvoicePage.tsx";
-import StripePaymentForm from "./components/stripe/StripePayment.tsx";
-import StripeForm from "./components/stripe/StripeForm.tsx";
-import StripePayment from "./components/stripe/StripePayment.tsx";
+import ProductInvoice from "./components/invoice/ProductInvoice.tsx";
+import InvoiceItems from "./components/invoice/InvoiceItems.tsx";
 
 function LoadingSpinner() {
   return (
@@ -68,6 +68,7 @@ function App() {
               </RoleBasedRoute>
             }
           >
+            <Route path="test/" element={<InvoicePage />}></Route>
             <Route index element={<UserHomePage />} />
             <Route
               path="product/*"
@@ -83,11 +84,12 @@ function App() {
               <Route path="more" element={<ProductMoreInfo />}></Route>
             </Route>
             <Route path="cart/" element={<CartPage />}></Route>
-            <Route path="invoice/" element={<InvoicePage />}></Route>
+            <Route path="payment/" element={<PaymentPage />}></Route>
             <Route
-              path="invoice/stripe"
-              element={<StripePaymentForm />}
+              path="payment/stripe"
+              element={<StripePaymentPage />}
             ></Route>
+            <Route path="invoice/" element={<InvoicePage />}></Route>
           </Route>
         </Routes>
       </Suspense>

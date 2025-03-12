@@ -16,7 +16,6 @@ const {
   deleteProduct,
   getProductsByCategory,
 } = require("../controllers/productController");
-// const delay = require("../middleware/delay");
 const verifyToken = require("../middleware/auth");
 const {
   getAllCategories,
@@ -27,19 +26,14 @@ const {
   getCartInfor,
   addProductToCart,
 } = require("../controllers/cartController");
-const { createInvoice } = require("../controllers/invoiceController");
+const { createInvoice, getInvoice } = require("../controllers/invoiceController");
 const {
-  stripePayment,
   createPaymentIntent,
 } = require("../controllers/stripeController");
 
 const routerAPI = express.Router();
 
 routerAPI.all("*", verifyToken);
-
-// routerAPI.get("/", (req, res) => {
-//     return res.status(200).json("Hello API");
-// })
 
 //route for register - login
 routerAPI.post("/register", createUser);
@@ -71,7 +65,8 @@ routerAPI.post("/cart/addToCart", addProductToCart);
 routerAPI.get("/cart/:userId", getCartInfor);
 
 //invoice
-routerAPI.post("/invoice/create", createInvoice);
+routerAPI.post("/invoice", createInvoice);
+routerAPI.post("/invoice/getInvoice", getInvoice);
 routerAPI.post("/invoice/stripe", createPaymentIntent);
 
 module.exports = routerAPI;

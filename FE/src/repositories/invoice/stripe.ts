@@ -1,4 +1,4 @@
-import { InvoiceInputData, StripeData } from "@/types/dataTypes";
+import { StripeData } from "@/types/dataTypes";
 import Base from "../base";
 
 class Stripe extends Base {

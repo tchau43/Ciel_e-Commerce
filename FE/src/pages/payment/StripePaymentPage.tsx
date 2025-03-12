@@ -4,12 +4,12 @@ import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { CartItemData } from "@/types/dataTypes";
 import { useCreateStripePaymentMutation } from "@/services/invoice/createStripePaymentMutation";
-import StripeForm from "./StripeForm";
+import StripeForm from "../../components/stripe/StripeForm";
 
 // Initialize Stripe with the publishable key
 const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
 
-const StripePayment = () => {
+const StripePaymentPage = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { cartItems, total } = (location.state || {}) as {
@@ -60,4 +60,4 @@ const StripePayment = () => {
   );
 };
 
-export default StripePayment;
+export default StripePaymentPage;

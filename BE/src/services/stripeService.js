@@ -26,17 +26,17 @@ const stripePaymentService = async (id) => {
 };
 
 const createPaymentIntentService = async (amount) => {
-    try {
-      const paymentIntent = await stripe.paymentIntents.create({
-        amount,
-        currency: "vnd",
-        payment_method_types: ["card"],
-      });
-      return paymentIntent; // Returns the full paymentIntent object
-    } catch (error) {
-      console.error(error);
-      throw error; // Propagate the error for better debugging
-    }
-  };
+  try {
+    const paymentIntent = await stripe.paymentIntents.create({
+      amount,
+      currency: "vnd",
+      payment_method_types: ["card"],
+    });
+    return paymentIntent; // Returns the full paymentIntent object
+  } catch (error) {
+    console.error(error);
+    throw error; // Propagate the error for better debugging
+  }
+};
 
 module.exports = { stripePaymentService, createPaymentIntentService };

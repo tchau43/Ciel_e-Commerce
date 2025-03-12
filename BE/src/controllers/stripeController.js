@@ -17,16 +17,17 @@ const stripePayment = async (req, res) => {
 };
 
 const createPaymentIntent = async (req, res) => {
-    const { amount } = req.body;
-    try {
-      const paymentIntent = await createPaymentIntentService(amount);
-      res.status(200).json({
-        clientSecret: paymentIntent.client_secret, // Extract client_secret string
-      });
-    } catch (error) {
-      console.error(error);
-      res.status(500).json({ error: error.message });
-    }
-  };
+  const { amount } = req.body;
+  try {
+    const paymentIntent = await createPaymentIntentService(amount);
+    // console.log("paymentIntent", paymentIntent)
+    res.status(200).json({
+      clientSecret: paymentIntent.client_secret, // Extract client_secret string
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: error.message });
+  }
+};
 
 module.exports = { stripePayment, createPaymentIntent };
