@@ -18,7 +18,7 @@ const createInvoice = async (req, res) => {
 }
 
 const getInvoice = async (req, res) => {
-    const { userId } = req.body
+    const { userId } = req.params
     try {
         const data = await getInvoiceService(userId);
         res.status(201).json(data);

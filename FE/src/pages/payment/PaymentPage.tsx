@@ -1,3 +1,4 @@
+import { useDeleteAllProductInCartMutation } from "@/services/cart/deleteAllProductInCartMutation";
 import { useCreateInvoiceMutation } from "@/services/invoice/createInvoiceMutation";
 import { CartItemData } from "@/types/dataTypes";
 import { getAuthCredentials } from "@/utils/authUtil";
@@ -14,6 +15,7 @@ const PaymentPage = () => {
     cartItems: CartItemData[];
     total: number;
   };
+  const { mutate: deleteProduct } = useDeleteAllProductInCartMutation();
 
   // Handle dropdown change
   const handlePaymentMethodChange = (
@@ -34,7 +36,7 @@ const PaymentPage = () => {
   const handleCheckout = () => {
     if (paymentMethod === "paid") {
       // Pass cart data to Stripe component
-      navigate("/invoice/stripe", {
+      navigate("/payment/stripe", {
         state: { cartItems, total },
       });
       return;
@@ -54,7 +56,12 @@ const PaymentPage = () => {
         },
       },
       {
-        onSuccess: () => navigate("/product"),
+        onSuccess: () => {
+          deleteProduct(userInfo._id, {
+            onSuccess: () => {},
+          });
+          navigate("/product");
+        },
       }
     );
   };

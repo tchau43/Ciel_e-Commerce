@@ -1,4 +1,4 @@
-const { updateProductToCartService, getCartInforService, addProductToCartService } = require("../services/cartService");
+const { updateProductToCartService, getCartInforService, addProductToCartService, removeAllProductsFromCartService } = require("../services/cartService");
 
 const updateProductToCart = async (req, res) => {
     const cartData = req.body;
@@ -23,4 +23,10 @@ const getCartInfor = async (req, res) => {
     res.status(200).json(data);
 }
 
-module.exports = { updateProductToCart, getCartInfor, addProductToCart }
+const removeAllProductsFromCart = async (req, res) => {
+    const { userId } = req.params
+    const data = await removeAllProductsFromCartService(userId)
+    res.status(200).json(data);
+}
+
+module.exports = { updateProductToCart, getCartInfor, addProductToCart, removeAllProductsFromCart }

@@ -10,7 +10,6 @@ import AdminUserManagementPage from "./pages/admin/AdminUserManagementPage .tsx"
 import AdminLayout from "./components/layout/admin/AdminLayout.tsx";
 import UserLayout from "./components/layout/user/UserLayout.tsx";
 import UserHomePage from "./pages/user/UserHomePage.tsx";
-import EditUserPage from "./pages/user/EditUserPage.tsx";
 import ProductPage from "./pages/product/ProductPage.tsx";
 import ProductDescription from "./components/product/ProductDescription.tsx";
 import ProductMoreInfo from "./components/product/ProductMoreInfo.tsx";
@@ -19,8 +18,9 @@ import CartPage from "./pages/cart/CartPage.tsx";
 import PaymentPage from "./pages/payment/PaymentPage.tsx";
 import StripePaymentPage from "./pages/payment/StripePaymentPage.tsx";
 import InvoicePage from "./pages/invoice/InvoicePage.tsx";
-import ProductInvoice from "./components/invoice/ProductInvoice.tsx";
-import InvoiceItems from "./components/invoice/InvoiceItems.tsx";
+import AdminProductsManagementPage from "./pages/admin/productMan/AdminProductsManagementPage.tsx";
+import EditUser from "./components/admin/edit/EditUser.tsx";
+import EditProduct from "./components/admin/edit/EditProduct.tsx";
 
 function LoadingSpinner() {
   return (
@@ -52,8 +52,10 @@ function App() {
             }
           >
             <Route index element={<AdminDashBoardPage />} />
-            <Route path="users" element={<AdminUserManagementPage />} />
-            <Route path="editUser/:id" element={<EditUserPage />} />
+            <Route path="users/" element={<AdminUserManagementPage />} />
+            <Route path="editUser/:id/" element={<EditUser />} />
+            <Route path="products/" element={<AdminProductsManagementPage />} />
+            <Route path="editProduct/:id/" element={<EditProduct />} />
           </Route>
 
           {/* Route for user */}
@@ -81,7 +83,7 @@ function App() {
             <Route path="product/:id/*" element={<ProductWrapper />}>
               {/* <Route path="product/:id/*" element={<Product />} /> */}
               <Route index element={<ProductDescription />}></Route>
-              <Route path="more" element={<ProductMoreInfo />}></Route>
+              <Route path="more/" element={<ProductMoreInfo />}></Route>
             </Route>
             <Route path="cart/" element={<CartPage />}></Route>
             <Route path="payment/" element={<PaymentPage />}></Route>

@@ -25,6 +25,7 @@ const {
   updateProductToCart,
   getCartInfor,
   addProductToCart,
+  removeAllProductsFromCart,
 } = require("../controllers/cartController");
 const { createInvoice, getInvoice } = require("../controllers/invoiceController");
 const {
@@ -63,10 +64,11 @@ routerAPI.delete("/product/:id", deleteProduct);
 routerAPI.post("/cart/updateCart", updateProductToCart);
 routerAPI.post("/cart/addToCart", addProductToCart);
 routerAPI.get("/cart/:userId", getCartInfor);
+routerAPI.delete("/cart/:userId", removeAllProductsFromCart);
 
 //invoice
 routerAPI.post("/invoice", createInvoice);
-routerAPI.post("/invoice/getInvoice", getInvoice);
+routerAPI.get("/invoice/:userId", getInvoice);
 routerAPI.post("/invoice/stripe", createPaymentIntent);
 
 module.exports = routerAPI;

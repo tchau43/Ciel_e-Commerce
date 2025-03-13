@@ -48,11 +48,14 @@ export declare type ProductData = {
   name: string;
   price: string;
   category: CategoryData;
-  images: string;
   tags: string[];
+  status: string;
   quantity_in_stock: number;
-  shortDescription: string;
+  images: string[];
+  createdAt: string;
+  brand: string;
   description: string;
+  shortDescription: string;
   moreInfomation: string;
 };
 
@@ -91,11 +94,18 @@ export declare type StripeData = {
   amount: number;
 };
 
+//invoice
 export declare type InvoiceResponse = {
   _id: string;
   user: Partial<User>;
-  items: ProductData[];
+  items: InvoiceItems[];
   totalAmount: number;
   paymentStatus: string;
   createdAt: string;
+};
+export declare type InvoiceItems = {
+  _id: string;
+  product: ProductData;
+  quantity: number;
+  priceAtPurchase: number;
 };

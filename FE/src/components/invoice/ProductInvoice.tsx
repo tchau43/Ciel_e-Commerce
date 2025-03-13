@@ -1,6 +1,10 @@
-import { TiDeleteOutline } from "react-icons/ti";
+import { InvoiceItems } from "@/types/dataTypes";
 
-const ProductInvoice = () => {
+interface ProductInvoiceProps {
+  product: InvoiceItems;
+}
+
+const ProductInvoice = ({ product }: ProductInvoiceProps) => {
   return (
     <div className="px-4 w-full max-w-7xl h-20 flex items-center">
       <div className="w-36">
@@ -9,9 +13,9 @@ const ProductInvoice = () => {
           src="https://placehold.co/300x400"
         ></img>
       </div>
-      <div className="flex-3">name</div>
-      <div className="flex-1">price</div>
-      <div className="flex-1">quantity</div>
+      <div className="flex-3">{product?.product.name}</div>
+      <div className="flex-2 text-center">{product?.quantity}</div>
+      <div className="flex-2 text-center">{product?.priceAtPurchase}</div>
     </div>
     // <div>sdfsdf</div>
   );

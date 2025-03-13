@@ -53,7 +53,8 @@ const CartPage = () => {
           <p>TOTAL: {total}</p>
           <button
             onClick={handleCheckout}
-            className="border rounded-md px-6 py-2 text-[16px] font-semibold bg-green-400 hover:bg-green-500 transition ease-in-out duration-200"
+            disabled={total === 0}
+            className="border rounded-md px-6 py-2 text-[16px] disabled:bg-gray-400 font-semibold bg-green-400 hover:bg-green-500 transition ease-in-out duration-200"
           >
             THANH TOÁN
           </button>

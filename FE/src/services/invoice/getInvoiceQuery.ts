@@ -10,9 +10,7 @@ export const useGetInvoiceQuery = (
   return useQuery<InvoiceResponse[]>({
     queryKey: ["invoices", variables],
     queryFn: () => {
-      return Invoice.getInvoice(API_ENDPOINTS.GET_INVOICE, {
-        userId: variables,
-      });
+      return Invoice.getInvoice(API_ENDPOINTS.GET_INVOICE(variables));
     },
     ...options,
   });

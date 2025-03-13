@@ -1,3 +1,4 @@
+import { useDeleteAllProductInCartMutation } from "@/services/cart/deleteAllProductInCartMutation";
 import { useCreateInvoiceMutation } from "@/services/invoice/createInvoiceMutation";
 import { CartItemData } from "@/types/dataTypes";
 import { getAuthCredentials } from "@/utils/authUtil";
@@ -24,6 +25,7 @@ const StripeForm = ({ clientSecret, total, cartItems }: StripeFormProps) => {
   const { mutate: invoice } = useCreateInvoiceMutation();
   const { userInfo } = getAuthCredentials();
   const navigate = useNavigate();
+  const { mutate: deleteProduct } = useDeleteAllProductInCartMutation();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -67,7 +69,12 @@ const StripeForm = ({ clientSecret, total, cartItems }: StripeFormProps) => {
             },
           },
           {
-            onSuccess: () => navigate("/product"),
+            onSuccess: () => {
+              deleteProduct(userInfo._id, {
+                onSuccess: () => {},
+              });
+              navigate("/product");
+            },
           }
         );
       }

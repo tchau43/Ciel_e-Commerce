@@ -1,8 +1,8 @@
 import { useParams } from "react-router-dom";
-import UserUpdateForm from "@/components/user/UserUpdateForm";
+import UserUpdateForm from "@/components/admin/form/UserUpdateForm";
 import { useGetUserQuery } from "@/services/user/getUserQuery";
 
-const EditUserPage: React.FC = () => {
+const EditUser: React.FC = () => {
   const { id } = useParams(); // Get user ID from URL
   const { data: user, error, isLoading } = useGetUserQuery(id!);
   //   console.log("data", user);
@@ -29,4 +29,4 @@ const EditUserPage: React.FC = () => {
   );
 };
 
-export default EditUserPage;
+export default EditUser;
