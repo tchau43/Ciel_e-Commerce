@@ -15,6 +15,7 @@ const {
   updateProduct,
   deleteProduct,
   getProductsByCategory,
+  searchProduct,
 } = require("../controllers/productController");
 const verifyToken = require("../middleware/auth");
 const {
@@ -27,10 +28,11 @@ const {
   addProductToCart,
   removeAllProductsFromCart,
 } = require("../controllers/cartController");
-const { createInvoice, getInvoice } = require("../controllers/invoiceController");
 const {
-  createPaymentIntent,
-} = require("../controllers/stripeController");
+  createInvoice,
+  getInvoice,
+} = require("../controllers/invoiceController");
+const { createPaymentIntent } = require("../controllers/stripeController");
 
 const routerAPI = express.Router();
 
@@ -56,6 +58,7 @@ routerAPI.get("/products", getAllProducts);
 routerAPI.get("/productsByCategory", getProductsByCategory);
 routerAPI.get("/product/:id", getProductById);
 routerAPI.get("/product", getProductsByName);
+routerAPI.get("/productsBySearch", searchProduct);
 routerAPI.post("/product", createProduct);
 routerAPI.put("/product/:id", updateProduct);
 routerAPI.delete("/product/:id", deleteProduct);

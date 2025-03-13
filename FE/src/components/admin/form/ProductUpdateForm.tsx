@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useGetAllCategoriesQuery } from "@/services/category/getAllCategoriesQuery";
+import { useUpdateProductMutation } from "@/services/product/updateProductMutation";
 import { ProductData } from "@/types/dataTypes";
 import { Loader } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -17,7 +18,11 @@ const ProductUpdateForm = ({ product }: ProductUpdateFormProps) => {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const { data: categories = [], isLoading } = useGetAllCategoriesQuery();
-  // const {} =
+  const {
+    mutate: productUpdate,
+    isError,
+    isPending,
+  } = useUpdateProductMutation();
   // Update form state when product prop changes
   useEffect(() => {
     setFormData({ ...product });
@@ -28,6 +33,17 @@ const ProductUpdateForm = ({ product }: ProductUpdateFormProps) => {
     setLoading(true);
     setMessage(null);
     // Your submit logic here
+    productUpdate(
+      { productId: formData._id, variables: formData },
+      {
+        onSuccess: () => {
+          setMessage("Update product Successfully!");
+          setTimeout(() => {
+            navigate("/admin/products"), 1000;
+          });
+        },
+      }
+    );
   };
 
   const handleChange = (
