@@ -3,6 +3,7 @@ import Navbar from "./Navbar";
 import { NavLink } from "react-router-dom";
 import { clearAuthCredentials } from "@/utils/authUtil";
 import { FaShoppingCart } from "react-icons/fa";
+import { FaHistory } from "react-icons/fa"; // History icon
 
 const Header: React.FC = () => {
   const handleLogout = () => {
@@ -13,6 +14,9 @@ const Header: React.FC = () => {
       <div className="right-4 top-1 w-fit absolute flex  items-center gap-x-4">
         <NavLink to="/cart">
           <FaShoppingCart />
+        </NavLink>
+        <NavLink to="/invoice">
+          <FaHistory />
         </NavLink>
         <NavLink
           to="/login"

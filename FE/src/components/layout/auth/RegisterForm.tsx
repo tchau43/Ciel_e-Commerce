@@ -9,7 +9,7 @@ const RegisterForm: React.FC = () => {
     email: "",
     password: "",
   });
-  const { mutate: register } = useRegisterMutation();
+  const { InvoiceRequest: register } = useRegisterMutation();
   const [errorMsg, setErrorMsg] = useState<string>("");
   const navigate = useNavigate();
   const [confirmPassword, setConfirmPassword] = useState<string>("");

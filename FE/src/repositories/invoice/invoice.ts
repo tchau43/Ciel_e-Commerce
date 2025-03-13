@@ -5,8 +5,8 @@ class Invoice extends Base {
   createInvoice = (url: string, variables: InvoiceRequest) => {
     return this.http(url, "post", variables);
   };
-  getInvoice = (url: string, variables: { userId: string }) => {
-    return this.http(url, "post", variables);
+  getInvoice = (url: string) => {
+    return this.http(url, "get");
   };
 }
 

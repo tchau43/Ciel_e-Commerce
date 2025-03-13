@@ -27,7 +27,7 @@ const createProductService = async (productData) => {
 
 const getAllProductsService = async () => {
   try {
-    const allProducts = await Product.find({});
+    const allProducts = await Product.find({}).populate("category");
     return allProducts;
   } catch (error) {
     throw new Error("Error creating product: " + error.message);

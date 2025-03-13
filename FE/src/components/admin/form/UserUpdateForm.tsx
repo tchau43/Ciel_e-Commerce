@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { User } from "@/types/dataTypes";
 import { Button } from "@/components/ui/button";
@@ -17,7 +17,9 @@ const UserUpdateForm: React.FC<UserUpdateFormProps> = ({ user }) => {
   const [message, setMessage] = useState<string | null>(null);
   const { mutate: updateUser, isPending } = useUpdateUserByIdMutation();
   const navigate = useNavigate();
-
+  useEffect(() => {
+    setFormData({ ...user });
+  }, [user]);
   if (isPending)
     return <p className="text-center text-gray-600">Loading users data...</p>;
 

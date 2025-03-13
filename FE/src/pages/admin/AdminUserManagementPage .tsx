@@ -1,5 +1,5 @@
 import { UserEditProvider } from "@/components/context/UserEditContext";
-import UserManagementTable from "@/components/layout/admin/mangement/UserManagementTable";
+import UserManagementTable from "@/components/admin/mangement/UserManagementTable";
 import { useUsersQuery } from "@/services/admin/getUsersQuery";
 import { useState } from "react";
 
