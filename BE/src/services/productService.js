@@ -67,7 +67,7 @@ const updateProductService = async (id, productData) => {
     const product = await Product.findByIdAndUpdate(id, productData, {
       new: true,
       runValidators: true,
-    });
+    }).populate("category");
     if (!product) {
       throw new Error("Product not found");
     }
@@ -93,7 +93,9 @@ const getProductsByCategoryService = async (categories) => {
   try {
     // Find products where the category matches any of the categoryIds
     // const products = await Product.find({ category: { $in: categories } });
-    const products = await Product.find({ category: { $in: categories } }).populate("category");
+    const products = await Product.find({
+      category: { $in: categories },
+    }).populate("category");
 
     if (products.length === 0) {
       return [];
@@ -106,6 +108,27 @@ const getProductsByCategoryService = async (categories) => {
   }
 };
 
+const searchProductService = async (searchText) => {
+  try {
+    const products = await Product.find({
+      $or: [
+        { name: { $regex: searchText, $options: "i" } }, // Search by name (case-insensitive)
+        { price: { $regex: searchText, $options: "i" } }, // Search by name (case-insensitive)
+        { description: { $regex: searchText, $options: "i" } }, // Search by description (case-insensitive)
+        { "category.name": { $regex: searchText, $options: "i" } }, // Search by category name (case-insensitive)
+      ],
+    }).populate("category"); // Populate category for related information
+
+    if (products.length === 0) {
+      throw new Error("No products found matching the search criteria");
+    }
+
+    return products;
+  } catch (error) {
+    console.error(error);
+    throw new Error("Error founding product by category: " + error.message);
+  }
+};
 
 module.exports = {
   createProductService,
@@ -114,5 +137,6 @@ module.exports = {
   getProductsByNameService,
   updateProductService,
   deleteProductService,
-  getProductsByCategoryService
+  getProductsByCategoryService,
+  searchProductService,
 };

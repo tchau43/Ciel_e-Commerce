@@ -8,6 +8,7 @@ export const API_ENDPOINTS = {
   PRODUCTS: `${VITE_API_VERSION}/products`,
   PRODUCT_BY_ID: (id: string) => `${VITE_API_VERSION}/product/${id}`,
   PRODUCTS_BY_CATEGORY: `${VITE_API_VERSION}/productsByCategory`,
+  SEARCH_PRODUCT: `${VITE_API_VERSION}/productsBySearch/`,
   UPDATE_CART: `${VITE_API_VERSION}/cart/updateCart`,
   ADD_TO_CART: `${VITE_API_VERSION}/cart/addToCart`,
   CART: (id: string) => `${VITE_API_VERSION}/cart/${id}`,

@@ -6,6 +6,7 @@ const {
   getProductsByNameService,
   updateProductService,
   getProductsByCategoryService,
+  searchProductService,
 } = require("../services/productService");
 
 const createProduct = async (req, res) => {
@@ -66,7 +67,13 @@ const getProductsByCategory = async (req, res) => {
   const data = await getProductsByCategoryService(categoryIds);
   // console.log("data", data)
   res.status(200).json(data);
-}
+};
+
+const searchProduct = async (req, res) => {
+  const { searchText } = req.query;
+  const data = await searchProductService(searchText);
+  res.status(200).json(data);
+};
 
 module.exports = {
   createProduct,
@@ -76,4 +83,5 @@ module.exports = {
   updateProduct,
   deleteProduct,
   getProductsByCategory,
+  searchProduct,
 };

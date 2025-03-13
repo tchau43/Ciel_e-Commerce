@@ -1,3 +1,4 @@
+import { ProductData } from "@/types/dataTypes";
 import Base from "../base";
 
 class Product extends Base {
@@ -11,6 +12,14 @@ class Product extends Base {
   };
 
   getProductById = (url: string) => {
+    return this.http(url, "get");
+  };
+
+  updateProduct = (url: string, variables: ProductData) => {
+    return this.http(url, "put", variables);
+  };
+
+  getProductBySearch = (url: string) => {
     return this.http(url, "get");
   };
 }
