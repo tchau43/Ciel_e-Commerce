@@ -4,7 +4,7 @@ import { API_ENDPOINTS } from "@/utils/api/endpoint";
 
 export const useGetProductBySearchQuery = (params: string) => {
   return useQuery({
-    queryKey: ["product"],
+    queryKey: ["product", params],
     queryFn: () => {
       if (params) {
         // If params are set, fetch products by category

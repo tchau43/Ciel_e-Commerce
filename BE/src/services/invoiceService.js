@@ -42,15 +42,19 @@ const createInvoiceService = async (userId, productsList, payment, address) => {
     }
 }
 
+// services/invoiceService.js
 const getInvoiceService = async (userId) => {
     try {
-        const invoices = await Invoice.find({ user: userId }).populate("items.product");
-        if (invoices.length === 0) {
-            return []
-        }
-        return invoices
+        const invoices = await Invoice.find({ user: userId })
+            .populate({
+                path: 'items.product',
+                populate: {
+                    path: 'category', // Populate product's category
+                    model: 'Category'
+                }
+            });
+        return invoices;
     } catch (error) {
-        console.error(error);
         throw new Error("Error getting invoice: " + error.message);
     }
 }

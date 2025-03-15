@@ -119,6 +119,9 @@ const Product = () => {
         <div className="ml-2 w-fit">
           {/* <div className="ml-2 w-[360px] 2xl:w-[500px]"> */}
           <p className="font-semibold text-xl">{product.name}</p>
+          <p className="font-semibold text-[rgba(213,106,54,1)]">
+            {Number(product.price).toLocaleString("vi-VN")} VND
+          </p>
           <div className="mt-10 space-y-4">
             <p className="text-[rgba(76,73,74,1)] text-sm font-medium">
               {product.shortDescription}

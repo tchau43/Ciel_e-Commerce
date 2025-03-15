@@ -31,7 +31,7 @@ const ProductIntro = ({ data }: ProductIntroProps) => {
         {data.name}
       </p>
       <p className="text-sm font-semibold text-red-300 line-clamp-1 min-h-[1.25em] leading-tight">
-        {data.price} VND
+        {Number(data.price).toLocaleString("vi-VN")} VND
       </p>
     </div>
   );
