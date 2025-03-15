@@ -25,14 +25,21 @@ const createProductService = async (productData) => {
   }
 };
 
-const getAllProductsService = async () => {
+const getAllProductsService = async (sort) => {
   try {
-    const allProducts = await Product.find({}).populate("category");
-    return allProducts;
+    let sortOption = {};
+    if (sort) {
+      const [field, order] = sort.split(':');
+      sortOption[field] = order === 'desc' ? -1 : 1;
+    }
+    return await Product.find({})
+      .sort(sortOption)
+      .populate("category");
   } catch (error) {
-    throw new Error("Error creating product: " + error.message);
+    throw new Error("Error getting products: " + error.message);
   }
 };
+
 
 const getProductByIdService = async (id) => {
   try {
@@ -108,25 +115,56 @@ const getProductsByCategoryService = async (categories) => {
   }
 };
 
-const searchProductService = async (searchText) => {
-  try {
-    const products = await Product.find({
-      $or: [
-        { name: { $regex: searchText, $options: "i" } }, // Search by name (case-insensitive)
-        { price: { $regex: searchText, $options: "i" } }, // Search by name (case-insensitive)
-        { description: { $regex: searchText, $options: "i" } }, // Search by description (case-insensitive)
-        { "category.name": { $regex: searchText, $options: "i" } }, // Search by category name (case-insensitive)
-      ],
-    }).populate("category"); // Populate category for related information
+// const searchProductService = async (searchText) => {
+//   try {
+//     const products = await Product.find({
+//       $or: [
+//         { name: { $regex: searchText, $options: "i" } }, // Search by name (case-insensitive)
+//         // { price: { $regex: searchText } }, // Search by name (case-insensitive)
+//         { description: { $regex: searchText, $options: "i" } }, // Search by description (case-insensitive)
+//         { "category.name": { $regex: searchText, $options: "i" } }, // Search by category name (case-insensitive)
+//       ],
+//     }).populate("category"); // Populate category for related information
 
-    if (products.length === 0) {
-      throw new Error("No products found matching the search criteria");
+//     if (products.length === 0) {
+//       throw new Error("No products found matching the search criteria");
+//     }
+
+//     return products;
+//   } catch (error) {
+//     console.error(error);
+//     throw new Error("Error founding product by category: " + error.message);
+//   }
+// };
+
+const searchProductService = async (searchText, categories = []) => {
+  try {
+    const query = {};
+
+    // Add search conditions only if searchText exists
+    if (searchText) {
+      query.$or = [
+        { name: { $regex: searchText, $options: "i" } },
+        { description: { $regex: searchText, $options: "i" } },
+        { "category.name": { $regex: searchText, $options: "i" } }
+      ];
+      const numericValue = parseFloat(searchText);
+      if (!isNaN(numericValue)) {
+        // Add price condition to $or array
+        query.$or.push({ price: { $lte: numericValue } });
+      }
     }
 
+    // Add category filter if categories are provided
+    if (categories.length > 0) {
+      query.category = { $in: categories };
+    }
+
+    const products = await Product.find(query).populate("category");
     return products;
   } catch (error) {
     console.error(error);
-    throw new Error("Error founding product by category: " + error.message);
+    throw new Error("Error searching products: " + error.message);
   }
 };
 

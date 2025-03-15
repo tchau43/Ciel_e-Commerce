@@ -5,7 +5,7 @@ import { useNavigate } from "react-router-dom";
 interface CategoriesListProps {
   data: CategoryData[];
   queryParams: string | null;
-  setQueryParams: React.Dispatch<React.SetStateAction<string | null>>;
+  setQueryParams: React.Dispatch<React.SetStateAction<string>>;
 }
 
 const CategoriesList = ({
@@ -28,14 +28,29 @@ const CategoriesList = ({
   };
 
   // Build query string and update URL.
+  // const changeCateParams = (cateList: string[]) => {
+  //   const params = new URLSearchParams();
+  //   cateList.forEach((c) => params.append("category", c));
+  //   const paramsStr = params.toString();
+  //   console.log("Updated query params:", paramsStr);
+  //   // Update parent's queryParams state and URL
+  //   setQueryParams(paramsStr);
+  //   navigate(`?${paramsStr}`, { replace: true });
+  // };
+
   const changeCateParams = (cateList: string[]) => {
-    const params = new URLSearchParams();
+    const params = new URLSearchParams(queryParams || "");
+
+    // Clear existing categories first
+    params.delete("category");
+
+    // Add new categories
     cateList.forEach((c) => params.append("category", c));
-    const paramsStr = params.toString();
-    console.log("Updated query params:", paramsStr);
-    // Update parent's queryParams state and URL
-    setQueryParams(paramsStr);
-    navigate(`?${paramsStr}`, { replace: true });
+
+    // Preserve search text
+    const newParams = params.toString();
+    setQueryParams(newParams);
+    navigate(`?${newParams}`, { replace: true });
   };
 
   // Optionally, sync local state with queryParams when they change externally

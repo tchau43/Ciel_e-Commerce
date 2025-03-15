@@ -15,7 +15,9 @@ const ProductInvoice = ({ product }: ProductInvoiceProps) => {
       </div>
       <div className="flex-3">{product?.product.name}</div>
       <div className="flex-2 text-center">{product?.quantity}</div>
-      <div className="flex-2 text-center">{product?.priceAtPurchase}</div>
+      <div className="flex-2 text-center">
+        {Number(product?.priceAtPurchase).toLocaleString("vi-VN")} VND
+      </div>
     </div>
     // <div>sdfsdf</div>
   );

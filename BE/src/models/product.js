@@ -18,6 +18,7 @@ const productSchema = new mongoose.Schema(
     quantity_in_stock: { type: Number, min: 0, default: 0 },
     images: [String],
     moreInfomation: String,
+    popularity: { type: Number, default: 0 },
   },
   { timestamps: true }
 );

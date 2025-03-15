@@ -42,7 +42,8 @@ const InvoiceItems = ({ invoiceItem }: InvoiceItemsProps) => {
         <ProductInvoice product={product} />
       ))}
       <div className="text-right my-4 font-bold mr-24">
-        Tổng / Total: {invoiceItem.totalAmount}
+        Tổng / Total: {Number(invoiceItem.totalAmount).toLocaleString("vi-VN")}{" "}
+        VND
       </div>
     </div>
   );
