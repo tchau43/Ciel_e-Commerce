@@ -36,7 +36,7 @@ const updateProducts = async () => {
             product.quantity_in_stock = product.quantity_in_stock || 0; // Default stock quantity
             product.images = product.images || []; // Default to empty array if no images
             product.moreInfomation = product.moreInfomation || product.name + " moreInfomation"; // Default to empty string if not present
-
+            product.popularity = product.popularity || 3
             // Save the updated product
             await product.save();
         }
