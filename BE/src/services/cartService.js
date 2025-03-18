@@ -88,36 +88,27 @@ const getCartInforService = async (userId) => {
     }
 }
 
-// const updateCartItemQuantity = async ({ userId, productId, change }) => {
-//     try {
-//         // Find the cart for the user
-//         let cart = await Cart.findOne({ user: userId });
-//         if (!cart) {
-//             throw new Error("Cart not found for the user");
-//         }
+const removeAllProductsFromCartService = async (userId) => {
+    try {
+        // Find the cart for the user
+        let cart = await Cart.findOne({ user: userId });
 
-//         // Find the index of the product in the cart items
-//         const itemIndex = cart.items.findIndex(item => item.product.toString() === productId);
-//         if (itemIndex === -1) {
-//             throw new Error("Product not found in cart");
-//         }
+        if (!cart) {
+            throw new Error("Cart not found for the user");
+        }
 
-//         // Update the product's quantity
-//         cart.items[itemIndex].quantity += change;
+        // Empty the items array to remove all products
+        cart.items = [];
 
-//         // If quantity drops to 0 or below, remove the item from the cart
-//         if (cart.items[itemIndex].quantity <= 0) {
-//             cart.items.splice(itemIndex, 1);
-//         }
+        // Save the updated cart
+        await cart.save();
 
-//         // Optionally, update totalPrice here if needed
-
-//         await cart.save();
-//         return cart;
-//     } catch (error) {
-//         throw new Error("Error updating cart item: " + error.message);
-//     }
-// };
+        return cart; // Return the updated cart
+    } catch (error) {
+        throw new Error("Error removing all products from cart: " + error.message);
+    }
+};
 
 
-module.exports = { createCartService, addProductToCartService, updateProductToCartService, getCartInforService };
+
+module.exports = { createCartService, addProductToCartService, updateProductToCartService, getCartInforService, removeAllProductsFromCartService };

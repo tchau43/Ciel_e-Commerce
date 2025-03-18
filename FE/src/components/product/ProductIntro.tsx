@@ -19,7 +19,7 @@ const ProductIntro = ({ data }: ProductIntroProps) => {
 
   return (
     <div
-      className="w-48 hover:cursor-pointer"
+      className="w-48 hover:cursor-pointer flex flex-col"
       onClick={() => handleClickProduct(data._id)}
     >
       <img
@@ -27,8 +27,11 @@ const ProductIntro = ({ data }: ProductIntroProps) => {
         src="https://placehold.co/300x400"
         alt={data.name}
       />
-      <p className="text-sm text-center line-clamp-2 min-h-[2.5em] leading-tight">
+      <p className="my-1 text-sm font-bold line-clamp-2 min-h-[2.5em] leading-tight">
         {data.name}
+      </p>
+      <p className="text-sm font-semibold text-red-300 line-clamp-1 min-h-[1.25em] leading-tight">
+        {Number(data.price).toLocaleString("vi-VN")} VND
       </p>
     </div>
   );

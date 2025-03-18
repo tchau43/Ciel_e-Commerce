@@ -11,6 +11,10 @@ class Cart extends Base {
     return this.http(url, "get");
   };
 
+  deleteProductInCart = (url: string) => {
+    return this.http(url, "delete");
+  };
+
   // addProductToCart = (url: string, variables: UpdateCartItemData) => {
   //   return this.http(url, "post", variables);
   // };

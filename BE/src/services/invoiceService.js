@@ -38,8 +38,25 @@ const createInvoiceService = async (userId, productsList, payment, address) => {
         return savedInvoice;
 
     } catch (error) {
-        throw new Error("Error creating cart: " + error.message);
+        throw new Error("Error creating invoice: " + error.message);
     }
 }
 
-module.exports = { createInvoiceService }
+// services/invoiceService.js
+const getInvoiceService = async (userId) => {
+    try {
+        const invoices = await Invoice.find({ user: userId })
+            .populate({
+                path: 'items.product',
+                populate: {
+                    path: 'category', // Populate product's category
+                    model: 'Category'
+                }
+            });
+        return invoices;
+    } catch (error) {
+        throw new Error("Error getting invoice: " + error.message);
+    }
+}
+
+module.exports = { createInvoiceService, getInvoiceService }
