@@ -43,12 +43,18 @@ const ProductPage = () => {
     // const newParams = params.toString();
     // setQueryParams(newParams);
     // navigate(`?${newParams}`, { replace: true });
+    if (params.toString()) {
+      params.set("_t", Date.now().toString());
+    }
+    console.log(">>>>>>>>>>>>>>>>params", params.toString());
     navigate(`?${params.toString()}`, { replace: true });
   };
 
   // Sync state with URL parameters
   useEffect(() => {
     const params = new URLSearchParams(location.search);
+    params.delete("_t"); // Remove timestamp before updating state
+
     setQueryParams(params.toString());
     setSearchInput(params.get("searchText") || "");
   }, [location.search]);
