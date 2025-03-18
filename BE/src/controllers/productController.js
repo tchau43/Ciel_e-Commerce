@@ -16,7 +16,6 @@ const createProduct = async (req, res) => {
 };
 
 const getAllProducts = async (req, res) => {
-  console.log("getAllProducts")
   const { sort } = req.query;
   const data = await getAllProductsService(sort);
   res.status(200).json(data);
@@ -31,7 +30,7 @@ const getProductById = async (req, res) => {
 
 const getProductsByName = async (req, res) => {
   // console.log("req", req)
-  const { name } = req.query; // Assuming the search term is passed as a query parameter
+  const { name } = req.query;
   // console.log("name", name)
   if (!name) {
     return res.status(400).json({ message: "Keyword is required for search" });

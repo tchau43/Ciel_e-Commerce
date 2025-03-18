@@ -57,6 +57,7 @@ const CategoriesList = ({
   useEffect(() => {
     // Always parse queryParams (even if empty)
     const params = new URLSearchParams(queryParams || "");
+    // Force refresh for ALL/none selection
     const newCheckedCate = params.getAll("category");
     setCheckedCate(newCheckedCate);
   }, [queryParams]); // Update when queryParams changes

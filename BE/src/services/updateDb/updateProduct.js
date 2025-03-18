@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
-const Product = require('../../models/product'); // Adjust the path to your Product model
+const Category = require('../../models/category');
+const { ProductIndex, Product } = require('../../models/product');
 
 require('dotenv').config();
 
@@ -9,8 +10,8 @@ mongoose.connect(process.env.MONGO_DB_URL, {
     useUnifiedTopology: true,
 })
     .then(() => {
-        console.log('Connected to MongoDB');
-        updateProducts();
+        // console.log('Connected to MongoDB');
+        // updateProducts();
     })
     .catch((err) => {
         console.error('Error connecting to MongoDB:', err);
@@ -71,4 +72,49 @@ const updateAllProductsToSingleCategory = async () => {
     }
 };
 
+const updateProductIndex = async () => {
+    try {
+        // Normalize input to an array
+        // const ids = Array.isArray(productIds) ? productIds : productIds ? productIds.split(",") : [];
+        const products = await Product.find({});
+        // console.log("ids", ids)
+        // console.log("products", products)
 
+        for (const p of products) {
+            const cate = await Category.findOne({ _id: p.category });
+            if (!cate) {
+                console.error(`Category not found for product ${p._id}`);
+                continue;
+            }
+
+            const processField = (field) => (field || "").toLowerCase().trim().replace(/\s+/g, "_");
+
+            const parts = [
+                processField(p.name),
+                processField(cate.name),
+                processField(p.description),
+                processField(p.shortDescription),
+                processField(p.moreInfomation),
+            ].filter((part) => part);
+
+            const productIndexStr = parts.join("_");
+
+            const productIndex = await ProductIndex.findOneAndUpdate(
+                { product: p._id },
+                {
+                    productIndex: productIndexStr,
+                    price: p.price,
+                },
+                { upsert: true, new: true }
+            );
+
+            p.productIndex = productIndex._id;
+            await p.save();
+        }
+        console.log("Product indexes updated successfully");
+    } catch (error) {
+        console.error("Error updating product indexes:", error);
+    }
+};
+
+module.exports = { updateProductIndex, updateProducts }
