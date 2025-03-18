@@ -60,7 +60,7 @@ const deleteProduct = async (req, res) => {
 const getProductsByCategory = async (req, res) => {
   // console.log("req", req)
   const { category } = req.query; // Categories will come as an array of category IDs
-  console.log("category", category)
+  console.log("category", category);
   if (!category) {
     return res.status(400).json({ message: "No categories selected." });
   }
@@ -91,7 +91,7 @@ const searchProduct = async (req, res) => {
     // Handle case where both searchText and category are empty
     if (!searchText && categories.length === 0) {
       return res.status(400).json({
-        message: "Please provide search text or select categories"
+        message: "Please provide search text or select categories",
       });
     }
 

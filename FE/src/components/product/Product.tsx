@@ -10,6 +10,8 @@ import ProductByCategory from "./ProductByCategory";
 import { useEffect, useState } from "react";
 import { getAuthCredentials } from "@/utils/authUtil";
 import { useAddProductToCartMutation } from "@/services/cart/addProductToCartMutation";
+const VITE_API_VERSION = import.meta.env.VITE_API_VERSION || "/v1"; // Default to "/v1" if not set
+const VITE_BACKEND_URL = import.meta.env.VITE_BACKEND_URL || "/v1"; // Default to "/v1" if not set
 
 const Product = () => {
   const navigate = useNavigate();
@@ -24,6 +26,16 @@ const Product = () => {
   } = useGetProductByIdQuery(id!, {
     enable: true,
   });
+
+  // Declare an array of image sources
+  const imageSources = product?.images
+    ? product.images.slice(0, 4).map((image) => {
+        return `${VITE_BACKEND_URL}/${image}`;
+      })
+    : []; // Default to an empty array if no images are present
+
+  // console.log(">>>>>>>>>>product", product);
+  console.log(">>>>>>>>>>imageSources", imageSources);
 
   useEffect(() => {
     console.log("Product currentUrl changed:", currentUrl);
@@ -78,8 +90,12 @@ const Product = () => {
       },
     });
   };
+  const check = product.images?.[0]
+    ? `${VITE_BACKEND_URL}/${product.images[0]}`
+    : "/logo.png";
+  console.log(">>>>>>>>>>>>>>check", check);
 
-  // console.log("product", product);
+  const handleImgClick = (index: number) => {};
 
   return (
     <div className="">
@@ -103,18 +119,38 @@ const Product = () => {
         </span>
       </p>
       <div className=" w-full h-[404px] 2xl:h-[600px] flex justify-between">
+        {/* <div className="h-full flex flex-col justify-between">
+          <img className="h-1/5 aspect-square" alt="" src="/logo.png"></img>
+          <img className="h-1/5 aspect-square" alt="" src="/logo.png"></img>
+          <img className="h-1/5 aspect-square" alt="" src="/logo.png"></img>
+          <img className="h-1/5 aspect-square" alt="" src="/logo.png"></img>
+        </div> */}
         <div className="h-full flex flex-col justify-between">
-          <img className="h-1/5 aspect-square" alt="" src="/logo.png"></img>
-          <img className="h-1/5 aspect-square" alt="" src="/logo.png"></img>
-          <img className="h-1/5 aspect-square" alt="" src="/logo.png"></img>
-          <img className="h-1/5 aspect-square" alt="" src="/logo.png"></img>
+          {imageSources.map((i, index) => (
+            <img
+              className="h-1/5 aspect-square"
+              alt=""
+              src={i}
+              onClick={() => handleImgClick(index)}
+            />
+          ))}
         </div>
         <div className="">
           <img
-            className="h-full w-full aspect-square"
-            alt=""
-            src="/logo.png"
-          ></img>
+            className="h-full w-full aspect-square object-contain"
+            alt={product.name}
+            src={
+              product.images?.[0]
+                ? `${VITE_BACKEND_URL}/${product.images[0]}`
+                : "/logo.png"
+            }
+            onError={() =>
+              console.error(
+                "Image failed to load:",
+                `${VITE_BACKEND_URL}${product.images[0]}`
+              )
+            }
+          />
         </div>
         <div className="ml-2 w-fit">
           {/* <div className="ml-2 w-[360px] 2xl:w-[500px]"> */}
