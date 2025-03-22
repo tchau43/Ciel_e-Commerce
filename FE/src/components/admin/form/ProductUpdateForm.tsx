@@ -6,6 +6,8 @@ import { ProductData } from "@/types/dataTypes";
 import { Loader } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import axios from "../../../utils/api/axios";
+const VITE_BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
 interface ProductUpdateFormProps {
   product: ProductData;
@@ -13,37 +15,120 @@ interface ProductUpdateFormProps {
 
 const ProductUpdateForm = ({ product }: ProductUpdateFormProps) => {
   const [formData, setFormData] = useState<ProductData>({ ...product });
-  const [newImageUrl, setNewImageUrl] = useState(""); // New state for image URL input
+  const [newImageUrl, setNewImageUrl] = useState("");
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null); // For local file
+  const [imagePreviewUrl, setImagePreviewUrl] = useState(""); // Preview for local file
   const { data: categories = [], isLoading } = useGetAllCategoriesQuery();
   const {
     mutate: productUpdate,
     isError,
     isPending,
   } = useUpdateProductMutation();
-  // Update form state when product prop changes
   useEffect(() => {
     setFormData({ ...product });
   }, [product]);
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  // const imageSources = product?.images
+  //   ? Array.from({ length: 4 }, (_, index) => {
+  //       return product.images[index]
+  //         ? `${VITE_BACKEND_URL}/${product.images[index]}`
+  //         : "/logo.png";
+  //     })
+  //   : Array(4).fill("/logo.png");
+
+  const imageSources = product?.images
+    ? product.images.map((img) =>
+        img.startsWith("http") ? img : `${VITE_BACKEND_URL}/${img}`
+      )
+    : Array(4).fill("/logo.png");
+
+  // Handler to add a new image URL to the product
+  const handleAddImage = () => {
+    if (newImageUrl.trim() !== "") {
+      setFormData((prev) => ({
+        ...prev,
+        images: [...prev.images, newImageUrl.trim()],
+      }));
+      setNewImageUrl(""); // Clear the input after adding
+    }
+  };
+
+  // const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  //   e.preventDefault();
+  //   setLoading(true);
+  //   setMessage(null);
+  //   // Your submit logic here
+  //   productUpdate(
+  //     { productId: formData._id, variables: formData },
+  //     {
+  //       onSuccess: () => {
+  //         setMessage("Update product Successfully!");
+  //         setTimeout(() => {
+  //           navigate("/admin/products"), 1000;
+  //         });
+  //       },
+  //     }
+  //   );
+  // };
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setLoading(true);
     setMessage(null);
-    // Your submit logic here
-    productUpdate(
-      { productId: formData._id, variables: formData },
-      {
-        onSuccess: () => {
-          setMessage("Update product Successfully!");
-          setTimeout(() => {
-            navigate("/admin/products"), 1000;
-          });
-        },
+
+    try {
+      // Upload new image if selected
+      if (selectedFile) {
+        const formData = new FormData();
+        formData.append("image", selectedFile);
+
+        const uploadResponse = await axios.post(
+          `${VITE_BACKEND_URL}/v1/upload`,
+          formData,
+          {
+            headers: { "Content-Type": "multipart/form-data" },
+          }
+        );
+
+        setFormData((prev) => ({
+          ...prev,
+          images: [...prev.images, uploadResponse.data.imageUrl],
+        }));
       }
-    );
+
+      // Update product
+      productUpdate(
+        { productId: formData._id, variables: formData },
+        {
+          onSuccess: () => {
+            setMessage("Update product Successfully!");
+            setTimeout(() => navigate("/admin/products"), 1000);
+          },
+          onError: (error) => {
+            setMessage("Error updating product: " + error.message);
+          },
+        }
+      );
+    } catch (error) {
+      // setMessage("Error uploading image: " + error.message);
+      setLoading(false);
+    }
+  };
+
+  // Add file input handler
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setSelectedFile(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreviewUrl(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
   };
 
   const handleChange = (
@@ -62,17 +147,6 @@ const ProductUpdateForm = ({ product }: ProductUpdateFormProps) => {
       ...prev,
       category: { ...prev.category, name: newCategoryName },
     }));
-  };
-
-  // Handler to add a new image URL to the product
-  const handleAddImage = () => {
-    if (newImageUrl.trim() !== "") {
-      setFormData((prev) => ({
-        ...prev,
-        images: [...prev.images, newImageUrl.trim()],
-      }));
-      setNewImageUrl(""); // Clear the input after adding
-    }
   };
 
   return (
@@ -205,19 +279,18 @@ const ProductUpdateForm = ({ product }: ProductUpdateFormProps) => {
           <div>
             <label className="block text-sm font-medium mb-2">Images:</label>
             <div className="flex flex-wrap gap-2">
-              {formData.images.map((i, index) => (
+              {imageSources.map((i) => (
                 <img
-                  key={index}
-                  src={i}
-                  alt={`${formData.name} image ${index + 1}`}
                   className="w-20 h-20 object-cover border rounded"
+                  alt=""
+                  src={i}
                 />
               ))}
             </div>
           </div>
 
           {/* New Image URL Input */}
-          <div className="mt-4">
+          {/* <div className="mt-4">
             <label className="block text-sm font-medium">
               Add New Image URL:
             </label>
@@ -232,6 +305,27 @@ const ProductUpdateForm = ({ product }: ProductUpdateFormProps) => {
               <Button type="button" onClick={handleAddImage}>
                 Add Image
               </Button>
+            </div>
+          </div> */}
+
+          <div className="mt-4">
+            <label className="block text-sm font-medium">
+              Upload New Image:
+            </label>
+            <div className="flex items-center space-x-2">
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleFileChange}
+                className="w-full border p-2 rounded"
+              />
+              {imagePreviewUrl && (
+                <img
+                  src={imagePreviewUrl}
+                  alt="Preview"
+                  className="w-20 h-20 object-cover border rounded"
+                />
+              )}
             </div>
           </div>
 
