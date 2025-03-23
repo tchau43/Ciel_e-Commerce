@@ -60,7 +60,7 @@ const ProductByCategory = ({ category }: ProductByCategoryProps) => {
         // customTransition="all .5"
         customTransition="all 0.5s ease-in-out" // smooth transition with easing
         transitionDuration={500}
-        containerClass="carousel-container"
+        containerClass="carousel-container pb-8"
         removeArrowOnDeviceType={["tablet", "mobile"]}
         // deviceType={this.props.deviceType}
         dotListClass="custom-dot-list-style"

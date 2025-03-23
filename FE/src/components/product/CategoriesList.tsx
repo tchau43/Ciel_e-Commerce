@@ -27,17 +27,6 @@ const CategoriesList = ({
     });
   };
 
-  // Build query string and update URL.
-  // const changeCateParams = (cateList: string[]) => {
-  //   const params = new URLSearchParams();
-  //   cateList.forEach((c) => params.append("category", c));
-  //   const paramsStr = params.toString();
-  //   console.log("Updated query params:", paramsStr);
-  //   // Update parent's queryParams state and URL
-  //   setQueryParams(paramsStr);
-  //   navigate(`?${paramsStr}`, { replace: true });
-  // };
-
   const changeCateParams = (cateList: string[]) => {
     const params = new URLSearchParams(queryParams || "");
 

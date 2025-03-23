@@ -1,23 +1,12 @@
 require("dotenv").config();
 const express = require("express");
-const viewEngineConfig = require("./config/viewEngineConfig.js");
-const apiRoutes = require("./routes/api.js");
-// const { getHomePage } = require('./controllers/homeController.js');
-const cors = require("cors");
 const connection = require("./config/database");
+const { appConfig } = require("./config/appConfig.js");
 
 const app = express();
 const port = process.env.PORT || 8888;
 
-app.use(express.static("./src/public"));
-//config cors
-app.use(cors());
-app.use(express.urlencoded({ extended: true }));
-app.use(express.json());
-
-// viewEngineConfig(app);
-
-app.use("/v1/", apiRoutes);
+appConfig(app);
 
 (async () => {
   try {
@@ -32,3 +21,5 @@ app.use("/v1/", apiRoutes);
     console.log(">>> Error connect to DB: ", error);
   }
 })();
+
+
