@@ -50,7 +50,6 @@ const getAllProductsService = async (sort) => {
 const getProductByIdService = async (id) => {
   try {
     const product = await Product.findById(id).populate("category");
-    console.log(">>>>>>>>>>>>product", product);
     if (!product) {
       throw new Error("Product not found");
     }
@@ -65,7 +64,6 @@ const getProductsByNameService = async (name) => {
     const products = await Product.find({
       name: { $regex: name, $options: "i" },
     });
-    console.log(">>>>>>>>>>>>products", products);
 
     if (products.length === 0) {
       throw new Error("No products found with that name");
@@ -204,6 +202,8 @@ const searchProductService = async (searchText, categories = []) => {
     throw new Error("Error searching products: " + error.message);
   }
 };
+
+
 
 module.exports = {
   createProductService,
