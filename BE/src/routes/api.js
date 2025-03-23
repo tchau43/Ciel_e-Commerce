@@ -6,6 +6,23 @@ const {
   getUserById,
   updateUserbyId,
 } = require("../controllers/userController");
+const multer = require('multer');
+const path = require("path");
+
+// Configure storage
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    console.log(">>>>>>>>>> __dirname", __dirname)
+    const uploadPath = path.join(__dirname, '../public/images/product')
+    console.log(">>>>>>>>>> __dirname", path.join(__dirname, '../public/images/product'))
+    cb(null, uploadPath);
+  },
+  filename: (req, file, cb) => {
+    cb(null, `${Date.now()}-${file.originalname}`);
+  }
+});
+
+const upload = multer({ storage });
 
 const {
   createProduct,
@@ -38,6 +55,7 @@ const { getInvoiceService } = require("../services/invoiceService");
 const User = require("../models/user");
 const Invoice = require("../models/invoice");
 const Product = require("../models/product");
+const { uploadImageService } = require("../services/utilsService");
 
 const routerAPI = express.Router();
 
@@ -146,5 +164,9 @@ routerAPI.post('/products/batch', async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 });
+
+
+// Add upload endpoint
+routerAPI.post('/upload', upload.single('image'), uploadImageService);
 
 module.exports = routerAPI;
