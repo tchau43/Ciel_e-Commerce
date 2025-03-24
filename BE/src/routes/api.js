@@ -6,23 +6,23 @@ const {
   getUserById,
   updateUserbyId,
 } = require("../controllers/userController");
-const multer = require('multer');
+// const multer = require('multer');
 const path = require("path");
 
 // Configure storage
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    console.log(">>>>>>>>>> __dirname", __dirname)
-    const uploadPath = path.join(__dirname, '../public/images/product')
-    console.log(">>>>>>>>>> __dirname", path.join(__dirname, '../public/images/product'))
-    cb(null, uploadPath);
-  },
-  filename: (req, file, cb) => {
-    cb(null, `${Date.now()}-${file.originalname}`);
-  }
-});
+// const storage = multer.diskStorage({
+//   destination: (req, file, cb) => {
+//     console.log(">>>>>>>>>> __dirname", __dirname)
+//     const uploadPath = path.join(__dirname, '../public/images/product')
+//     console.log(">>>>>>>>>> __dirname", path.join(__dirname, '../public/images/product'))
+//     cb(null, uploadPath);
+//   },
+//   filename: (req, file, cb) => {
+//     cb(null, `${Date.now()}-${file.originalname}`);
+//   }
+// });
 
-const upload = multer({ storage });
+// const upload = multer({ storage });
 
 const {
   createProduct,
@@ -56,6 +56,7 @@ const User = require("../models/user");
 const Invoice = require("../models/invoice");
 const Product = require("../models/product");
 const { uploadImageService } = require("../services/utilsService");
+const upload = require("../middleware/multer");
 
 const routerAPI = express.Router();
 
@@ -83,7 +84,7 @@ routerAPI.get("/product/:id", getProductById);
 routerAPI.get("/product", getProductsByName);
 routerAPI.get("/productsBySearch", searchProduct);
 routerAPI.post("/product", createProduct);
-routerAPI.put("/product/:id", updateProduct);
+routerAPI.put("/product/:id", upload.single('image'), updateProduct);
 routerAPI.delete("/product/:id", deleteProduct);
 
 //cart
@@ -167,6 +168,6 @@ routerAPI.post('/products/batch', async (req, res) => {
 
 
 // Add upload endpoint
-routerAPI.post('/upload', upload.single('image'), uploadImageService);
+// routerAPI.post('/upload', upload.single('image'), uploadImageService);
 
 module.exports = routerAPI;

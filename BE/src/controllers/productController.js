@@ -46,15 +46,42 @@ const getProductsByName = async (req, res) => {
 
 const updateProduct = async (req, res) => {
   const { id } = req.params;
-  const productData = req.body;
-  const data = await updateProductService(id, productData);
-  res.status(200).json(data);
+  try {
+    const productData = {
+      ...req.body,
+      // Handle image path from Multer
+      ...(req.file && {
+        images: [...JSON.parse(req.body.images || '[]'), req.file.path]
+      })
+    };
+    // console.log(">>>>>>>>>>>>>> productData", productData)
+
+
+    const data = await updateProductService(id, productData);
+    res.status(200).json(data);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
 };
+
 
 const deleteProduct = async (req, res) => {
   const { id } = req.params;
-  const data = await deleteProductService(id);
-  res.status(200).json(data);
+  try {
+    const productData = {
+      ...req.body,
+      // Handle image path from Multer
+      ...(req.file && {
+        images: [...JSON.parse(req.body.images || '[]'), req.file.path]
+      })
+    };
+
+    const data = await updateProductService(id, productData);
+    res.status(200).json(data);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+
 };
 
 const getProductsByCategory = async (req, res) => {
