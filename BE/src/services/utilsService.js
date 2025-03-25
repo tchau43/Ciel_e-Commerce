@@ -7,5 +7,4 @@ const uploadImageService = (req, res) => {
     });
 }
 
-
 module.exports = { uploadImageService }
