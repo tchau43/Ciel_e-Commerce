@@ -46,7 +46,7 @@ const ProductPage = () => {
     if (params.toString()) {
       params.set("_t", Date.now().toString());
     }
-    // console.log(">>>>>>>>>>>>>>>>params", params.toString());
+    console.log(">>>>>>>>>>>>>>>>params", params.toString());
     navigate(`?${params.toString()}`, { replace: true });
   };
 

@@ -50,6 +50,7 @@ const getAllProductsService = async (sort) => {
 const getProductByIdService = async (id) => {
   try {
     const product = await Product.findById(id).populate("category");
+    console.log(">>>>>>>>>>>>product", product);
     if (!product) {
       throw new Error("Product not found");
     }
@@ -64,6 +65,7 @@ const getProductsByNameService = async (name) => {
     const products = await Product.find({
       name: { $regex: name, $options: "i" },
     });
+    console.log(">>>>>>>>>>>>products", products);
 
     if (products.length === 0) {
       throw new Error("No products found with that name");
@@ -75,7 +77,7 @@ const getProductsByNameService = async (name) => {
   }
 };
 
-const updateProductService1 = async (id, productData) => {
+const updateProductService = async (id, productData) => {
   try {
     const product = await Product.findByIdAndUpdate(id, productData, {
       new: true,
@@ -87,46 +89,6 @@ const updateProductService1 = async (id, productData) => {
     return product;
   } catch (error) {
     throw new Error("Error creating product: " + error.message);
-  }
-};
-
-// services/productService.js
-const updateProductService = async (id, productData) => {
-  try {
-    // Handle category conversion
-    let categoryId = productData.category;
-    if (typeof productData.category === 'string') {
-      const category = await Category.findOne({ name: productData.category });
-      if (!category) throw new Error("Category not found");
-      categoryId = category._id;
-    }
-
-    // Ensure images array exists
-    const images = productData.images || [];
-
-    const updateData = {
-      ...productData,
-      category: categoryId,
-      images: images.map(img => {
-        // Clean image paths
-        const cleanPath = img.replace(/^https?:\/\/[^/]+/i, '');
-        return cleanPath.startsWith('/') ? cleanPath : `/${cleanPath}`;
-      })
-    };
-
-    const product = await Product.findByIdAndUpdate(
-      id,
-      updateData,
-      { new: true, runValidators: true }
-    ).populate("category");
-
-    if (!product) throw new Error("Product not found");
-
-    await updateProductIndex();
-
-    return product;
-  } catch (error) {
-    throw new Error("Error updating product: " + error.message);
   }
 };
 
@@ -242,8 +204,6 @@ const searchProductService = async (searchText, categories = []) => {
     throw new Error("Error searching products: " + error.message);
   }
 };
-
-
 
 module.exports = {
   createProductService,

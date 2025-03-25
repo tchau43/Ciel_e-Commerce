@@ -1,10 +1,17 @@
 import { useGetProductByIdQuery } from "@/services/product/getProductByIdQuery";
-import { NavLink, Outlet, useNavigate, useParams } from "react-router-dom";
+import {
+  NavLink,
+  Outlet,
+  useLocation,
+  useNavigate,
+  useParams,
+} from "react-router-dom";
 import ProductByCategory from "./ProductByCategory";
 import { useEffect, useState } from "react";
 import { getAuthCredentials } from "@/utils/authUtil";
 import { useAddProductToCartMutation } from "@/services/cart/addProductToCartMutation";
-const VITE_BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
+const VITE_API_VERSION = import.meta.env.VITE_API_VERSION || "/v1"; // Default to "/v1" if not set
+const VITE_BACKEND_URL = import.meta.env.VITE_BACKEND_URL || "/v1"; // Default to "/v1" if not set
 
 const Product = () => {
   const navigate = useNavigate();
@@ -19,35 +26,20 @@ const Product = () => {
   } = useGetProductByIdQuery(id!, {
     enable: true,
   });
-  const [mainImage, setMainImage] = useState<string>();
-  useEffect(() => {
-    setMainImage(
-      product?.images?.[0]
-        ? `${VITE_BACKEND_URL}/${product.images[0]}`
-        : "/logo.png"
-    );
-  }, []);
-  // useEffect(() => {
-  //   console.log("Product currentUrl changed:", currentUrl);
-  // }, [currentUrl]);
 
   // Declare an array of image sources
-  // const imageSources = product?.images
-  //   ? product.images.slice(0, 4).map((image) => {
-  //       return `${VITE_BACKEND_URL}/${image}`;
-  //     })
-  //   : []; // Default to an empty array if no images are present
-
   const imageSources = product?.images
-    ? Array.from({ length: 4 }, (_, index) => {
-        return product.images[index]
-          ? `${VITE_BACKEND_URL}/${product.images[index]}`
-          : "/logo.png";
+    ? product.images.slice(0, 4).map((image) => {
+        return `${VITE_BACKEND_URL}/${image}`;
       })
-    : Array(4).fill("/logo.png");
+    : []; // Default to an empty array if no images are present
 
   // console.log(">>>>>>>>>>product", product);
-  // console.log(">>>>>>>>>>imageSources", imageSources);
+  console.log(">>>>>>>>>>imageSources", imageSources);
+
+  useEffect(() => {
+    console.log("Product currentUrl changed:", currentUrl);
+  }, [currentUrl]);
 
   if (isLoading) {
     return <p className="text-center text-gray-600">Loading product data...</p>;
@@ -81,10 +73,11 @@ const Product = () => {
   };
 
   const handleAddToCart = () => {
-    const { userInfo } = getAuthCredentials();
+    const { userInfo } = getAuthCredentials(); // retrieve user id from auth state
     console.log("userInfo", userInfo);
     const userId = userInfo._id;
     if (!userId) {
+      // If the user is not logged in, you might redirect them or show a message
       navigate("/login");
       return;
     }
@@ -100,15 +93,9 @@ const Product = () => {
   const check = product.images?.[0]
     ? `${VITE_BACKEND_URL}/${product.images[0]}`
     : "/logo.png";
-  // console.log(">>>>>>>>>>>>>>check", check);
+  console.log(">>>>>>>>>>>>>>check", check);
 
-  const handleImgClick = (index: number) => {
-    setMainImage(
-      product.images[index]
-        ? `${VITE_BACKEND_URL}/${product.images[index]}`
-        : "/logo.png"
-    );
-  };
+  const handleImgClick = (index: number) => {};
 
   return (
     <div className="">
@@ -152,7 +139,11 @@ const Product = () => {
           <img
             className="h-full w-full aspect-square object-contain"
             alt={product.name}
-            src={mainImage}
+            src={
+              product.images?.[0]
+                ? `${VITE_BACKEND_URL}/${product.images[0]}`
+                : "/logo.png"
+            }
             onError={() =>
               console.error(
                 "Image failed to load:",
