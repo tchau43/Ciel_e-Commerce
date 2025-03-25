@@ -6,7 +6,6 @@ import { ProductData } from "@/types/dataTypes";
 import { Loader } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import axios from "../../../utils/api/axios";
 const VITE_BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
 interface ProductUpdateFormProps {
@@ -95,7 +94,7 @@ const ProductUpdateForm = ({ product }: ProductUpdateFormProps) => {
         productUpdate(
           {
             productId: formData._id,
-            variables: formDataToSend as unknown as ProductData,
+            variables: formDataToSend,
           },
           {
             onSuccess: () => {
@@ -217,30 +216,6 @@ const ProductUpdateForm = ({ product }: ProductUpdateFormProps) => {
               ))}
             </select>
           </div>
-
-          {/* Alternative using datalist (optional) */}
-          {/*
-          <div>
-            <label className="block text-sm font-medium">Category:</label>
-            <input
-              list="categoryOptions"
-              name="categoryName"
-              value={
-                typeof formData.category === "object"
-                  ? formData.category.name
-                  : formData.category
-              }
-              onChange={handleCategoryChange}
-              className="w-full border p-2 rounded"
-              placeholder="Enter or select category"
-            />
-            <datalist id="categoryOptions">
-              {categories.map((c) => (
-                <option key={c._id} value={c.name}></option>
-              ))}
-            </datalist>
-          </div>
-          */}
 
           {/* Description Input */}
           <div>
