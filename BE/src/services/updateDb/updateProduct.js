@@ -63,14 +63,14 @@ const updateProducts = async () => {
         const imageFiles = files.filter((file) =>
           /\.(jpg|jpeg|png|gif|jfif)$/i.test(file)
         );
-        console.log(">>>>>>>imageFiles", imageFiles);
+        // console.log(">>>>>>>imageFiles", imageFiles);
 
         // Map each file to a relative path that Express can serve
         // e.g. "images/product/iphone_16_promax/image1.jfif"
         const imagePaths = imageFiles.map((file) => {
           return `images/product/${folderName}/${file}`;
         });
-        console.log(">>>>>>>imagePaths", imagePaths);
+        // console.log(">>>>>>>imagePaths", imagePaths);
 
         // Assign these image paths to the product's images field
         product.images = imagePaths;
