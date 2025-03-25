@@ -29,14 +29,6 @@ const productSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-productSchema.pre('save', function (next) {
-  // Remove any leading/trailing spaces from image paths
-  if (this.images && Array.isArray(this.images)) {
-    this.images = this.images.map(img => img.trim());
-  }
-  next();
-});
-
 const Product = mongoose.model("Product", productSchema);
 
 const productIndexSchema = new mongoose.Schema({
