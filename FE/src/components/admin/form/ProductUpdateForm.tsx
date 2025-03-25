@@ -80,40 +80,50 @@ const ProductUpdateForm = ({ product }: ProductUpdateFormProps) => {
     setMessage(null);
 
     try {
-      // Upload new image if selected
       if (selectedFile) {
-        const formData = new FormData();
-        formData.append("image", selectedFile);
+        // Create a FormData instance for file upload
+        const formDataToSend = new FormData();
+        formDataToSend.append("name", formData.name);
+        formDataToSend.append("price", formData.price.toString());
+        formDataToSend.append("description", formData.description);
+        formDataToSend.append("shortDescription", formData.shortDescription);
+        formDataToSend.append("moreInfomation", formData.moreInfomation);
+        // Append other fields as needed
+        formDataToSend.append("image", selectedFile);
 
-        const uploadResponse = await axios.post(
-          `${VITE_BACKEND_URL}/v1/upload`,
-          formData,
+        // If your backend accepts FormData, you can cast it as any
+        productUpdate(
           {
-            headers: { "Content-Type": "multipart/form-data" },
+            productId: formData._id,
+            variables: formDataToSend as unknown as ProductData,
+          },
+          {
+            onSuccess: () => {
+              setMessage("Update product Successfully!");
+              setTimeout(() => navigate("/admin/products"), 1000);
+            },
+            onError: (error: any) => {
+              setMessage("Error updating product: " + error.message);
+            },
           }
         );
-
-        setFormData((prev) => ({
-          ...prev,
-          images: [...prev.images, uploadResponse.data.imageUrl],
-        }));
+      } else {
+        // No file selected, send formData as is
+        productUpdate(
+          { productId: formData._id, variables: formData },
+          {
+            onSuccess: () => {
+              setMessage("Update product Successfully!");
+              setTimeout(() => navigate("/admin/products"), 1000);
+            },
+            onError: (error: any) => {
+              setMessage("Error updating product: " + error.message);
+            },
+          }
+        );
       }
-
-      // Update product
-      productUpdate(
-        { productId: formData._id, variables: formData },
-        {
-          onSuccess: () => {
-            setMessage("Update product Successfully!");
-            setTimeout(() => navigate("/admin/products"), 1000);
-          },
-          onError: (error) => {
-            setMessage("Error updating product: " + error.message);
-          },
-        }
-      );
-    } catch (error) {
-      // setMessage("Error uploading image: " + error.message);
+    } catch (error: any) {
+      setMessage("Error uploading image: " + error.message);
       setLoading(false);
     }
   };
