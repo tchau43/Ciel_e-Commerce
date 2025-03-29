@@ -19,7 +19,7 @@ const ProductUpdateForm = ({ product }: ProductUpdateFormProps) => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
-  // const [selectedFile, setSelectedFile] = useState<File | null>(null); // For local file
+  const [selectedFile, setSelectedFile] = useState<File | null>(null); // For local file
   const [imagePreviewUrl, setImagePreviewUrl] = useState(""); // Preview for local file
   const { data: categories = [], isLoading } = useGetAllCategoriesQuery();
   useEffect(() => {
@@ -45,127 +45,53 @@ const ProductUpdateForm = ({ product }: ProductUpdateFormProps) => {
       )
     : Array(4).fill("/logo.png");
 
-  // Handler to add a new image URL to the product
-  // const handleAddImage = () => {
-  //   if (newImageUrl.trim() !== "") {
-  //     setFormData((prev) => ({
-  //       ...prev,
-  //       images: [...prev.images, newImageUrl.trim()],
-  //     }));
-  //     setNewImageUrl(""); // Clear the input after adding
-  //   }
-  // };
-
-  const handleSubmit0 = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    setLoading(true);
-    setMessage(null);
-    console.log(">>>>>>>>>>>>formData", formData);
-    productUpdate(
-      { productId: formData._id, variables: formData },
-      {
-        onSuccess: () => {
-          setMessage("Update product Successfully!");
-          setTimeout(() => {
-            navigate("/admin/products"), 1000;
-          });
-        },
-      }
-    );
-  };
-
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setLoading(true);
     setMessage(null);
+
     const formDataToSend = new FormData();
+
+    // Append all text fields
     formDataToSend.append("name", formData.name);
     formDataToSend.append("price", formData.price.toString());
     formDataToSend.append("description", formData.description);
     formDataToSend.append("shortDescription", formData.shortDescription);
-    formDataToSend.append("moreInfomation", formData.moreInfomation);
-    formDataToSend.append("category", formData.category.name);
+    formDataToSend.append("moreInformation", formData.moreInfomation);
+    formDataToSend.append("category", formData.category._id); // Use category ID
 
-    // Append the file if present
-    if (formData.image instanceof File) {
-      formDataToSend.append("image", formData.image);
+    // Append the image file
+    if (selectedFile instanceof File) {
+      formDataToSend.append("image", selectedFile); // Field name must match Multer's
     }
-    console.log(
-      ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>formDataToSend",
-      formDataToSend
-    );
 
     productUpdate(
       { productId: formData._id, variables: formDataToSend },
       {
         onSuccess: () => {
-          setMessage("Update product Successfully!");
+          setMessage("Product updated successfully!");
           setTimeout(() => navigate("/admin/products"), 1000);
         },
-        onError: (error: any) => {
-          setMessage("Error updating product: " + error.message);
+        onError: (error) => {
+          setMessage(error.message || "Error updating product");
+          setLoading(false);
         },
       }
     );
   };
 
-  // const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-  //   console.log(">>>>>>>>>formData", formData);
-  //   e.preventDefault();
-  //   setLoading(true);
-  //   setMessage(null);
-
-  //   try {
-  //     let formDataToSend = new FormData();
-  //     formDataToSend.append("name", formData.name);
-  //     formDataToSend.append("price", formData.price.toString());
-  //     formDataToSend.append("description", formData.description);
-  //     formDataToSend.append("shortDescription", formData.shortDescription);
-  //     formDataToSend.append("moreInfomation", formData.moreInfomation);
-  //     if (formData.category) {
-  //       formDataToSend.append("category", formData.category._id); // Add category ID
-  //     }
-  //     if (selectedFile) {
-  //       formDataToSend.append("image", selectedFile);
-  //     }
-
-  //     // Debug FormData contents
-  //     console.log("FormData contents:");
-  //     for (let pair of formDataToSend.entries()) {
-  //       console.log(`${pair[0]}:`, pair[1]);
-  //     }
-
-  //     productUpdate(
-  //       { productId: formData._id, variables: formDataToSend },
-  //       {
-  //         onSuccess: () => {
-  //           setMessage("Update product Successfully!");
-  //           setTimeout(() => navigate("/admin/products"), 1000);
-  //         },
-  //         onError: (error: any) => {
-  //           setMessage("Error updating product: " + error.message);
-  //         },
-  //       }
-  //     );
-  //   } catch (error: any) {
-  //     setMessage("Error uploading image: " + error.message);
-  //     setLoading(false);
-  //   }
-  // };
-
-  // Add file input handler
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      // setSelectedFile(file);
       const reader = new FileReader();
       reader.onloadend = () => {
         setImagePreviewUrl(reader.result as string);
       };
       reader.readAsDataURL(file);
+      setSelectedFile(file);
       setFormData((prev) => ({
         ...prev,
-        image: file,
+        image: file, // Store File object directly
       }));
     }
   };
@@ -180,11 +106,17 @@ const ProductUpdateForm = ({ product }: ProductUpdateFormProps) => {
     }));
   };
 
-  const handleCategoryChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newCategoryName = e.target.value;
+  const handleCategoryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const selectedCategoryId = e.target.value;
+    const selectedCategory = categories.find(
+      (c) => c._id === selectedCategoryId
+    );
+
+    if (!selectedCategory) return;
+
     setFormData((prev) => ({
       ...prev,
-      category: { ...prev.category, name: newCategoryName },
+      category: { ...selectedCategory },
     }));
   };
 
@@ -235,12 +167,11 @@ const ProductUpdateForm = ({ product }: ProductUpdateFormProps) => {
             <label className="block text-sm font-medium">Category:</label>
             <select
               name="category"
-              value={formData.category.name}
-              onChange={handleChange}
-              className="w-full border p-2 rounded"
+              value={formData.category._id} // Use _id instead of name
+              onChange={handleCategoryChange}
             >
               {categories.map((c) => (
-                <option key={c._id} value={c.name}>
+                <option key={c._id} value={c._id}>
                   {c.name}
                 </option>
               ))}
