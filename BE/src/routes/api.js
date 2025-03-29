@@ -59,7 +59,6 @@ const upload = require("../middleware/multer");
 
 // const upload = multer({ storage });
 
-
 const routerAPI = express.Router();
 
 routerAPI.all("*", verifyToken);
@@ -86,7 +85,16 @@ routerAPI.get("/product/:id", getProductById);
 routerAPI.get("/product", getProductsByName);
 routerAPI.get("/productsBySearch", searchProduct);
 routerAPI.post("/product", createProduct);
-routerAPI.put("/product/:id", upload.single("image"), updateProduct);
+routerAPI.put(
+  "/product/:id",
+  (req, res, next) => {
+    console.log("Request received:", req.headers);
+    next();
+  },
+  upload.single("image"),
+  updateProduct
+);
+// routerAPI.put("/product/:id", upload.single("image"), updateProduct);
 routerAPI.delete("/product/:id", deleteProduct);
 
 //cart
