@@ -2,33 +2,34 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useGetAllCategoriesQuery } from "@/services/category/getAllCategoriesQuery";
 import { useUpdateProductMutation } from "@/services/product/updateProductMutation";
-import { ProductData } from "@/types/dataTypes";
+import { ProductRes, ProductReq } from "@/types/dataTypes";
 import { Loader } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 const VITE_BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
 interface ProductUpdateFormProps {
-  product: ProductData;
+  product: ProductRes;
 }
 
 const ProductUpdateForm = ({ product }: ProductUpdateFormProps) => {
-  const [formData, setFormData] = useState<ProductData>({ ...product });
+  const [formData, setFormData] = useState<ProductReq>({ ...product });
+  // console.log(">>>>>>>>formData", formData);
   const [newImageUrl, setNewImageUrl] = useState("");
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
-  const [selectedFile, setSelectedFile] = useState<File | null>(null); // For local file
+  // const [selectedFile, setSelectedFile] = useState<File | null>(null); // For local file
   const [imagePreviewUrl, setImagePreviewUrl] = useState(""); // Preview for local file
   const { data: categories = [], isLoading } = useGetAllCategoriesQuery();
+  useEffect(() => {
+    setFormData({ ...product });
+  }, [product]);
   const {
     mutate: productUpdate,
     isError,
     isPending,
   } = useUpdateProductMutation();
-  useEffect(() => {
-    setFormData({ ...product });
-  }, [product]);
 
   // const imageSources = product?.images
   //   ? Array.from({ length: 4 }, (_, index) => {
@@ -45,98 +46,127 @@ const ProductUpdateForm = ({ product }: ProductUpdateFormProps) => {
     : Array(4).fill("/logo.png");
 
   // Handler to add a new image URL to the product
-  const handleAddImage = () => {
-    if (newImageUrl.trim() !== "") {
-      setFormData((prev) => ({
-        ...prev,
-        images: [...prev.images, newImageUrl.trim()],
-      }));
-      setNewImageUrl(""); // Clear the input after adding
-    }
-  };
-
-  // const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-  //   e.preventDefault();
-  //   setLoading(true);
-  //   setMessage(null);
-  //   // Your submit logic here
-  //   productUpdate(
-  //     { productId: formData._id, variables: formData },
-  //     {
-  //       onSuccess: () => {
-  //         setMessage("Update product Successfully!");
-  //         setTimeout(() => {
-  //           navigate("/admin/products"), 1000;
-  //         });
-  //       },
-  //     }
-  //   );
+  // const handleAddImage = () => {
+  //   if (newImageUrl.trim() !== "") {
+  //     setFormData((prev) => ({
+  //       ...prev,
+  //       images: [...prev.images, newImageUrl.trim()],
+  //     }));
+  //     setNewImageUrl(""); // Clear the input after adding
+  //   }
   // };
+
+  const handleSubmit0 = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setLoading(true);
+    setMessage(null);
+    console.log(">>>>>>>>>>>>formData", formData);
+    productUpdate(
+      { productId: formData._id, variables: formData },
+      {
+        onSuccess: () => {
+          setMessage("Update product Successfully!");
+          setTimeout(() => {
+            navigate("/admin/products"), 1000;
+          });
+        },
+      }
+    );
+  };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setLoading(true);
     setMessage(null);
+    const formDataToSend = new FormData();
+    formDataToSend.append("name", formData.name);
+    formDataToSend.append("price", formData.price.toString());
+    formDataToSend.append("description", formData.description);
+    formDataToSend.append("shortDescription", formData.shortDescription);
+    formDataToSend.append("moreInfomation", formData.moreInfomation);
+    formDataToSend.append("category", formData.category.name);
 
-    try {
-      if (selectedFile) {
-        // Create a FormData instance for file upload
-        const formDataToSend = new FormData();
-        formDataToSend.append("name", formData.name);
-        formDataToSend.append("price", formData.price.toString());
-        formDataToSend.append("description", formData.description);
-        formDataToSend.append("shortDescription", formData.shortDescription);
-        formDataToSend.append("moreInfomation", formData.moreInfomation);
-        // Append other fields as needed
-        formDataToSend.append("image", selectedFile);
-
-        // If your backend accepts FormData, you can cast it as any
-        productUpdate(
-          {
-            productId: formData._id,
-            variables: formDataToSend,
-          },
-          {
-            onSuccess: () => {
-              setMessage("Update product Successfully!");
-              setTimeout(() => navigate("/admin/products"), 1000);
-            },
-            onError: (error: any) => {
-              setMessage("Error updating product: " + error.message);
-            },
-          }
-        );
-      } else {
-        // No file selected, send formData as is
-        productUpdate(
-          { productId: formData._id, variables: formData },
-          {
-            onSuccess: () => {
-              setMessage("Update product Successfully!");
-              setTimeout(() => navigate("/admin/products"), 1000);
-            },
-            onError: (error: any) => {
-              setMessage("Error updating product: " + error.message);
-            },
-          }
-        );
-      }
-    } catch (error: any) {
-      setMessage("Error uploading image: " + error.message);
-      setLoading(false);
+    // Append the file if present
+    if (formData.image instanceof File) {
+      formDataToSend.append("image", formData.image);
     }
+    console.log(
+      ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>formDataToSend",
+      formDataToSend
+    );
+
+    productUpdate(
+      { productId: formData._id, variables: formDataToSend },
+      {
+        onSuccess: () => {
+          setMessage("Update product Successfully!");
+          setTimeout(() => navigate("/admin/products"), 1000);
+        },
+        onError: (error: any) => {
+          setMessage("Error updating product: " + error.message);
+        },
+      }
+    );
   };
+
+  // const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  //   console.log(">>>>>>>>>formData", formData);
+  //   e.preventDefault();
+  //   setLoading(true);
+  //   setMessage(null);
+
+  //   try {
+  //     let formDataToSend = new FormData();
+  //     formDataToSend.append("name", formData.name);
+  //     formDataToSend.append("price", formData.price.toString());
+  //     formDataToSend.append("description", formData.description);
+  //     formDataToSend.append("shortDescription", formData.shortDescription);
+  //     formDataToSend.append("moreInfomation", formData.moreInfomation);
+  //     if (formData.category) {
+  //       formDataToSend.append("category", formData.category._id); // Add category ID
+  //     }
+  //     if (selectedFile) {
+  //       formDataToSend.append("image", selectedFile);
+  //     }
+
+  //     // Debug FormData contents
+  //     console.log("FormData contents:");
+  //     for (let pair of formDataToSend.entries()) {
+  //       console.log(`${pair[0]}:`, pair[1]);
+  //     }
+
+  //     productUpdate(
+  //       { productId: formData._id, variables: formDataToSend },
+  //       {
+  //         onSuccess: () => {
+  //           setMessage("Update product Successfully!");
+  //           setTimeout(() => navigate("/admin/products"), 1000);
+  //         },
+  //         onError: (error: any) => {
+  //           setMessage("Error updating product: " + error.message);
+  //         },
+  //       }
+  //     );
+  //   } catch (error: any) {
+  //     setMessage("Error uploading image: " + error.message);
+  //     setLoading(false);
+  //   }
+  // };
 
   // Add file input handler
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      setSelectedFile(file);
+      // setSelectedFile(file);
       const reader = new FileReader();
       reader.onloadend = () => {
         setImagePreviewUrl(reader.result as string);
       };
       reader.readAsDataURL(file);
+      setFormData((prev) => ({
+        ...prev,
+        image: file,
+      }));
     }
   };
 
