@@ -5,13 +5,14 @@ const instance = axios.create({
   timeout: 120000, // Request timeout in milliseconds
   headers: {
     Accept: "application/json",
-    "Content-Type": "application/json",
+    // "Content-Type": "application/json, multipart/form-data",
   },
 });
 
 // Add a request interceptor
 instance.interceptors.request.use(
-  (config: InternalAxiosRequestConfig) => {  // ✅ Fix: Use InternalAxiosRequestConfig
+  (config: InternalAxiosRequestConfig) => {
+    // ✅ Fix: Use InternalAxiosRequestConfig
     const token = localStorage.getItem("access_token");
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
