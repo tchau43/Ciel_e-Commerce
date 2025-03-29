@@ -24,6 +24,7 @@ const createProductFolder = (productName) => {
 
 const storage = multer.diskStorage({
   destination: async (req, file, cb) => {
+    console.log(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>req.body1", req)
     try {
       const productId = req.params.id;
       const product = await Product.findById(productId); // Assume Product is your model
@@ -46,6 +47,7 @@ const upload = multer({
   storage,
   limits: { fileSize: 5 * 1024 * 1024 },
   fileFilter: (req, file, cb) => {
+    console.log(">>>>>>>>>>file", file)
     const allowedTypes = ["image/jpeg", "image/png", "image/webp"];
     allowedTypes.includes(file.mimetype)
       ? cb(null, true)

@@ -91,7 +91,7 @@ const updateProductService1 = async (id, productData) => {
 };
 
 // services/productService.js
-const updateProductService = async (id, productData) => {
+const updateProductService0 = async (id, productData) => {
   try {
     // Handle category conversion
     let categoryId = productData.category;
@@ -122,6 +122,40 @@ const updateProductService = async (id, productData) => {
 
     if (!product) throw new Error("Product not found");
 
+    await updateProductIndex();
+
+    return product;
+  } catch (error) {
+    throw new Error("Error updating product: " + error.message);
+  }
+};
+
+const updateProductService = async (id, productData) => {
+  try {
+    // Handle category conversion
+    let categoryId = productData.category;
+    if (typeof productData.category === 'string') {
+      const category = await Category.findOne({ name: productData.category });
+      if (!category) throw new Error("Category not found");
+      categoryId = category._id;
+    }
+
+    // Prepare update data without modifying images
+    const updateData = {
+      ...productData,
+      category: categoryId,
+    };
+
+    // Update the product in the database
+    const product = await Product.findByIdAndUpdate(
+      id,
+      updateData,
+      { new: true, runValidators: true }
+    ).populate("category");
+
+    if (!product) throw new Error("Product not found");
+
+    // Update product index (assumed to be a search index or cache)
     await updateProductIndex();
 
     return product;
