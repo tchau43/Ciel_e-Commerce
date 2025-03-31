@@ -1,0 +1,10 @@
+Flask
+numpy
+scikit-learn
+requests
+python-dotenv
+Werkzeug
+Jinja2
+MarkupSafe
+itsdangerous
+blinker
