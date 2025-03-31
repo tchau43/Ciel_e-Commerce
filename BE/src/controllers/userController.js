@@ -1,3 +1,4 @@
+const { getInvoiceService } = require("../services/invoiceService");
 const {
   createUserService,
   userLoginService,
@@ -40,10 +41,31 @@ const updateUserbyId = async (req, res) => {
   res.status(200).json(data);
 };
 
+const getUserPurchased = async (req, res) => {
+  try {
+    const invoices = await getInvoiceService(req.params.userId);
+    const purchasedProducts = [];
+
+    invoices.forEach((invoice) => {
+      invoice.items.forEach((item) => {
+        purchasedProducts.push({
+          productId: item.product._id,
+          categoryId: item.product.category._id,
+        });
+      });
+    });
+
+    res.status(200).json(purchasedProducts);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+}
+
 module.exports = {
   createUser,
   userLogin,
   getAllUsers,
   getUserById,
   updateUserbyId,
+  getUserPurchased
 };
