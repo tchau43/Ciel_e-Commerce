@@ -169,6 +169,7 @@ const ProductUpdateForm = ({ product }: ProductUpdateFormProps) => {
               name="category"
               value={formData.category._id} // Use _id instead of name
               onChange={handleCategoryChange}
+              className="border rounded-md w-full px-1 py-2"
             >
               {categories.map((c) => (
                 <option key={c._id} value={c._id}>
