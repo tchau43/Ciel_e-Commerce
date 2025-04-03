@@ -37,7 +37,6 @@ class ContentBasedRecommender:
     def prepare_similarity_matrix(self):
         try:
             products = self.fetch_products()
-            # print("===products", products)
             if not products:
                 return None
                 
