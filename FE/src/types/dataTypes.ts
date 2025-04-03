@@ -120,6 +120,7 @@ export declare type InvoiceResponse = {
   paymentStatus: string;
   createdAt: string;
 };
+
 export declare type InvoiceItems = {
   _id: string;
   product: ProductRes;
@@ -127,19 +128,28 @@ export declare type InvoiceItems = {
   priceAtPurchase: number;
 };
 
-declare global {
-  namespace Express {
-    interface Request {
-      file?: {
-        fieldname: string;
-        originalname: string;
-        encoding: string;
-        mimetype: string;
-        size: number;
-        destination: string;
-        filename: string;
-        path: string;
-      };
-    }
-  }
-}
+//Home Page
+export declare type HomePageRes = {
+  banner1_home: BannerHomePage;
+  banner2_home: BannerHomePage;
+  banner3_home: BannerHomePage;
+  video1_home: VideoHomePage;
+  video2_home: VideoHomePage;
+  video3_home: VideoHomePage;
+  features: FeatureHomePage[];
+};
+
+export declare type BannerHomePage = {
+  photo_url: string;
+};
+
+export declare type VideoHomePage = {
+  title: string;
+  video_youtube: string;
+  photo_thumb: string;
+};
+
+export declare type FeatureHomePage = {
+  title: string;
+  description: string;
+};

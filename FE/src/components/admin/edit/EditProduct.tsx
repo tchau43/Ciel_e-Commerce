@@ -1,5 +1,4 @@
 import { useParams } from "react-router-dom";
-import UserUpdateForm from "@/components/admin/form/UserUpdateForm";
 import { useGetProductByIdQuery } from "@/services/product/getProductByIdQuery";
 import ProductUpdateForm from "../form/ProductUpdateForm";
 

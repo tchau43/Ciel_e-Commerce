@@ -3,6 +3,7 @@ const bcrypt = require("bcrypt");
 require("dotenv").config();
 const saltRounds = 10;
 const jwt = require("jsonwebtoken");
+const Invoice = require("../models/invoice");
 
 const createUserService = async (name, email, password) => {
   try {
@@ -107,10 +108,32 @@ const updateUserbyIdService = async (id, name, email, status, role) => {
   }
 };
 
+const getUsersPurchasedDetailService = async () => {
+  const users = await User.find().lean();
+  const purchases = {};
+
+  for (const user of users) {
+    const invoices = await Invoice.find({ user: user._id }).populate(
+      "items.product"
+    );
+    purchases[user._id] = {};
+    invoices.forEach((invoice) => {
+      invoice.items.forEach((item) => {
+        const productId = item.product._id.toString();
+        purchases[user._id][productId] = purchases[user._id][productId]
+          ? purchases[user._id][productId] + 1
+          : 1;
+      });
+    });
+  }
+  return purchases;
+}
+
 module.exports = {
   createUserService,
   userLoginService,
   getAllUsersService,
   updateUserbyIdService,
   getUserByIdService,
+  getUsersPurchasedDetailService,
 };

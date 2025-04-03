@@ -6,6 +6,7 @@ const {
   getUserById,
   updateUserbyId,
   getUserPurchased,
+  getUsersPurchasedDetail,
 } = require("../controllers/userController");
 // const multer = require('multer');
 const path = require("path");
@@ -38,27 +39,9 @@ const { createPaymentIntent } = require("../controllers/stripeController");
 const {
   getUserRecommendations,
 } = require("../controllers/recommendationsController");
-const { getInvoiceService } = require("../services/invoiceService");
-const User = require("../models/user");
-const Invoice = require("../models/invoice");
 const { Product } = require("../models/product");
-const { uploadImageService } = require("../services/utilsService");
 const upload = require("../middleware/multer");
-
-// Configure storage
-// const storage = multer.diskStorage({
-//   destination: (req, file, cb) => {
-//     console.log(">>>>>>>>>> __dirname", __dirname)
-//     const uploadPath = path.join(__dirname, '../public/images/product')
-//     console.log(">>>>>>>>>> __dirname", path.join(__dirname, '../public/images/product'))
-//     cb(null, uploadPath);
-//   },
-//   filename: (req, file, cb) => {
-//     cb(null, `${Date.now()}-${file.originalname}`);
-//   }
-// });
-
-// const upload = multer({ storage });
+const { createHomePage, getHomePage, updateHomePage, deleteHomePage, updateBanner, updateVideo, updateFeature } = require("../controllers/customerHomePageController");
 
 const routerAPI = express.Router();
 
@@ -106,30 +89,7 @@ routerAPI.get("/user/:userId/purchased-products", getUserPurchased);
 routerAPI.get("/recommendations", getUserRecommendations);
 // routerAPI.get("/recommendations", apiKeyAuth, getUserRecommendations);
 // Get all user purchases (for collaborative filtering)
-routerAPI.get("/admin/users/purchases", async (req, res) => {
-  try {
-    const users = await User.find().lean();
-    const purchases = {};
-
-    for (const user of users) {
-      const invoices = await Invoice.find({ user: user._id }).populate(
-        "items.product"
-      );
-      purchases[user._id] = {};
-      invoices.forEach((invoice) => {
-        invoice.items.forEach((item) => {
-          const productId = item.product._id.toString();
-          purchases[user._id][productId] = purchases[user._id][productId]
-            ? purchases[user._id][productId] + 1
-            : 1;
-        });
-      });
-    }
-    res.status(200).json(purchases);
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-});
+routerAPI.get("/admin/users/purchases", getUsersPurchasedDetail);
 
 // Batch product details endpoint
 routerAPI.get("/products/batch", async (req, res) => {
@@ -138,7 +98,6 @@ routerAPI.get("/products/batch", async (req, res) => {
     const products = await Product.find({
       _id: { $in: productIds },
     });
-    console.log("===products", products);
     res.status(200).json(products);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -147,5 +106,11 @@ routerAPI.get("/products/batch", async (req, res) => {
 
 // Add upload endpoint
 // routerAPI.post('/upload', upload.single('image'), uploadImageService);
+
+// Routes for homepage configuration
+routerAPI.get('/homepage', getHomePage);  // Get homepage
+routerAPI.put('/homepage/banner', updateBanner);  // Update Banner
+routerAPI.put('/homepage/video', updateVideo);  // Update Video
+routerAPI.put('/homepage/feature', updateFeature);  // Update Feature
 
 module.exports = routerAPI;
