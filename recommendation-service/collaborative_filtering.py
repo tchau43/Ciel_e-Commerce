@@ -30,15 +30,18 @@ class CollaborativeFiltering:
 
     def create_similarity_matrix(self, data):
         try:
+            # print("------------data.keys()", data.keys())
             user_ids = list(data.keys())
             if not user_ids:
                 return None, [], {}
                 
             items = set()
             for purchases in data.values():
+                # print("------------purchases", purchases)
                 items.update(purchases.keys())
                 
             matrix = np.zeros((len(user_ids), len(items)))
+            # print("------------matrix", matrix)
             item_index = {item: idx for idx, item in enumerate(items)}
             
             for u_idx, user_id in enumerate(user_ids):
@@ -53,6 +56,7 @@ class CollaborativeFiltering:
     def recommend(self, user_id, k=5):
         try:
             data = self.fetch_user_item_matrix()
+            # print("------------data", data)
             if not data:
                 return []
                 

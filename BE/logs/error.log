@@ -93,3 +93,22 @@
 {"level":"error","message":"Recommendation failed: ","timestamp":"2025-03-30 22:46:21"}
 {"level":"error","message":"Token verification failed: jwt expired","timestamp":"2025-03-31 01:50:33"}
 {"level":"error","message":"Token verification failed: jwt expired","timestamp":"2025-03-31 01:50:33"}
+{"level":"error","message":"Token verification failed: jwt expired","timestamp":"2025-04-01 21:06:49"}
+{"level":"error","message":"Token verification failed: jwt expired","timestamp":"2025-04-01 21:41:17"}
+{"level":"error","message":"Token verification failed: jwt expired","timestamp":"2025-04-01 21:41:17"}
+{"level":"error","message":"Token verification failed: jwt expired","timestamp":"2025-04-01 21:42:53"}
+{"level":"error","message":"Token verification failed: jwt expired","timestamp":"2025-04-01 21:42:53"}
+{"level":"error","message":"Token verification failed: jwt expired","timestamp":"2025-04-01 21:43:19"}
+{"level":"error","message":"Token verification failed: jwt expired","timestamp":"2025-04-01 21:43:19"}
+{"level":"error","message":"Token verification failed: jwt expired","timestamp":"2025-04-01 21:43:49"}
+{"level":"error","message":"Token verification failed: jwt expired","timestamp":"2025-04-01 21:43:49"}
+{"level":"error","message":"Token verification failed: jwt expired","timestamp":"2025-04-01 21:45:14"}
+{"level":"error","message":"Token verification failed: jwt expired","timestamp":"2025-04-01 21:45:14"}
+{"level":"error","message":"Token verification failed: jwt expired","timestamp":"2025-04-01 21:45:22"}
+{"level":"error","message":"Token verification failed: jwt expired","timestamp":"2025-04-01 21:45:22"}
+{"level":"error","message":"Token verification failed: jwt expired","timestamp":"2025-04-01 21:45:46"}
+{"level":"error","message":"Token verification failed: jwt expired","timestamp":"2025-04-01 21:45:46"}
+{"level":"error","message":"Token verification failed: jwt expired","timestamp":"2025-04-01 21:46:28"}
+{"level":"error","message":"Token verification failed: jwt expired","timestamp":"2025-04-01 21:46:28"}
+{"level":"error","message":"No authorization header provided","timestamp":"2025-04-03 21:45:23"}
+{"level":"error","message":"Token verification failed: jwt expired","timestamp":"2025-04-03 21:45:29"}

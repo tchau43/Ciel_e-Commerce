@@ -5,6 +5,7 @@ const {
   getAllUsersService,
   updateUserbyIdService,
   getUserByIdService,
+  getUsersPurchasedDetailService,
 } = require("../services/userService");
 
 const createUser = async (req, res) => {
@@ -61,11 +62,21 @@ const getUserPurchased = async (req, res) => {
   }
 }
 
+const getUsersPurchasedDetail = async (req, res) => {
+  try {
+    const purchases = await getUsersPurchasedDetailService()
+    res.status(200).json(purchases);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+}
+
 module.exports = {
   createUser,
   userLogin,
   getAllUsers,
   getUserById,
   updateUserbyId,
-  getUserPurchased
+  getUserPurchased,
+  getUsersPurchasedDetail
 };
