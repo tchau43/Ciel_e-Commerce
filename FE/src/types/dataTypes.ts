@@ -130,12 +130,8 @@ export declare type InvoiceItems = {
 
 //Home Page
 export declare type HomePageRes = {
-  banner1_home: BannerHomePage;
-  banner2_home: BannerHomePage;
-  banner3_home: BannerHomePage;
-  video1_home: VideoHomePage;
-  video2_home: VideoHomePage;
-  video3_home: VideoHomePage;
+  banners: BannerHomePage[];
+  videos: VideoHomePage[];
   features: FeatureHomePage[];
 };
 
@@ -145,6 +141,7 @@ export declare type BannerHomePage = {
 
 export declare type VideoHomePage = {
   title: string;
+  photo_url: string;
   video_youtube: string;
   photo_thumb: string;
 };

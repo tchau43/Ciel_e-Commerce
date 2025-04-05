@@ -132,12 +132,6 @@ const Product = () => {
         </span>
       </p>
       <div className=" w-full h-[404px] 2xl:h-[600px] flex justify-between">
-        {/* <div className="h-full flex flex-col justify-between">
-          <img className="h-1/5 aspect-square" alt="" src="/logo.png"></img>
-          <img className="h-1/5 aspect-square" alt="" src="/logo.png"></img>
-          <img className="h-1/5 aspect-square" alt="" src="/logo.png"></img>
-          <img className="h-1/5 aspect-square" alt="" src="/logo.png"></img>
-        </div> */}
         <div className="h-full flex flex-col justify-between">
           {imageSources.map((i, index) => (
             <img

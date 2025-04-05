@@ -104,9 +104,6 @@ routerAPI.get("/products/batch", async (req, res) => {
   }
 });
 
-// Add upload endpoint
-// routerAPI.post('/upload', upload.single('image'), uploadImageService);
-
 // Routes for homepage configuration
 routerAPI.get('/homepage', getHomePage);  // Get homepage
 routerAPI.put('/homepage/banner', updateBanner);  // Update Banner

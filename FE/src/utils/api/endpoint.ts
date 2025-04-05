@@ -16,7 +16,7 @@ export const API_ENDPOINTS = {
   INVOICE: `${VITE_API_VERSION}/invoice`,
   GET_INVOICE: (userId: string) => `${VITE_API_VERSION}/invoice/${userId}`,
   STRIPE: `${VITE_API_VERSION}/invoice/stripe`,
-  COMMENT: `${VITE_API_VERSION}/comments`,
+  CUSTOMER_HOME_PAGE: `${VITE_API_VERSION}/homepage`,
   USER_COMMENTS: `${VITE_API_VERSION}/user-comments`,
   USERS: `${VITE_API_VERSION}/admin/users`,
   ALL_REVIEWS: `${VITE_API_VERSION}/admin/all-comments`,
