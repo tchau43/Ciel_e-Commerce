@@ -20,6 +20,7 @@ const getHomePageService = async () => {
                 ],
                 features: [
                     {
+                        image_url: "https://placehold.co/100x100/EEE/31343C",
                         title: "Default Feature",
                         description: "Default description"
                     }
