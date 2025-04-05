@@ -149,4 +149,5 @@ export declare type VideoHomePage = {
 export declare type FeatureHomePage = {
   title: string;
   description: string;
+  image_url: string;
 };

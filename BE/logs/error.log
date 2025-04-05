@@ -114,3 +114,5 @@
 {"level":"error","message":"Token verification failed: jwt expired","timestamp":"2025-04-03 21:45:29"}
 {"level":"error","message":"No authorization header provided","timestamp":"2025-04-05 12:55:05"}
 {"level":"error","message":"Token verification failed: jwt expired","timestamp":"2025-04-05 12:55:11"}
+{"level":"error","message":"Token verification failed: jwt expired","timestamp":"2025-04-05 17:06:54"}
+{"level":"error","message":"No authorization header provided","timestamp":"2025-04-05 17:10:29"}
