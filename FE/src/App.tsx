@@ -70,7 +70,6 @@ function App() {
               </RoleBasedRoute>
             }
           >
-            <Route path="test/" element={<InvoicePage />}></Route>
             <Route index element={<UserHomePage />} />
             <Route
               path="product/*"
