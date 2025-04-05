@@ -60,7 +60,7 @@ const UserHomePage = () => {
           {homePageData?.videos.map((video, index) => (
             <div
               key={index}
-              className="bg-white shadow-lg rounded-lg overflow-hidden p-4"
+              className="bg-white shadow-lg rounded-lg overflow-hidden p-4 border-4 border-blue-500"
               onMouseEnter={() => setIsHovered(true)}
               onMouseLeave={() => setIsHovered(false)}
             >
