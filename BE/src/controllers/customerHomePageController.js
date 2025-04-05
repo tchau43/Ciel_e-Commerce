@@ -15,42 +15,43 @@ const getHomePage = async (req, res) => {
     }
 };
 
-// Update Banner
+// Update Banner: expects { bannerId, photo_url }
 const updateBanner = async (req, res) => {
-    const { bannerId, photo_url, text } = req.body;
+    const { bannerId, photo_url } = req.body;
     try {
-        const data = await updateBannerService(bannerId, { photo_url, text });
+        // Pass an object that matches the banner schema
+        const data = await updateBannerService(bannerId, { photo_url });
         res.status(200).json({
             message: "Banner updated successfully",
-            banner: data
+            homepage: data
         });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
 };
 
-// Update Video
+// Update Video: expects { videoId (optional), title, video_youtube, photo_thumb }
 const updateVideo = async (req, res) => {
-    const { videoId, title, video_youtube, photo_thumb } = req.body;
+    const { _id, title, video_youtube, photo_thumb, photo_url } = req.body;
     try {
-        const data = await updateVideoService(videoId, { title, video_youtube, photo_thumb });
+        const data = await updateVideoService(_id, { title, video_youtube, photo_thumb, photo_url });
         res.status(200).json({
             message: "Video updated successfully",
-            video: data
+            homepage: data
         });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
 };
 
-// Update Feature
+// Update Feature: expects { featureId (optional), title, description }
 const updateFeature = async (req, res) => {
     const { featureId, title, description } = req.body;
     try {
         const data = await updateFeatureService(featureId, { title, description });
         res.status(200).json({
             message: "Feature updated successfully",
-            feature: data
+            homepage: data
         });
     } catch (error) {
         res.status(500).json({ message: error.message });

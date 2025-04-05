@@ -15,6 +15,7 @@ const customerHomePage = new mongoose.Schema({
             {
                 title: { type: String, required: true },
                 video_youtube: { type: String, required: true },
+                photo_url: { type: String, required: true },
                 photo_thumb: { type: String, required: true },
             },
         ],
