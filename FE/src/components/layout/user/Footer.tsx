@@ -1,7 +1,7 @@
 const Footer = () => {
   return (
     <div className="w-screen h-80 bottom-0 bg-[rgba(54,54,54,1)] flex flex-col items-center pt-8 gap-8">
-      <img className="h-16" src="../public/logo.png"></img>
+      <img className="h-16" src="../logo.png"></img>
       <div className="text-center space-y-4">
         <p className="text-sm text-[rgba(177,178,178,1)] font-normal">
           Địa chỉ :
