@@ -27,7 +27,7 @@ const Header: React.FC = () => {
         </NavLink>
       </div>
       <div className="h-full flex flex-col items-center my-8 gap-4">
-        <img className="h-16" src="../public/logo.png"></img>
+        <img className="h-16" src="../logo.png"></img>
         <Navbar />
       </div>
     </div>
