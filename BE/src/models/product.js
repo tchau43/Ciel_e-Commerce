@@ -28,15 +28,42 @@ const productSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-productSchema.pre('save', function (next) {
-  // Remove any leading/trailing spaces from image paths
-  if (this.images && Array.isArray(this.images)) {
-    this.images = this.images.map(img => img.trim());
+const product1Schema = new mongoose.Schema(
+  // Your schema should align with this structure
+  {
+    product_id: String,
+    name: String,
+    brand: String,
+    category: String,
+    images: [String],
+    base_price: Number,
+    variants: [
+      {
+        sku: String,
+        color: String,
+        storage: String,
+        price: Number,
+        images: [String],
+      },
+    ],
+    specifications: [String],
+    promotions: [String],
+    url: String,
+    createdAt: Date,
+    updatedAt: Date,
   }
-  next();
-});
+);
+
+// productSchema.pre("save", function (next) {
+//   // Remove any leading/trailing spaces from image paths
+//   if (this.images && Array.isArray(this.images)) {
+//     this.images = this.images.map((img) => img.trim());
+//   }
+//   next();
+// });
 
 const Product = mongoose.model("Product", productSchema);
+const Product1 = mongoose.model("Product1", product1Schema);
 
 const productIndexSchema = new mongoose.Schema({
   product: {
@@ -50,4 +77,4 @@ const productIndexSchema = new mongoose.Schema({
 });
 
 const ProductIndex = mongoose.model("ProductIndex", productIndexSchema);
-module.exports = { Product, ProductIndex };
+module.exports = { Product, ProductIndex, Product1 };
