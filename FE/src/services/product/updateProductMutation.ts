@@ -1,4 +1,3 @@
-import { ProductReq } from "@/types/dataTypes";
 import { API_ENDPOINTS } from "@/utils/api/endpoint";
 import { useMutation } from "@tanstack/react-query";
 import Product from "@/repositories/product/product";
