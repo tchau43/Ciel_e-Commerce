@@ -42,16 +42,12 @@ const CategoriesList = ({
     navigate(`?${newParams}`, { replace: true });
   };
 
-  // Optionally, sync local state with queryParams when they change externally
   useEffect(() => {
-    // Always parse queryParams (even if empty)
     const params = new URLSearchParams(queryParams || "");
-    // Force refresh for ALL/none selection
     const newCheckedCate = params.getAll("category");
     setCheckedCate(newCheckedCate);
-  }, [queryParams]); // Update when queryParams changes
+  }, [queryParams]);
 
-  // Handle "Select All" checkbox
   const handleSelectAll = () => {
     if (checkedCate.length === data.length) {
       setCheckedCate([]);
