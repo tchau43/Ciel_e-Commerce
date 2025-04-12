@@ -138,7 +138,7 @@ const ProductsManagementTable = ({ data }: ProductsManagementTableProps) => {
               {paginatedData.map((p) => (
                 <TableRow key={p._id}>
                   <TableCell>{p.name}</TableCell>
-                  <TableCell>{p.price}</TableCell>
+                  <TableCell>{p.base_price}</TableCell>
                   <TableCell>{p.category.name}</TableCell>
                   <TableCell>{p.brand}</TableCell>
                   <TableCell>{p.quantity_in_stock}</TableCell>
