@@ -68,7 +68,9 @@ const CartItem = ({ product }: CartItemProps) => {
         ></img>
       </div>
       <div className="flex-1">{product.product.name}</div>
-      <div className="w-48">{Number(product.product.price) * quantity}</div>
+      <div className="w-48">
+        {Number(product.product.base_price) * quantity}
+      </div>
       <div className="flex gap-x-1 w-36 justify-center">
         <button
           className="border border-gray-300 rounded-full w-6 h-6 flex items-center justify-center"

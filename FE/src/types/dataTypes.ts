@@ -43,47 +43,32 @@ export declare type CategoryData = {
   description: string;
 };
 
-export declare type ProductRes = {
+export declare type ProductData = {
   _id: string;
   name: string;
-  price: string;
+  base_price: string;
   category: CategoryData;
   tags: string[];
   status: string;
   quantity_in_stock: number;
   images: string[];
+  image?: File | string;
   createdAt: string;
   brand: string;
   description: string;
   shortDescription: string;
   moreInfomation: string;
-};
-
-export declare type ProductReq = {
-  _id: string;
-  name: string;
-  price: string;
-  category: CategoryData;
-  tags: string[];
-  status: string;
-  quantity_in_stock: number;
-  images: string[];
-  image?: File | string; // New image upload (File in FE, string path in BE)
-  createdAt: string;
-  brand: string;
-  description: string;
-  shortDescription: string;
-  moreInfomation: string;
+  url: string;
 };
 
 export declare type UpdateCartItemData = {
   userId: string;
-  productId: ProductRes["_id"];
+  productId: ProductData["_id"];
   changeQuantity: number;
 };
 
 export declare type CartItemData = {
-  product: ProductRes;
+  product: ProductData;
   quantity: number;
   _id: string;
 };
@@ -123,7 +108,7 @@ export declare type InvoiceResponse = {
 
 export declare type InvoiceItems = {
   _id: string;
-  product: ProductRes;
+  product: ProductData;
   quantity: number;
   priceAtPurchase: number;
 };

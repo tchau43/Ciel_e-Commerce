@@ -25,7 +25,7 @@ const CartPage = () => {
 
   const total =
     cart?.items?.reduce(
-      (sum, item) => sum + Number(item.product.price) * item.quantity,
+      (sum, item) => sum + Number(item.product.base_price) * item.quantity,
       0
     ) || 0;
 
