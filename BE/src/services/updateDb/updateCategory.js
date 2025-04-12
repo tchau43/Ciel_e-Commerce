@@ -25,4 +25,16 @@ const updateAllCategories = async () => {
     }
 };
 
-updateAllCategories();
+// Alternatively, using async/await:
+async function removeDescriptionField() {
+    try {
+        const result = await Category.updateMany({}, { $unset: { description: "" } });
+        console.log("Successfully removed description field from all documents:", result);
+    } catch (error) {
+        console.error("Error removing description field:", error);
+    }
+}
+
+removeDescriptionField();
+
+// updateAllCategories();

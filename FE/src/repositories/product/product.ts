@@ -1,4 +1,3 @@
-import { ProductReq } from "@/types/dataTypes";
 import Base from "../base";
 
 class Product extends Base {
