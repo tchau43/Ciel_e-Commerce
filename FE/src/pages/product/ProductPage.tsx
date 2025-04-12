@@ -104,7 +104,7 @@ const ProductPage = () => {
           setQueryParams={setQueryParams}
         />
       </div>
-      <div className="w-full">
+      <div className="flex-1">
         <ProductsList data={products} />
       </div>
     </div>

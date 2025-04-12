@@ -41,8 +41,16 @@ const {
 } = require("../controllers/recommendationsController");
 const { Product } = require("../models/product");
 const upload = require("../middleware/multer");
-const { createHomePage, getHomePage, updateHomePage, deleteHomePage, updateBanner, updateVideo, updateFeature } = require("../controllers/customerHomePageController");
+const {
+  getHomePage,
+  updateBanner,
+  updateVideo,
+  updateFeature,
+} = require("../controllers/customerHomePageController");
 const { getChatbotResponse } = require("../controllers/chatController");
+const {
+  sendPaymentConfirmationEmail,
+} = require("../controllers/emailController");
 
 const routerAPI = express.Router();
 
@@ -70,8 +78,7 @@ routerAPI.get("/product/:id", getProductById);
 routerAPI.get("/product", getProductsByName);
 routerAPI.get("/productsBySearch", searchProduct);
 routerAPI.post("/product", createProduct);
-routerAPI.put("/product/:id", upload.single("image"), updateProduct
-);
+routerAPI.put("/product/:id", upload.single("image"), updateProduct);
 routerAPI.delete("/product/:id", deleteProduct);
 
 //cart
@@ -106,13 +113,15 @@ routerAPI.get("/products/batch", async (req, res) => {
 });
 
 // Routes for homepage configuration
-routerAPI.get('/homepage', getHomePage);  // Get homepage
-routerAPI.put('/homepage/banner', updateBanner);  // Update Banner
-routerAPI.put('/homepage/video', updateVideo);  // Update Video
-routerAPI.put('/homepage/feature', updateFeature);  // Update Feature
+routerAPI.get("/homepage", getHomePage); // Get homepage
+routerAPI.put("/homepage/banner", updateBanner); // Update Banner
+routerAPI.put("/homepage/video", updateVideo); // Update Video
+routerAPI.put("/homepage/feature", updateFeature); // Update Feature
 
 //chatgpt api integrate
 routerAPI.post("/chat", getChatbotResponse);
 
+// Email Trigger Route
+routerAPI.post("/payment/notify-success", sendPaymentConfirmationEmail); // Add this route
 
 module.exports = routerAPI;

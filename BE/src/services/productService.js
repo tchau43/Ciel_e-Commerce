@@ -42,7 +42,7 @@ const getAllProductsService = async (sort) => {
       .sort(sortOption)
       .populate("category");
     // console.log("ids", ids)
-    updateProducts();
+    // updateProducts();
     updateProductIndex();
     return products;
   } catch (error) {
