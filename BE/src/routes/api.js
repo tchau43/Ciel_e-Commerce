@@ -42,6 +42,7 @@ const {
 const { Product } = require("../models/product");
 const upload = require("../middleware/multer");
 const { createHomePage, getHomePage, updateHomePage, deleteHomePage, updateBanner, updateVideo, updateFeature } = require("../controllers/customerHomePageController");
+const { getChatbotResponse } = require("../controllers/chatController");
 
 const routerAPI = express.Router();
 
@@ -109,5 +110,9 @@ routerAPI.get('/homepage', getHomePage);  // Get homepage
 routerAPI.put('/homepage/banner', updateBanner);  // Update Banner
 routerAPI.put('/homepage/video', updateVideo);  // Update Video
 routerAPI.put('/homepage/feature', updateFeature);  // Update Feature
+
+//chatgpt api integrate
+routerAPI.post("/chat", getChatbotResponse);
+
 
 module.exports = routerAPI;
