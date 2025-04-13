@@ -40,7 +40,17 @@ export declare type User = {
 export declare type CategoryData = {
   _id: string;
   name: string;
-  description: string;
+};
+
+export declare type BrandData = {
+  _id: string;
+  name: string;
+};
+
+export declare type VariantData = {
+  _id: string;
+  types: string;
+  price: number;
 };
 
 export declare type ProductData = {
@@ -48,36 +58,40 @@ export declare type ProductData = {
   name: string;
   base_price: string;
   category: CategoryData;
+  brand: BrandData;
   tags: string[];
   status: string;
-  quantity_in_stock: number;
   images: string[];
   image?: File | string;
   createdAt: string;
-  brand: string;
-  description: string;
-  shortDescription: string;
-  moreInfomation: string;
+  updatedAt: string;
+  description: [string];
   url: string;
+  variants: [VariantData];
 };
 
 export declare type UpdateCartItemData = {
   userId: string;
   productId: ProductData["_id"];
-  changeQuantity: number;
+  variantId?: string | null; // <-- ADD THIS (optional)
+  quantity: number;
 };
 
+// Also update CartItemData for clarity on what the cart fetch returns
 export declare type CartItemData = {
-  product: ProductData;
+  product: ProductData; // This holds ALL variants
+  variant?: string; // The ID of the selected variant FOR THIS cart line item
   quantity: number;
-  _id: string;
+  _id: string; // This is the ID of the cart item itself, often default behaviour of Mongoose
 };
 
 export declare type CartData = {
-  _id: string;
+  _id: string | null; // Can be null if cart was just created virtually
   user: string;
   items: CartItemData[];
-  totalPrice: number;
+  // totalPrice is calculated dynamically
+  createdAt?: string | null;
+  updatedAt?: string | null;
 };
 
 export declare type InvoiceProductInputData = {

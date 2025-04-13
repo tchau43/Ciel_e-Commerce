@@ -1,100 +1,172 @@
-import { useUpdateCartMutation } from "@/services/cart/updateCartMutation";
+// components/cart/CartItem.tsx
+import React, { useEffect, useState, useCallback } from "react";
+import { CartItemData } from "@/types/dataTypes";
+import { useUpdateCartMutation } from "@/services/cart/updateCartMutation"; // Make sure path is correct
 import { getAuthCredentials } from "@/utils/authUtil";
-import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { TiDeleteOutline } from "react-icons/ti";
-import { CartItemData, ProductData } from "@/types/dataTypes";
+import { debounce } from "lodash"; // Using lodash debounce
 
 interface CartItemProps {
-  product: CartItemData;
+  item: CartItemData; // *** RENAMED PROP ***
 }
 
-const CartItem = ({ product }: CartItemProps) => {
-  console.log("product", product);
+const CartItem: React.FC<CartItemProps> = ({ item }) => {
+  // *** USE RENAMED PROP ***
   const navigate = useNavigate();
-  const [quantity, setQuantity] = useState<number>(product.quantity);
-  const { mutate: updateCart, isPending } = useUpdateCartMutation();
+  const product = item.product; // Extract product for easier access
+  const [quantity, setQuantity] = useState<number>(item.quantity);
+  const { mutate: updateCartMutation, isPending: isUpdating } =
+    useUpdateCartMutation();
 
-  useEffect(() => {
-    setQuantity(product.quantity);
-  }, [product.quantity]);
+  // --- Find Variant & Calculate Price ---
+  const chosenVariant = product?.variants?.find(
+    (v) => v._id === item.variant?.toString() // Use item.variant (the stored ID)
+  );
+  const displayPrice = chosenVariant
+    ? chosenVariant.price
+    : Number(product?.base_price ?? 0);
+  const itemTotal = (isNaN(displayPrice) ? 0 : displayPrice) * quantity;
+  // ---
 
+  // Sync local state with prop
   useEffect(() => {
-    const timer = setTimeout(() => {
-      handleChangeCart();
-    }, 300);
-    return () => clearTimeout(timer);
-  }, [quantity]);
+    setQuantity(item.quantity);
+  }, [item.quantity]);
+
+  // --- Debounced Update Logic ---
+  const debouncedUpdateCart = useCallback(
+    debounce((newQuantity: number) => {
+      const { userInfo } = getAuthCredentials();
+      const userId = userInfo?._id;
+      if (!userId || !product?._id) {
+        console.error("User or Product ID missing for cart update.");
+        return;
+      }
+
+      console.log(
+        `Debounced Update: userId=${userId}, productId=${
+          product._id
+        }, variantId=${item.variant || null}, quantity=${newQuantity}`
+      );
+
+      // *** FIX: Send correct field name 'quantity' and include 'variantId' ***
+      updateCartMutation({
+        variables: {
+          userId,
+          productId: product._id,
+          variantId: item.variant || null,
+          quantity: newQuantity, // Correctly sending 'quantity' field name
+        },
+      });
+    }, 500), // 500ms delay
+    [updateCartMutation, product?._id, item.variant]
+  );
+
+  // Trigger debounced update when local quantity changes
+  useEffect(() => {
+    if (quantity !== item.quantity && quantity >= 0) {
+      debouncedUpdateCart(quantity);
+    }
+    return () => {
+      debouncedUpdateCart.cancel();
+    };
+  }, [quantity, item.quantity, debouncedUpdateCart]);
+  // --- End Debounced Update ---
 
   const handleIncreaseQuantity = () => {
     setQuantity((q) => q + 1);
   };
 
   const handleDecreaseQuantity = () => {
-    setQuantity((q) => {
-      const temp = q - 1;
-      return temp >= 1 ? temp : q;
-    });
+    // *** FIX: Allow decreasing to 0 to trigger removal ***
+    setQuantity((q) => Math.max(0, q - 1));
   };
 
   const handleRemoveProduct = () => {
-    setQuantity((q) => 0);
+    // Set local quantity to 0, which triggers the debounced update
+    // The backend service should handle quantity: 0 as a removal instruction
+    setQuantity(0);
   };
 
-  const handleChangeCart = () => {
-    const { userInfo } = getAuthCredentials(); // retrieve user id from auth state
-    console.log("userInfo", userInfo);
-    const userId = userInfo._id;
-    if (!userId) {
-      // If the user is not logged in, you might redirect them or show a message
-      navigate("/login");
-      return;
-    }
+  if (!product) {
+    return (
+      <div className="bg-white p-4 rounded shadow text-red-500">
+        Product data unavailable.
+      </div>
+    );
+  }
 
-    updateCart({
-      variables: {
-        userId,
-        productId: product.product._id,
-        changeQuantity: quantity,
-      },
-    });
-  };
+  // --- Updated Return JSX ---
   return (
-    <div className="px-4 w-full max-w-7xl border rounded-xl h-30 flex items-center mb-4">
-      <div className="w-36">
-        <img
-          className="size-24 object-cover"
-          src="https://placehold.co/300x400"
-        ></img>
+    <div className="flex flex-col sm:flex-row items-center gap-4 bg-white p-4 rounded-lg shadow-sm border border-gray-200">
+      {/* Image */}
+      <img
+        src={product.images?.[0] || "/logo.png"} // *** FIX: Use actual product image ***
+        alt={product.name}
+        className="w-20 h-20 sm:w-24 sm:h-24 object-cover rounded flex-shrink-0 border cursor-pointer"
+        onClick={() => navigate(`/product/${product._id}`)}
+        onError={(e) => {
+          e.currentTarget.src = "/logo.png";
+        }}
+      />
+
+      {/* Details */}
+      <div className="flex-grow text-center sm:text-left">
+        <h3
+          className="font-semibold text-gray-800 hover:text-blue-600 cursor-pointer"
+          onClick={() => navigate(`/product/${product._id}`)}
+        >
+          {product.name}
+        </h3>
+        {/* *** FIX: Display Variant Type *** */}
+        {chosenVariant && (
+          <p className="text-sm text-gray-500">{chosenVariant.types}</p>
+        )}
+        {/* Display Price Per Item */}
+        <p className="text-sm text-gray-600 mt-1">
+          {displayPrice.toLocaleString("vi-VN")} VND
+        </p>
       </div>
-      <div className="flex-1">{product.product.name}</div>
-      <div className="w-48">
-        {Number(product.product.base_price) * quantity}
-      </div>
-      <div className="flex gap-x-1 w-36 justify-center">
+
+      {/* Quantity Controls */}
+      <div className="flex items-center gap-2 flex-shrink-0 my-2 sm:my-0">
         <button
-          className="border border-gray-300 rounded-full w-6 h-6 flex items-center justify-center"
           onClick={handleDecreaseQuantity}
-          disabled={isPending}
+          disabled={isUpdating || quantity === 0} // Also disable if 0
+          className="border rounded-full w-7 h-7 flex items-center justify-center text-gray-600 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+          aria-label="Decrease quantity"
         >
           -
         </button>
-        <input
-          disabled={true}
-          value={quantity}
-          className="border border-gray-300 text-center w-12"
-        ></input>
+        <span className="w-10 text-center font-medium" aria-live="polite">
+          {quantity}
+        </span>
         <button
-          className="border border-gray-300 rounded-full w-6 h-6 flex items-center justify-center"
           onClick={handleIncreaseQuantity}
-          disabled={isPending}
+          disabled={isUpdating}
+          className="border rounded-full w-7 h-7 flex items-center justify-center text-gray-600 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+          aria-label="Increase quantity"
         >
           +
         </button>
       </div>
-      <div className="w-20 flex justify-center">
-        <TiDeleteOutline className="size-8" onClick={handleRemoveProduct} />
+
+      {/* *** FIX: Item Total Price Calculation *** */}
+      <div className="w-28 text-center sm:text-right font-medium text-gray-800 flex-shrink-0">
+        {itemTotal.toLocaleString("vi-VN")} VND
       </div>
+
+      {/* Remove Button */}
+      <button
+        onClick={handleRemoveProduct}
+        disabled={isUpdating}
+        className="text-gray-400 hover:text-red-600 ml-2 sm:ml-4 flex-shrink-0 disabled:opacity-50 disabled:cursor-not-allowed"
+        title="Remove item"
+        aria-label="Remove item"
+      >
+        <TiDeleteOutline className="size-6" />
+      </button>
     </div>
   );
 };

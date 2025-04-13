@@ -16,12 +16,15 @@ const Product = () => {
   const [selectedVariantId, setSelectedVariantId] = useState<string | null>(
     null
   );
+
   const containerRef = useRef<HTMLDivElement>(null);
   const columnARef = useRef<HTMLDivElement>(null);
   const columnBRef = useRef<HTMLDivElement>(null);
+
   const [containerMinHeight, setContainerMinHeight] = useState<number | null>(
     null
   );
+
   const {
     data: product,
     isLoading,
@@ -38,8 +41,231 @@ const Product = () => {
       setMainImage("/logo.png");
     }
     setSelectedVariantId(null);
+    // Reset measured height when product changes so it gets remeasured
     setContainerMinHeight(null);
   }, [product]);
+  console.log("------------------containerMinHeight", containerMinHeight);
+
+  // --- Effect to Measure Container Height Once Loaded (More Robust) ---
+  useEffect(() => {
+    // Only measure if product loaded, ALL refs available, and height not set
+    if (
+      product &&
+      !isLoading &&
+      containerRef.current &&
+      columnARef.current && // Check column refs too
+      columnBRef.current && // Check column refs too
+      !containerMinHeight
+    ) {
+      let retryTimeoutId: NodeJS.Timeout | null = null;
+      let initialTimeoutId: NodeJS.Timeout | null = null;
+
+      const measureHeight = () => {
+        // Re-check refs inside timeout/retry
+        if (containerRef.current && columnARef.current && columnBRef.current) {
+          const measuredHeight = containerRef.current.offsetHeight;
+          const colAHeight = columnARef.current.offsetHeight;
+          const colBHeight = columnBRef.current.offsetHeight;
+
+          // console.log(`Measuring: Container=${measuredHeight}, A=${colAHeight}, B=${colBHeight}`);
+
+          // Set height only if container AND columns seem to have rendered height (adjust '50' if needed)
+          if (measuredHeight > 50 && colAHeight > 50 && colBHeight > 50) {
+            // console.log("Setting Container MinHeight:", measuredHeight);
+            setContainerMinHeight(measuredHeight);
+          } else {
+            // Retry if height is still too small (layout might still be settling)
+            // console.log("Retrying height measurement...");
+            retryTimeoutId = setTimeout(measureHeight, 200); // Retry delay
+          }
+        }
+      };
+      // Initial timeout wait for layout settle
+      initialTimeoutId = setTimeout(measureHeight, 150); // Initial delay
+
+      // Cleanup function for this effect instance
+      return () => {
+        if (initialTimeoutId) clearTimeout(initialTimeoutId);
+        if (retryTimeoutId) clearTimeout(retryTimeoutId);
+      };
+    }
+    // Depend on loading state; should re-run when loading finishes or product changes (via reset)
+  }, [product, isLoading, containerMinHeight]); // Re-added containerMinHeight dependency here. If it gets reset to null, this effect should run again to measure.
+
+  // --- Scroll Logic Effect ---
+  useEffect(() => {
+    // --- GUARD: Wait until height is measured and refs are ready ---
+    if (
+      !containerRef.current ||
+      !columnARef.current ||
+      !columnBRef.current ||
+      !containerMinHeight // Crucial: Wait for height measurement
+    ) {
+      // console.log("Scroll handler waiting for refs or container minHeight...");
+      return; // Don't run scroll logic yet
+    }
+
+    // --- handleScroll Definition ---
+    const handleScroll = () => {
+      // Re-check refs and height just in case they become null somehow
+      if (
+        !containerRef.current ||
+        !columnARef.current ||
+        !columnBRef.current ||
+        !containerMinHeight
+      )
+        return;
+
+      const containerRect = containerRef.current.getBoundingClientRect();
+      const containerTop = containerRect.top + window.scrollY;
+      const colA = columnARef.current;
+      const colB = columnBRef.current;
+      const colARect = colA.getBoundingClientRect();
+      const colBRect = colB.getBoundingClientRect();
+      const colAHeight = colA.offsetHeight;
+      const colBHeight = colB.offsetHeight;
+      const viewportHeight = window.innerHeight;
+      const scrollY = window.scrollY;
+
+      // --- Logging Key Values (Enable for Debugging) ---
+      // console.log("--------------------");
+      // console.log(`ScrollY: ${Math.round(scrollY)}`);
+      // console.log(`Container Top: ${Math.round(containerTop)}`);
+      // console.log(`Col A Height: ${colAHeight}, Col B Height: ${colBHeight}`);
+      // console.log(`Container MinHeight State: ${containerMinHeight}`);
+      // console.log(`Actual Container Height: ${containerRef.current.offsetHeight}`);
+
+      const initialColALeft = colARect.left;
+      const initialColBLeft = colBRect.left;
+      const absoluteColALeft = initialColALeft - containerRect.left;
+      const absoluteColBLeft = initialColBLeft - containerRect.left;
+
+      // --- Reset Styles First ---
+      colA.style.position = "";
+      colA.style.bottom = "";
+      colA.style.top = "";
+      colA.style.left = "";
+      colA.style.width = "";
+      colA.style.zIndex = "";
+      colB.style.position = "";
+      colB.style.bottom = "";
+      colB.style.top = "";
+      colB.style.left = "";
+      colB.style.width = "";
+      colB.style.zIndex = "";
+
+      // --- Determine which column is taller ---
+      const isATaller = colAHeight > colBHeight;
+      const shorterCol = isATaller ? colB : colA;
+      const tallerCol = isATaller ? colA : colB;
+      const shorterColHeight = isATaller ? colBHeight : colAHeight;
+      const tallerColHeight = isATaller ? colAHeight : colBHeight;
+      // console.log(`Is A Taller: ${isATaller}`);
+
+      // --- Calculate Thresholds ---
+      const shorterColBottomHitsViewportBottomScrollY =
+        containerTop + shorterColHeight - viewportHeight;
+      const tallerColBottomHitsViewportBottomScrollY =
+        containerTop + tallerColHeight - viewportHeight;
+      // console.log(`Shorter Hits Threshold: ${Math.round(shorterColBottomHitsViewportBottomScrollY)}`);
+      // console.log(`Taller Hits Threshold: ${Math.round(tallerColBottomHitsViewportBottomScrollY)}`);
+
+      // --- Apply Styles using clear nested logic ---
+      if (scrollY < shorterColBottomHitsViewportBottomScrollY) {
+        // Scenario 1: Both scroll normally. Reset is enough.
+        // console.log(">>> SCENARIO 1 ACTIVE");
+      } else {
+        // scrollY >= shorterColBottomHitsViewportBottomScrollY
+        if (scrollY < tallerColBottomHitsViewportBottomScrollY) {
+          // Scenario 2: Shorter is fixed to viewport bottom, taller scrolls normally.
+          // console.log(">>> SCENARIO 2 ACTIVE");
+          // console.log(`   Fixing ${isATaller ? 'B' : 'A'} bottom: 0, left: ${Math.round(isATaller ? initialColBLeft : initialColALeft)}, width: ${Math.round(isATaller ? colBRect.width : colARect.width)}`);
+
+          shorterCol.style.position = "fixed";
+          shorterCol.style.bottom = "0px";
+          shorterCol.style.top = "auto";
+          shorterCol.style.left = `${
+            isATaller ? initialColBLeft : initialColALeft
+          }px`;
+          shorterCol.style.width = `${
+            isATaller ? colBRect.width : colARect.width
+          }px`;
+          shorterCol.style.zIndex = "10";
+          // Ensure taller column is in normal flow
+          tallerCol.style.position = "";
+          tallerCol.style.zIndex = "";
+        } else {
+          // scrollY >= tallerColBottomHitsViewportBottomScrollY
+          // Scenario 3: Both are positioned absolutely at the bottom of the container.
+          // console.log(">>> SCENARIO 3 ACTIVE");
+          // console.log(`   Absoluting A bottom: 0, left: ${Math.round(absoluteColALeft)}, width: ${Math.round(colARect.width)}`);
+          // console.log(`   Absoluting B bottom: 0, left: ${Math.round(absoluteColBLeft)}, width: ${Math.round(colBRect.width)}`);
+
+          colA.style.position = "absolute";
+          colA.style.bottom = "0px";
+          colA.style.top = "auto";
+          colA.style.left = `${absoluteColALeft}px`;
+          colA.style.width = `${colARect.width}px`;
+          colA.style.zIndex = "10";
+
+          colB.style.position = "absolute";
+          colB.style.bottom = "0px";
+          colB.style.top = "auto";
+          colB.style.left = `${absoluteColBLeft}px`;
+          colB.style.width = `${colBRect.width}px`;
+          colB.style.zIndex = "10";
+        }
+      }
+      // console.log("--------------------");
+    }; // --- End of handleScroll ---
+
+    const throttledScrollHandler = throttle(handleScroll, 16);
+    window.addEventListener("scroll", throttledScrollHandler);
+
+    // --- Resize Handling ---
+    const handleResize = () => {
+      // Reset container height so it gets remeasured by the other effect
+      setContainerMinHeight(null);
+
+      // Reset styles immediately on resize to avoid incorrect positioning
+      if (columnARef.current) {
+        columnARef.current.style.position = "";
+        columnARef.current.style.bottom = "";
+        columnARef.current.style.top = "";
+        columnARef.current.style.left = "";
+        columnARef.current.style.width = "";
+        columnARef.current.style.zIndex = "";
+      }
+      if (columnBRef.current) {
+        columnBRef.current.style.position = "";
+        columnBRef.current.style.bottom = "";
+        columnBRef.current.style.top = "";
+        columnBRef.current.style.left = "";
+        columnBRef.current.style.width = "";
+        columnBRef.current.style.zIndex = "";
+      }
+      // Note: Scroll handler will re-attach/re-run once height is measured again
+    };
+    const throttledResizeHandler = throttle(handleResize, 150);
+    window.addEventListener("resize", throttledResizeHandler);
+
+    // --- Delayed Initial Calculation ---
+    // Give content (images, etc.) more time to render after minHeight is set
+    const initialScrollTimeoutId = setTimeout(() => {
+      // console.log("Running delayed initial handleScroll");
+      handleScroll();
+    }, 150); // Adjust delay (e.g., 100, 150, 200ms)
+
+    // --- Cleanup ---
+    return () => {
+      window.removeEventListener("scroll", throttledScrollHandler);
+      window.removeEventListener("resize", throttledResizeHandler);
+      throttledScrollHandler.cancel(); // Lodash throttle cleanup
+      throttledResizeHandler.cancel(); // Lodash throttle cleanup
+      clearTimeout(initialScrollTimeoutId); // Clear the initial scroll timeout
+    };
+    // Re-run this effect if minHeight changes (i.e., after measurement) or product/id changes
+  }, [containerMinHeight, product, id]);
 
   // --- Loading and Error States ---
   if (isLoading) {
@@ -64,6 +290,7 @@ const Product = () => {
     );
   }
 
+  // --- Handlers ---
   const handleIncreaseQuantity = () => setQuantity((q) => q + 1);
   const handleDecreaseQuantity = () => setQuantity((q) => Math.max(1, q - 1));
   const handleVariantSelect = (variantId: string) =>
@@ -140,11 +367,9 @@ const Product = () => {
       <div
         ref={containerRef}
         className="flex flex-col md:flex-row md:gap-8 lg:gap-12 items-start relative" // Keep relative positioning
-        style={
-          {
-            // minHeight: containerMinHeight ? `${containerMinHeight}px` : "auto",
-          }
-        } // Apply min-height dynamically
+        style={{
+          minHeight: containerMinHeight ? `${containerMinHeight}px` : "auto",
+        }} // Apply min-height dynamically
       >
         {/* --- Column A: Images & Description --- */}
         <div ref={columnARef} className="w-full md:w-3/5 lg:w-2/3 mb-8 md:mb-0">
@@ -205,7 +430,7 @@ const Product = () => {
               <Outlet context={{ product, selectedVariantId }} />
             </div>
           </div>
-        </div>
+        </div>{" "}
         {/* End Column A */}
         {/* --- Column B: Info & Actions --- */}
         <div ref={columnBRef} className="w-full md:w-2/5 lg:w-1/3">
@@ -237,9 +462,9 @@ const Product = () => {
                       key={variant._id}
                       onClick={() => handleVariantSelect(variant._id)}
                       type="button"
-                      className={`w-full px-4 py-2.5 border rounded-lg text-left text-sm transition-all duration-150 ease-in-out flex-shrink-0 focus:outline-none ${
+                      className={`w-full px-4 py-2.5 border rounded-lg text-left text-sm transition-all duration-150 ease-in-out flex-shrink-0 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-orange-500 ${
                         selectedVariantId === variant._id
-                          ? "border-orange-500 bg-orange-50 text-orange-700 font-semibold shadow-sm"
+                          ? "border-orange-500 bg-orange-50 text-orange-700 font-semibold shadow-sm ring-1 ring-orange-500"
                           : "border-gray-300 bg-white text-gray-700 hover:bg-gray-50 hover:border-gray-400"
                       }`}
                     >

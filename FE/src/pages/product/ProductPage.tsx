@@ -71,7 +71,7 @@ const ProductPage = () => {
 
   return (
     <div className="size-full flex justify-between">
-      <div>
+      <div className="lg:mr-8">
         <div className="mb-4">
           {/* <label htmlFor="searchBox">Search:</label> */}
           <input
@@ -90,6 +90,7 @@ const ProductPage = () => {
             type="text"
             placeholder="Enter name, price, category, tags ..."
           />
+          <br />
           <button
             className="border rounded-md text-sm px-2 py-1 bg-gray-300"
             type="button"
