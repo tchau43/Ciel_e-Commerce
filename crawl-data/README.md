@@ -4,3 +4,4 @@ python -m venv env (if not have env)
 pip install -r requirements.txt
 python crawler_mobile.py
 python crawler_laptop.py
+python crawler_watch.py

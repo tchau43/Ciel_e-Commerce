@@ -1,4 +1,5 @@
 const Category = require("../models/category");
+const Brand = require("../models/brand");
 const { Product, ProductIndex } = require("../models/product");
 const { generateCombinations } = require("../utils/helper");
 const { createCategoryService } = require("./categoryService");
@@ -40,7 +41,8 @@ const getAllProductsService = async (sort) => {
     }
     const products = await Product.find({})
       .sort(sortOption)
-      .populate("category");
+      .populate("category")
+      .populate("brand");
     // console.log("ids", ids)
     // updateProducts();
     updateProductIndex();
@@ -52,7 +54,7 @@ const getAllProductsService = async (sort) => {
 
 const getProductByIdService = async (id) => {
   try {
-    const product = await Product.findById(id).populate("category");
+    const product = await Product.findById(id).populate("category").populate("brand");
     if (!product) {
       throw new Error("Product not found");
     }
