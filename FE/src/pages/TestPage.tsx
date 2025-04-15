@@ -1,12 +1,12 @@
 import { useGetProductByIdQuery } from "@/services/product/getProductByIdQuery";
 import { Outlet, useNavigate, useParams } from "react-router-dom";
-import ProductByCategory from "./ProductByCategory";
 import { useEffect, useState, useRef, useCallback } from "react"; // Import useRef, useState, useEffect
 import { getAuthCredentials } from "@/utils/authUtil";
 import { useAddProductToCartMutation } from "@/services/cart/addProductToCartMutation";
 import throttle from "lodash/throttle"; // CORRECT - Import specific function
+import ProductByCategory from "@/components/product/ProductByCategory";
 
-const Product = () => {
+const TestPage = () => {
   const navigate = useNavigate();
   const [quantity, setQuantity] = useState<number>(1);
   const { id } = useParams();
@@ -36,9 +36,113 @@ const Product = () => {
     isLoading,
     isError,
     error,
-  } = useGetProductByIdQuery(id!, {
-    enabled: !!id,
-  });
+  } = useGetProductByIdQuery("67fa5333bdfc522b344785a9", {});
+
+  // 1. Convert to useCallback
+  const updatePositions = useCallback(() => {
+    if (columnARef.current && columnBRef.current && containerRef.current) {
+      const containerRect = containerRef.current.getBoundingClientRect();
+      setColumnPositions({
+        aLeft: columnARef.current.getBoundingClientRect().left,
+        aLeftToParent: columnARef.current.offsetLeft,
+        bLeft: columnBRef.current.getBoundingClientRect().left,
+        bLeftToParent: columnBRef.current.offsetLeft,
+        aWidth: columnARef.current.offsetWidth,
+        bWidth: columnBRef.current.offsetWidth,
+      });
+    }
+  }, []);
+
+  // 2. Add position updaters
+  useEffect(() => {
+    const resizeObserver = new ResizeObserver(throttle(updatePositions, 100));
+    const scrollUpdater = throttle(updatePositions, 100);
+
+    if (containerRef.current) resizeObserver.observe(containerRef.current);
+    if (columnARef.current) resizeObserver.observe(columnARef.current);
+    if (columnBRef.current) resizeObserver.observe(columnBRef.current);
+
+    window.addEventListener("scroll", scrollUpdater);
+    updatePositions(); // Initial call
+
+    return () => {
+      resizeObserver.disconnect();
+      window.removeEventListener("scroll", scrollUpdater);
+    };
+  }, [updatePositions]);
+
+  // 3. Fix scroll handler
+  const handleScroll = useCallback(() => {
+    if (!columnPositions || !containerRef.current) return;
+
+    const STICKY_TOP_OFFSET = 10;
+    const scrollY = window.scrollY;
+    const containerRect = containerRef.current.getBoundingClientRect();
+    const containerTop = containerRect.top + scrollY;
+    const containerHeight = containerRect.height;
+
+    const colA = columnARef.current!;
+    const colB = columnBRef.current!;
+    const colAHeight = colA.offsetHeight;
+    const colBHeight = colB.offsetHeight;
+
+    [colA, colB].forEach((col) => (col.style.cssText = ""));
+
+    const isATaller = colAHeight > colBHeight;
+    const shorterCol = isATaller ? colB : colA;
+    const shorterHeight = Math.min(colAHeight, colBHeight);
+    const tallererHeight = Math.max(colAHeight, colBHeight);
+
+    // Calculate thresholds based on container height
+    const scrollStartThreshold = containerTop - STICKY_TOP_OFFSET;
+    const scrollStopThreshold =
+      containerTop + containerHeight - shorterHeight - STICKY_TOP_OFFSET;
+    const horizontalPositionStyle = isATaller
+      ? `right: 0;` // If A is taller, B is shorter (pin B right)
+      : `left: 0;`; // If B is taller, A is shorter (pin A left)
+
+    if (scrollY >= scrollStartThreshold && scrollY < scrollStopThreshold) {
+      shorterCol.style.cssText = `
+        position: fixed;
+        top: ${STICKY_TOP_OFFSET}px;
+        left: ${isATaller ? columnPositions.bLeft : columnPositions.aLeft}px;
+        width: ${isATaller ? columnPositions.bWidth : columnPositions.aWidth}px;
+        z-index: 10;
+        transition: left 0.3s ease;
+      `;
+    } else if (scrollY >= scrollStopThreshold) {
+      // console.log("---------------chcek11");
+      shorterCol.style.cssText = `
+        position: absolute;
+        top: auto;
+        bottom: 0;
+        ${horizontalPositionStyle};
+        width: ${isATaller ? columnPositions.bWidth : columnPositions.aWidth}px;
+        z-index: ;
+        transition: left 0.3s ease;
+      `;
+    } else {
+      colA.style.position = "";
+      colA.style.bottom = "";
+      colA.style.top = "";
+      colA.style.left = "";
+      colA.style.width = "";
+      colA.style.zIndex = "";
+      colB.style.position = "";
+      colB.style.bottom = "";
+      colB.style.top = "";
+      colB.style.left = "";
+      colB.style.width = "";
+      colB.style.zIndex = "";
+    }
+  }, [columnPositions]);
+
+  // 4. Fix useEffect dependencies
+  // useEffect(() => {
+  //   const throttledScroll = throttle(handleScroll, 16);
+  //   window.addEventListener("scroll", throttledScroll);
+  //   return () => window.removeEventListener("scroll", throttledScroll);
+  // }, [handleScroll]);
 
   useEffect(() => {
     if (product?.images && product.images.length > 0 && product.images[0]) {
@@ -50,20 +154,44 @@ const Product = () => {
     setContainerMinHeight(null);
   }, [product]);
 
-  let maxHeight = 0;
+  const maxHeight = () => {
+    if (columnARef.current && columnBRef.current) {
+      return Math.max(
+        columnARef.current.offsetHeight,
+        columnBRef.current.offsetHeight
+      );
+    }
+    return 0;
+  };
+
+  console.log(maxHeight());
 
   useEffect(() => {
-    const max = () => {
-      if (columnARef.current && columnBRef.current) {
-        return Math.max(
-          columnARef.current.offsetHeight,
-          columnBRef.current.offsetHeight
-        );
-      }
-      return 0;
-    };
-    maxHeight = max();
-  }, [columnARef, columnBRef]);
+    if (product && !isLoading) {
+      let retryTimeoutId: NodeJS.Timeout | null = null;
+      let initialTimeoutId: NodeJS.Timeout | null = null;
+
+      const measureHeight = () => {
+        // Re-check refs inside timeout/retry
+        if (containerRef.current && columnARef.current && columnBRef.current) {
+          const measuredHeight = containerRef.current.offsetHeight;
+          const colAHeight = columnARef.current.offsetHeight;
+          const colBHeight = columnBRef.current.offsetHeight;
+
+          if (measuredHeight > 50 && colAHeight > 50 && colBHeight > 50) {
+            setContainerMinHeight(measuredHeight);
+          } else {
+            retryTimeoutId = setTimeout(measureHeight, 200); // Retry delay
+          }
+        }
+      };
+      initialTimeoutId = setTimeout(measureHeight, 150); // Initial delay
+      return () => {
+        if (initialTimeoutId) clearTimeout(initialTimeoutId);
+        if (retryTimeoutId) clearTimeout(retryTimeoutId);
+      };
+    }
+  }, [product, isLoading]);
 
   // --- Loading and Error States ---
   if (isLoading) {
@@ -138,7 +266,8 @@ const Product = () => {
     ) ?? [];
 
   return (
-    <div className="min-h-screen min-w-full">
+    <>
+      <div className="min-h-screen min-w-full">
       <p className="font-sans font-normal text-sm text-gray-500 mb-6">
         <span
           className="hover:text-orange-600 hover:cursor-pointer hover:underline"
@@ -162,9 +291,9 @@ const Product = () => {
         <div
           ref={columnARef}
           className={`w-full md:w-3/5 pr-4 lg:flex-2 mb-8 md:mb-0 ${
-            (columnARef.current?.offsetHeight ?? 0) == maxHeight
+            (columnARef.current?.offsetHeight ?? 0) == maxHeight()
               ? ""
-              : "sticky top-4 self-start"
+              : "sticky top-0 self-start"
           }`}
         >
           <div className="flex gap-4 mb-8">
@@ -224,10 +353,10 @@ const Product = () => {
         {/* --- Column B: Info & Actions --- */}
         <div
           ref={columnBRef}
-          className={`w-full md:w-2/5 lg:flex-1 space-y-4 ${
-            (columnBRef.current?.offsetHeight ?? 0) == maxHeight
+          className={`w-full md:w-2/5 lg:flex-1 space-y-4 sticky top-0 self-start ${
+            (columnBRef.current?.offsetHeight ?? 0) == maxHeight()
               ? ""
-              : "sticky top-4 self-start"
+              : "sticky top-0 self-start"
           }`}
         >
           <h1 className="font-semibold text-2xl lg:text-3xl text-gray-800">
@@ -337,7 +466,9 @@ const Product = () => {
         <ProductByCategory category={product.category._id} />
       </div>
     </div>
+      <div className="h-[100vh]"></div>
+    </>
   );
 };
 
-export default Product;
+export default TestPage;
