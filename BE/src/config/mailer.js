@@ -28,8 +28,6 @@ try {
   });
 } catch (error) {
   console.error("Failed to create email transporter:", error);
-  // Depending on your app's needs, you might want to prevent startup
-  // or allow the app to run without email functionality.
 }
 
 /**
@@ -56,7 +54,7 @@ const sendEmail = async (mailOptions) => {
     console.log(
       `Email sent successfully to ${optionsWithFrom.to}. Message ID: ${info.messageId}`
     );
-    return info; // Return info object (includes messageId)
+    return info; 
   } catch (error) {
     console.error(`Error sending email to ${mailOptions.to}:`, error);
     throw error; // Re-throw the error to be handled by the caller
