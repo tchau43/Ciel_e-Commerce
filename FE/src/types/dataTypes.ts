@@ -56,7 +56,7 @@ export declare type VariantData = {
 export declare type ProductData = {
   _id: string;
   name: string;
-  base_price: string;
+  base_price: number;
   category: CategoryData;
   brand: BrandData;
   tags: string[];
@@ -68,6 +68,20 @@ export declare type ProductData = {
   description: [string];
   url: string;
   variants: [VariantData];
+};
+
+export declare type EmailItemData = {
+  name: string;
+  quantity: number;
+  price?: number;
+};
+
+// Define the main type for the payment confirmation email data
+export declare type PaymentConfirmationEmailInput = {
+  userEmail: string;
+  invoiceId: string;
+  items: EmailItemData[];
+  totalAmount: number;
 };
 
 export declare type UpdateCartItemData = {
@@ -99,13 +113,6 @@ export declare type InvoiceProductInputData = {
   quantity: number;
 };
 
-export declare type InvoiceRequest = {
-  userId: string;
-  productsList: InvoiceProductInputData[];
-  payment: string;
-  address: string;
-};
-
 export declare type StripeData = {
   amount: number;
 };
@@ -116,8 +123,22 @@ export declare type InvoiceResponse = {
   user: Partial<User>;
   items: InvoiceItems[];
   totalAmount: number;
-  paymentStatus: string;
+  paymentStatus: InvoicePaymentStatus; // Use the enum
   createdAt: string;
+  updatedAt: string; // Add updatedAt from schema timestamps
+};
+
+export enum InvoicePaymentStatus {
+  PENDING = "pending",
+  PAID = "paid",
+  FAILED = "failed",
+}
+
+export declare type InvoiceRequest = {
+  userId: string;
+  productsList: InvoiceProductInputData[];
+  payment: string;
+  address: string;
 };
 
 export declare type InvoiceItems = {
