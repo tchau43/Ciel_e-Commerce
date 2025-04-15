@@ -20,6 +20,7 @@ import EditUser from "./components/admin/edit/EditUser.tsx";
 import EditProduct from "./components/admin/edit/EditProduct.tsx";
 import TestPage from "./pages/TestPage.tsx";
 import Product from "./components/product/Product.tsx";
+import RecommendedProductsPage from "./pages/recommendations/RecommendedProductsPage.tsx";
 
 function LoadingSpinner() {
   return (
@@ -86,6 +87,11 @@ function App() {
               element={<StripePaymentPage />}
             ></Route>
             <Route path="invoice/" element={<InvoicePage />}></Route>
+            <Route
+              path="recommendations/"
+              element={<RecommendedProductsPage />}
+            />{" "}
+            {/* <-- ADD ROUTE */}
           </Route>
           <Route path="test/" element={<TestPage />}></Route>
         </Routes>
