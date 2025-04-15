@@ -9,7 +9,7 @@ load_dotenv()
 NODE_API_URL = "http://localhost:8080/v1"
 API_KEY = "XohvCe34tnpVulX9Xx2kNjsyNbeGWuOL"  # Add if you implement API security
 # API_KEY = os.getenv("API_KEY")  # Add if you implement API security
-JWT_TOKEN = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InRjaGF1MjgwMjFAZ21haWwuY29tIiwibmFtZSI6ImNoYXV1dXV1dTEyMyIsImlhdCI6MTc0MTk1MTIyMywiZXhwIjoxNzQyMDM3NjIzfQ.AKU-bdg1RFHDCLJyo2SPlopSBq_UYwDx6lmgce8dPsg"
+JWT_TOKEN = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InRjaGF1MjgwMjFAZ21haWwuY29tIiwibmFtZSI6ImNoYXV1dXV1dTEyMyIsImlhdCI6MTc0MzMyNTI2MSwiZXhwIjoxNzQzNDExNjYxfQ.NYCNPtq7vLH5xL9LZ8EbkZelbjHO9etx7Cww2bdXt14"
 def generate_recommendations(user_id):
     print("user_id", user_id)
     try:

@@ -1,4 +1,3 @@
-import { ProductData } from "@/types/dataTypes";
 import Base from "../base";
 
 class Product extends Base {
@@ -15,7 +14,7 @@ class Product extends Base {
     return this.http(url, "get");
   };
 
-  updateProduct = (url: string, variables: ProductData) => {
+  updateProduct = (url: string, variables: FormData) => {
     return this.http(url, "put", variables);
   };
 

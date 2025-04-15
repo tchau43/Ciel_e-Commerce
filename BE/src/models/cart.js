@@ -1,18 +1,16 @@
+// models/cart.js
 const mongoose = require("mongoose");
-
-// const cartItemSchema = new mongoose.Schema({
-//     product: { type: mongoose.Schema.Types.ObjectId, ref: "Product", required: true },
-//     quantity: { type: Number, default: 1 },
-// });
 
 const cartSchema = new mongoose.Schema(
     {
         user: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
         items: [{
             product: { type: mongoose.Schema.Types.ObjectId, ref: "Product", required: true },
-            quantity: { type: Number, default: 1 },
+            variant: { type: mongoose.Schema.Types.ObjectId }, // <-- ADD THIS FIELD (stores the _id of the variant subdocument)
+            quantity: { type: Number, default: 1, min: 1 }, // Ensure quantity is at least 1
+            _id: false // Usually not needed for subdocuments unless referenced elsewhere
         }],
-        totalPrice: { type: Number, default: 0 },
+        // totalPrice: { type: Number, default: 0 }, // totalPrice is often calculated on fetch, not stored persistently
     },
     { timestamps: true }
 );

@@ -45,6 +45,7 @@ const getProductsByName = async (req, res) => {
 };
 
 const updateProduct = async (req, res) => {
+  // console.log(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>req.body1", req)
   const { id } = req.params;
   try {
     // const productData = {
@@ -56,7 +57,7 @@ const updateProduct = async (req, res) => {
     // };
     const productData = req.body;
 
-    console.log(">>>>>>>>>>>>>> productData", productData);
+    // console.log(">>>>>>>>>>>>>> productData", productData);
 
     const data = await updateProductService(id, productData);
     res.status(200).json(data);

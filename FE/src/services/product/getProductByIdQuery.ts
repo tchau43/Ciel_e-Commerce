@@ -8,7 +8,7 @@ export const useGetProductByIdQuery = (
   option?: any
 ): UseQueryResult<ProductData> => {
   return useQuery({
-    queryKey: ["product"],
+    queryKey: ["product", id],
     queryFn: () => {
       return Product.getProductById(API_ENDPOINTS.PRODUCT_BY_ID(id));
     },

@@ -2,18 +2,19 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useGetAllCategoriesQuery } from "@/services/category/getAllCategoriesQuery";
 import { useUpdateProductMutation } from "@/services/product/updateProductMutation";
-import { ProductData } from "@/types/dataTypes";
+import { ProductRes, ProductReq } from "@/types/dataTypes";
 import { Loader } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 const VITE_BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
 interface ProductUpdateFormProps {
-  product: ProductData;
+  product: ProductRes;
 }
 
 const ProductUpdateForm = ({ product }: ProductUpdateFormProps) => {
-  const [formData, setFormData] = useState<ProductData>({ ...product });
+  const [formData, setFormData] = useState<ProductReq>({ ...product });
+  // console.log(">>>>>>>>formData", formData);
   const [newImageUrl, setNewImageUrl] = useState("");
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
@@ -21,14 +22,14 @@ const ProductUpdateForm = ({ product }: ProductUpdateFormProps) => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null); // For local file
   const [imagePreviewUrl, setImagePreviewUrl] = useState(""); // Preview for local file
   const { data: categories = [], isLoading } = useGetAllCategoriesQuery();
+  useEffect(() => {
+    setFormData({ ...product });
+  }, [product]);
   const {
     mutate: productUpdate,
     isError,
     isPending,
   } = useUpdateProductMutation();
-  useEffect(() => {
-    setFormData({ ...product });
-  }, [product]);
 
   // const imageSources = product?.images
   //   ? Array.from({ length: 4 }, (_, index) => {
@@ -44,99 +45,54 @@ const ProductUpdateForm = ({ product }: ProductUpdateFormProps) => {
       )
     : Array(4).fill("/logo.png");
 
-  // Handler to add a new image URL to the product
-  const handleAddImage = () => {
-    if (newImageUrl.trim() !== "") {
-      setFormData((prev) => ({
-        ...prev,
-        images: [...prev.images, newImageUrl.trim()],
-      }));
-      setNewImageUrl(""); // Clear the input after adding
-    }
-  };
-
-  // const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-  //   e.preventDefault();
-  //   setLoading(true);
-  //   setMessage(null);
-  //   // Your submit logic here
-  //   productUpdate(
-  //     { productId: formData._id, variables: formData },
-  //     {
-  //       onSuccess: () => {
-  //         setMessage("Update product Successfully!");
-  //         setTimeout(() => {
-  //           navigate("/admin/products"), 1000;
-  //         });
-  //       },
-  //     }
-  //   );
-  // };
-
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setLoading(true);
     setMessage(null);
 
-    try {
-      if (selectedFile) {
-        // Create a FormData instance for file upload
-        const formDataToSend = new FormData();
-        formDataToSend.append("name", formData.name);
-        formDataToSend.append("price", formData.price.toString());
-        formDataToSend.append("description", formData.description);
-        formDataToSend.append("shortDescription", formData.shortDescription);
-        formDataToSend.append("moreInfomation", formData.moreInfomation);
-        // Append other fields as needed
-        formDataToSend.append("image", selectedFile);
+    const formDataToSend = new FormData();
 
-        // If your backend accepts FormData, you can cast it as any
-        productUpdate(
-          {
-            productId: formData._id,
-            variables: formDataToSend,
-          },
-          {
-            onSuccess: () => {
-              setMessage("Update product Successfully!");
-              setTimeout(() => navigate("/admin/products"), 1000);
-            },
-            onError: (error: any) => {
-              setMessage("Error updating product: " + error.message);
-            },
-          }
-        );
-      } else {
-        // No file selected, send formData as is
-        productUpdate(
-          { productId: formData._id, variables: formData },
-          {
-            onSuccess: () => {
-              setMessage("Update product Successfully!");
-              setTimeout(() => navigate("/admin/products"), 1000);
-            },
-            onError: (error: any) => {
-              setMessage("Error updating product: " + error.message);
-            },
-          }
-        );
-      }
-    } catch (error: any) {
-      setMessage("Error uploading image: " + error.message);
-      setLoading(false);
+    // Append all text fields
+    formDataToSend.append("name", formData.name);
+    formDataToSend.append("price", formData.price.toString());
+    formDataToSend.append("description", formData.description);
+    formDataToSend.append("shortDescription", formData.shortDescription);
+    formDataToSend.append("moreInformation", formData.moreInfomation);
+    formDataToSend.append("category", formData.category._id); // Use category ID
+
+    // Append the image file
+    if (selectedFile instanceof File) {
+      formDataToSend.append("image", selectedFile); // Field name must match Multer's
     }
+
+    productUpdate(
+      { productId: formData._id, variables: formDataToSend },
+      {
+        onSuccess: () => {
+          setMessage("Product updated successfully!");
+          setTimeout(() => navigate("/admin/products"), 1000);
+        },
+        onError: (error) => {
+          setMessage(error.message || "Error updating product");
+          setLoading(false);
+        },
+      }
+    );
   };
 
-  // Add file input handler
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      setSelectedFile(file);
       const reader = new FileReader();
       reader.onloadend = () => {
         setImagePreviewUrl(reader.result as string);
       };
       reader.readAsDataURL(file);
+      setSelectedFile(file);
+      setFormData((prev) => ({
+        ...prev,
+        image: file, // Store File object directly
+      }));
     }
   };
 
@@ -150,11 +106,17 @@ const ProductUpdateForm = ({ product }: ProductUpdateFormProps) => {
     }));
   };
 
-  const handleCategoryChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newCategoryName = e.target.value;
+  const handleCategoryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const selectedCategoryId = e.target.value;
+    const selectedCategory = categories.find(
+      (c) => c._id === selectedCategoryId
+    );
+
+    if (!selectedCategory) return;
+
     setFormData((prev) => ({
       ...prev,
-      category: { ...prev.category, name: newCategoryName },
+      category: { ...selectedCategory },
     }));
   };
 
@@ -205,12 +167,12 @@ const ProductUpdateForm = ({ product }: ProductUpdateFormProps) => {
             <label className="block text-sm font-medium">Category:</label>
             <select
               name="category"
-              value={formData.category.name}
-              onChange={handleChange}
-              className="w-full border p-2 rounded"
+              value={formData.category._id} // Use _id instead of name
+              onChange={handleCategoryChange}
+              className="border rounded-md w-full px-1 py-2"
             >
               {categories.map((c) => (
-                <option key={c._id} value={c.name}>
+                <option key={c._id} value={c._id}>
                   {c.name}
                 </option>
               ))}

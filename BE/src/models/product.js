@@ -1,41 +1,37 @@
 const mongoose = require("mongoose");
 // const ProductIndex = require("./productIndex");
-const Category = require("./category");
 
 const productSchema = new mongoose.Schema(
   {
     name: { type: String, required: true },
-    price: { type: Number, required: true, min: 0 },
-    shortDescription: String,
-    description: String,
+    base_price: { type: Number, required: true, min: 0 },
+    description: [String],
     category: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Category",
       required: true,
     },
     tags: [String],
-    brand: String,
-    status: { type: String, enum: ["active", "inactive"], default: "active" },
-    quantity_in_stock: { type: Number, min: 0, default: 0 },
+    brand: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Brand",
+    },
+    variants: [
+      {
+        types: String,
+        price: Number,
+      },
+    ],
     images: [String],
-    moreInfomation: String,
     popularity: { type: Number, default: 0 },
+    url: String,
     productIndex: {
-      // Add this field
       type: mongoose.Schema.Types.ObjectId,
       ref: "ProductIndex",
     },
   },
   { timestamps: true }
 );
-
-productSchema.pre('save', function (next) {
-  // Remove any leading/trailing spaces from image paths
-  if (this.images && Array.isArray(this.images)) {
-    this.images = this.images.map(img => img.trim());
-  }
-  next();
-});
 
 const Product = mongoose.model("Product", productSchema);
 

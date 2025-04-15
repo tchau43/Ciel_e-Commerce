@@ -1,8 +1,12 @@
 const Category = require("../models/category");
+const Brand = require("../models/brand");
 const { Product, ProductIndex } = require("../models/product");
 const { generateCombinations } = require("../utils/helper");
 const { createCategoryService } = require("./categoryService");
-const { updateProductIndex, updateProducts } = require("./updateDb/updateProduct");
+const {
+  updateProductIndex,
+  updateProducts,
+} = require("./updateDb/updateProduct");
 const mongoose = require("mongoose");
 
 const createProductService = async (productData) => {
@@ -37,9 +41,10 @@ const getAllProductsService = async (sort) => {
     }
     const products = await Product.find({})
       .sort(sortOption)
-      .populate("category");
+      .populate("category")
+      .populate("brand");
     // console.log("ids", ids)
-    updateProducts();
+    // updateProducts();
     updateProductIndex();
     return products;
   } catch (error) {
@@ -49,7 +54,7 @@ const getAllProductsService = async (sort) => {
 
 const getProductByIdService = async (id) => {
   try {
-    const product = await Product.findById(id).populate("category");
+    const product = await Product.findById(id).populate("category").populate("brand");
     if (!product) {
       throw new Error("Product not found");
     }
@@ -75,7 +80,7 @@ const getProductsByNameService = async (name) => {
   }
 };
 
-const updateProductService1 = async (id, productData) => {
+const updateProductService2 = async (id, productData) => {
   try {
     const product = await Product.findByIdAndUpdate(id, productData, {
       new: true,
@@ -91,11 +96,11 @@ const updateProductService1 = async (id, productData) => {
 };
 
 // services/productService.js
-const updateProductService = async (id, productData) => {
+const updateProductService1 = async (id, productData) => {
   try {
     // Handle category conversion
     let categoryId = productData.category;
-    if (typeof productData.category === 'string') {
+    if (typeof productData.category === "string") {
       const category = await Category.findOne({ name: productData.category });
       if (!category) throw new Error("Category not found");
       categoryId = category._id;
@@ -107,21 +112,98 @@ const updateProductService = async (id, productData) => {
     const updateData = {
       ...productData,
       category: categoryId,
-      images: images.map(img => {
+      images: images.map((img) => {
         // Clean image paths
-        const cleanPath = img.replace(/^https?:\/\/[^/]+/i, '');
-        return cleanPath.startsWith('/') ? cleanPath : `/${cleanPath}`;
-      })
+        const cleanPath = img.replace(/^https?:\/\/[^/]+/i, "");
+        return cleanPath.startsWith("/") ? cleanPath : `/${cleanPath}`;
+      }),
     };
 
-    const product = await Product.findByIdAndUpdate(
-      id,
-      updateData,
-      { new: true, runValidators: true }
-    ).populate("category");
+    const product = await Product.findByIdAndUpdate(id, updateData, {
+      new: true,
+      runValidators: true,
+    }).populate("category");
 
     if (!product) throw new Error("Product not found");
 
+    await updateProductIndex();
+
+    return product;
+  } catch (error) {
+    throw new Error("Error updating product: " + error.message);
+  }
+};
+
+const updateProductService0 = async (id, productData) => {
+  try {
+    // Handle category conversion
+    let categoryId = productData.category;
+    if (typeof productData.category === "string") {
+      const category = await Category.findOne({
+        $or: [{ _id: categoryId }, { name: categoryId }],
+      });
+      if (!category) throw new Error("Category not found");
+      categoryId = category._id;
+    }
+
+    // Prepare update data without modifying images
+    const updateData = {
+      ...productData,
+      category: categoryId,
+    };
+
+    // Update the product in the database
+    const product = await Product.findByIdAndUpdate(id, updateData, {
+      new: true,
+      runValidators: true,
+    }).populate("category");
+
+    if (!product) throw new Error("Product not found");
+
+    // Update product index (assumed to be a search index or cache)
+    await updateProductIndex();
+
+    return product;
+  } catch (error) {
+    throw new Error("Error updating product: " + error.message);
+  }
+};
+
+const updateProductService = async (id, productData) => {
+  try {
+    let categoryId = productData.category;
+
+    if (typeof categoryId === "string") {
+      // Check if the string is a valid ObjectId
+      const isValidObjectId = mongoose.Types.ObjectId.isValid(categoryId);
+
+      // If it’s valid, search by _id or name
+      // If not valid, only search by name
+      const categoryQuery = isValidObjectId
+        ? { $or: [{ _id: categoryId }, { name: categoryId }] }
+        : { name: categoryId };
+
+      const category = await Category.findOne(categoryQuery);
+      if (!category) {
+        throw new Error("Category not found");
+      }
+      categoryId = category._id;
+    }
+
+    // Prepare the update data
+    const updateData = {
+      ...productData,
+      category: categoryId,
+    };
+
+    const product = await Product.findByIdAndUpdate(id, updateData, {
+      new: true,
+      runValidators: true,
+    }).populate("category");
+
+    if (!product) throw new Error("Product not found");
+
+    // If you have a product indexing function
     await updateProductIndex();
 
     return product;
@@ -242,8 +324,6 @@ const searchProductService = async (searchText, categories = []) => {
     throw new Error("Error searching products: " + error.message);
   }
 };
-
-
 
 module.exports = {
   createProductService,

@@ -5,6 +5,8 @@ const {
   getAllUsers,
   getUserById,
   updateUserbyId,
+  getUserPurchased,
+  getUsersPurchasedDetail,
 } = require("../controllers/userController");
 // const multer = require('multer');
 const path = require("path");
@@ -37,28 +39,18 @@ const { createPaymentIntent } = require("../controllers/stripeController");
 const {
   getUserRecommendations,
 } = require("../controllers/recommendationsController");
-const { getInvoiceService } = require("../services/invoiceService");
-const User = require("../models/user");
-const Invoice = require("../models/invoice");
-const Product = require("../models/product");
-const { uploadImageService } = require("../services/utilsService");
+const { Product } = require("../models/product");
 const upload = require("../middleware/multer");
-
-// Configure storage
-// const storage = multer.diskStorage({
-//   destination: (req, file, cb) => {
-//     console.log(">>>>>>>>>> __dirname", __dirname)
-//     const uploadPath = path.join(__dirname, '../public/images/product')
-//     console.log(">>>>>>>>>> __dirname", path.join(__dirname, '../public/images/product'))
-//     cb(null, uploadPath);
-//   },
-//   filename: (req, file, cb) => {
-//     cb(null, `${Date.now()}-${file.originalname}`);
-//   }
-// });
-
-// const upload = multer({ storage });
-
+const {
+  getHomePage,
+  updateBanner,
+  updateVideo,
+  updateFeature,
+} = require("../controllers/customerHomePageController");
+const { getChatbotResponse } = require("../controllers/chatController");
+const {
+  sendPaymentConfirmationEmail,
+} = require("../controllers/emailController");
 
 const routerAPI = express.Router();
 
@@ -99,76 +91,37 @@ routerAPI.delete("/cart/:userId", removeAllProductsFromCart);
 routerAPI.post("/invoice", createInvoice);
 routerAPI.get("/invoice/:userId", getInvoice);
 routerAPI.post("/invoice/stripe", createPaymentIntent); // routes/api.js
-routerAPI.get("/user/:userId/purchased-products", async (req, res) => {
-  try {
-    const invoices = await getInvoiceService(req.params.userId);
-    const purchasedProducts = [];
-
-    invoices.forEach((invoice) => {
-      invoice.items.forEach((item) => {
-        purchasedProducts.push({
-          productId: item.product._id,
-          categoryId: item.product.category._id,
-        });
-      });
-    });
-
-    res.status(200).json(purchasedProducts);
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-});
+routerAPI.get("/user/:userId/purchased-products", getUserPurchased);
 
 // New route for recommendations
 routerAPI.get("/recommendations", getUserRecommendations);
 // routerAPI.get("/recommendations", apiKeyAuth, getUserRecommendations);
 // Get all user purchases (for collaborative filtering)
-routerAPI.get("/admin/users/purchases", async (req, res) => {
-  try {
-    // console.log("===1")
-
-    const users = await User.find().lean();
-    const purchases = {};
-    // console.log("===2")
-
-    for (const user of users) {
-      const invoices = await Invoice.find({ user: user._id }).populate(
-        "items.product"
-      );
-
-      purchases[user._id] = {};
-      invoices.forEach((invoice) => {
-        invoice.items.forEach((item) => {
-          const productId = item.product._id.toString();
-          purchases[user._id][productId] = purchases[user._id][productId]
-            ? purchases[user._id][productId] + 1
-            : 1;
-        });
-      });
-    }
-    // console.log("===purchases", purchases)
-
-    res.status(200).json(purchases);
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-});
+routerAPI.get("/admin/users/purchases", getUsersPurchasedDetail);
 
 // Batch product details endpoint
-routerAPI.post("/products/batch", async (req, res) => {
+routerAPI.get("/products/batch", async (req, res) => {
   try {
     const productIds = req.body.ids;
     const products = await Product.find({
       _id: { $in: productIds },
     });
-    console.log("===products", products);
     res.status(200).json(products);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 });
 
-// Add upload endpoint
-// routerAPI.post('/upload', upload.single('image'), uploadImageService);
+// Routes for homepage configuration
+routerAPI.get("/homepage", getHomePage); // Get homepage
+routerAPI.put("/homepage/banner", updateBanner); // Update Banner
+routerAPI.put("/homepage/video", updateVideo); // Update Video
+routerAPI.put("/homepage/feature", updateFeature); // Update Feature
+
+//chatgpt api integrate
+routerAPI.post("/chat", getChatbotResponse);
+
+// Email Trigger Route
+routerAPI.post("/payment/notify-success", sendPaymentConfirmationEmail); // Add this route
 
 module.exports = routerAPI;
