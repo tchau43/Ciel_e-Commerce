@@ -11,9 +11,6 @@ import AdminLayout from "./components/layout/admin/AdminLayout.tsx";
 import UserLayout from "./components/layout/user/UserLayout.tsx";
 import UserHomePage from "./pages/customer/CustomerHomePage.tsx";
 import ProductPage from "./pages/product/ProductPage.tsx";
-import ProductDescription from "./components/product/ProductDescription.tsx";
-import ProductMoreInfo from "./components/product/ProductMoreInfo.tsx";
-import ProductWrapper from "./components/product/ProductWrapper.tsx";
 import CartPage from "./pages/cart/CartPage.tsx";
 import PaymentPage from "./pages/payment/PaymentPage.tsx";
 import StripePaymentPage from "./pages/payment/StripePaymentPage.tsx";
@@ -21,6 +18,8 @@ import InvoicePage from "./pages/invoice/InvoicePage.tsx";
 import AdminProductsManagementPage from "./pages/admin/productMan/AdminProductsManagementPage.tsx";
 import EditUser from "./components/admin/edit/EditUser.tsx";
 import EditProduct from "./components/admin/edit/EditProduct.tsx";
+import TestPage from "./pages/TestPage.tsx";
+import Product from "./components/product/Product.tsx";
 
 function LoadingSpinner() {
   return (
@@ -79,11 +78,7 @@ function App() {
                 // </Suspense>
               }
             ></Route>
-            <Route path="product/:id/*" element={<ProductWrapper />}>
-              {/* <Route path="product/:id/*" element={<Product />} /> */}
-              <Route index element={<ProductDescription />}></Route>
-              <Route path="more/" element={<ProductMoreInfo />}></Route>
-            </Route>
+            <Route path="product/:id/*" element={<Product />}></Route>
             <Route path="cart/" element={<CartPage />}></Route>
             <Route path="payment/" element={<PaymentPage />}></Route>
             <Route
@@ -92,6 +87,7 @@ function App() {
             ></Route>
             <Route path="invoice/" element={<InvoicePage />}></Route>
           </Route>
+          <Route path="test/" element={<TestPage />}></Route>
         </Routes>
       </Suspense>
     </Router>
