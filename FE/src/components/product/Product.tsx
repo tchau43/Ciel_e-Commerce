@@ -1,10 +1,9 @@
 import { useGetProductByIdQuery } from "@/services/product/getProductByIdQuery";
 import { Outlet, useNavigate, useParams } from "react-router-dom";
 import ProductByCategory from "./ProductByCategory";
-import { useEffect, useState, useRef, useCallback } from "react"; // Import useRef, useState, useEffect
+import { useEffect, useState, useRef } from "react"; // Import useRef, useState, useEffect
 import { getAuthCredentials } from "@/utils/authUtil";
 import { useAddProductToCartMutation } from "@/services/cart/addProductToCartMutation";
-import throttle from "lodash/throttle"; // CORRECT - Import specific function
 
 const Product = () => {
   const navigate = useNavigate();
@@ -16,21 +15,8 @@ const Product = () => {
   const [selectedVariantId, setSelectedVariantId] = useState<string | null>(
     null
   );
-  const [columnPositions, setColumnPositions] = useState<{
-    aLeft: number;
-    aLeftToParent: number;
-    bLeft: number;
-    bLeftToParent: number;
-    aWidth: number;
-    bWidth: number;
-  } | null>(null);
-
-  const containerRef = useRef<HTMLDivElement>(null);
   const columnARef = useRef<HTMLDivElement>(null);
   const columnBRef = useRef<HTMLDivElement>(null);
-  const [containerMinHeight, setContainerMinHeight] = useState<number | null>(
-    null
-  );
   const {
     data: product,
     isLoading,
@@ -47,7 +33,6 @@ const Product = () => {
       setMainImage("/logo.png");
     }
     setSelectedVariantId(null);
-    setContainerMinHeight(null);
   }, [product]);
 
   let maxHeight = 0;
@@ -264,7 +249,6 @@ const Product = () => {
               </div>
             </div>
           )}
-          {/* Other Info */}
           <div className="pt-2 space-y-1 text-sm border-t mt-4">
             <p className="text-gray-600">
               <span className="font-medium text-gray-800">Danh mục:</span>{" "}
@@ -281,7 +265,6 @@ const Product = () => {
               </p>
             )}
           </div>
-          {/* Quantity Selector */}
           <div className="flex items-center gap-x-2 pt-2">
             <span className="text-sm font-medium text-gray-700 mr-2">
               Quantity:
@@ -297,7 +280,7 @@ const Product = () => {
               type="number"
               readOnly
               value={quantity}
-              className="border-gray-300 text-center w-12 h-7 rounded-md"
+              className="border-gray-300 text-center w-12 h-7 rounded-md border"
               aria-label="Quantity"
             />
             <button
@@ -307,7 +290,6 @@ const Product = () => {
               +
             </button>
           </div>
-          {/* Add to Cart Button */}
           <div className="pt-2">
             <button
               onClick={handleAddToCart}
@@ -321,7 +303,6 @@ const Product = () => {
               {isAddingToCart ? "Adding..." : "Add to Cart"}
             </button>
           </div>
-          {/* Wholesale/Agent Buttons */}
           <div className="flex flex-wrap gap-2 pt-2">
             <button className="flex-1 bg-orange-600 h-10 px-4 text-white text-xs font-medium hover:bg-orange-700 rounded min-w-[120px]">
               Liên hệ báo giá sỉ

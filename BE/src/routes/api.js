@@ -122,6 +122,6 @@ routerAPI.put("/homepage/feature", updateFeature); // Update Feature
 routerAPI.post("/chat", getChatbotResponse);
 
 // Email Trigger Route
-routerAPI.post("/payment/notify-success", sendPaymentConfirmationEmail); // Add this route
+routerAPI.post("/email/payment/notify-success", sendPaymentConfirmationEmail); // Add this route
 
 module.exports = routerAPI;
