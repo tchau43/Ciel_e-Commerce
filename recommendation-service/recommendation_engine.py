@@ -12,7 +12,7 @@ class HybridRecommender:
     def __init__(self):
         self.NODE_API_URL = "http://localhost:8080/v1"
         self.API_KEY = "XohvCe34tnpVulX9Xx2kNjsyNbeGWuOL"
-        self.JWT_TOKEN = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InRjaGF1MjgwMjFAZ21haWwuY29tIiwibmFtZSI6ImNoYXV1dXV1dTEyMyIsImlhdCI6MTc0MzUxNjQxNSwiZXhwIjoxNzQzNjAyODE1fQ.CVfOA9VbXlmcSeV9o52iw7JuHUK5gF2xgkJy211dLFI"
+        self.JWT_TOKEN = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InRjaGF1MjgwMjFAZ21haWwuY29tIiwibmFtZSI6ImNoYXV1dXV1dTEyMyIsImlhdCI6MTc0NDczMjEyMCwiZXhwIjoxNzQ0ODE4NTIwfQ.SOm-6926DVVwC1lHOk7cLTnjf9iFestueFvvZyetzhg"
         
         self.headers = {
             "Authorization": f"Bearer {self.JWT_TOKEN}",
