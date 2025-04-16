@@ -56,7 +56,7 @@ export declare type VariantData = {
 export declare type ProductData = {
   _id: string;
   name: string;
-  base_price: string;
+  base_price: number;
   category: CategoryData;
   brand: BrandData;
   tags: string[];
@@ -68,6 +68,22 @@ export declare type ProductData = {
   description: [string];
   url: string;
   variants: [VariantData];
+};
+
+// Define the main type for the payment confirmation email data
+export declare type EmailPaymentData = {
+  userEmail: string;
+  invoiceId: string;
+  items: EmailItemData[];
+  totalAmount: number;
+  paymentStatus: InvoicePaymentStatus;
+  shippingAddress?: ShippingAddress;
+};
+
+export declare type EmailItemData = {
+  name: string;
+  quantity: number;
+  price?: number;
 };
 
 export declare type UpdateCartItemData = {
@@ -89,21 +105,8 @@ export declare type CartData = {
   _id: string | null; // Can be null if cart was just created virtually
   user: string;
   items: CartItemData[];
-  // totalPrice is calculated dynamically
   createdAt?: string | null;
   updatedAt?: string | null;
-};
-
-export declare type InvoiceProductInputData = {
-  productId: string;
-  quantity: number;
-};
-
-export declare type InvoiceRequest = {
-  userId: string;
-  productsList: InvoiceProductInputData[];
-  payment: string;
-  address: string;
 };
 
 export declare type StripeData = {
@@ -113,11 +116,40 @@ export declare type StripeData = {
 //invoice
 export declare type InvoiceResponse = {
   _id: string;
-  user: Partial<User>;
+  user: Partial<User>; // Or a more specific User subset if needed
   items: InvoiceItems[];
   totalAmount: number;
-  paymentStatus: string;
+  paymentStatus: InvoicePaymentStatus; // Use the enum
+  shippingAddress?: ShippingAddress; // Add the structured address (optional if it might not exist)
   createdAt: string;
+  updatedAt: string; // Add updatedAt from schema timestamps
+};
+
+export declare type ShippingAddress = {
+  street?: string; // Use optional if not all fields are always required
+  city?: string;
+  state?: string;
+  country?: string;
+  zipCode?: string;
+};
+
+export enum InvoicePaymentStatus {
+  PENDING = "pending",
+  PAID = "paid",
+  FAILED = "failed",
+}
+
+export declare type InvoiceRequest = {
+  userId: string;
+  productsList: InvoiceProductInputData[];
+  paymentMethod: string;
+  shippingAddress: ShippingAddress;
+};
+
+export declare type InvoiceProductInputData = {
+  productId: string;
+  quantity: number;
+  variantId?: string | null; // <-- ADD VARIANT ID HERE
 };
 
 export declare type InvoiceItems = {

@@ -1,3 +1,5 @@
+// src/utils/api/endpoint.ts
+
 const VITE_API_VERSION = import.meta.env.VITE_API_VERSION || "/v1"; // Default to "/v1" if not set
 
 export const API_ENDPOINTS = {
@@ -13,14 +15,18 @@ export const API_ENDPOINTS = {
   ADD_TO_CART: `${VITE_API_VERSION}/cart/addToCart`,
   CART: (id: string) => `${VITE_API_VERSION}/cart/${id}`,
   DELETE_CART: (userId: string) => `${VITE_API_VERSION}/cart/${userId}`,
-  INVOICE: `${VITE_API_VERSION}/invoice`,
+  INVOICE: `${VITE_API_VERSION}/invoice`, // For COD creation
   GET_INVOICE: (userId: string) => `${VITE_API_VERSION}/invoice/${userId}`,
-  STRIPE: `${VITE_API_VERSION}/invoice/stripe`,
+  // STRIPE: `${VITE_API_VERSION}/invoice/stripe`, // This was the old one, remove or rename if unused
+  INITIATE_STRIPE_PAYMENT: `${VITE_API_VERSION}/invoice/initiate-stripe`, // <-- ADD THIS NEW ENDPOINT
+  RECOMMENDATIONS: (userId: string) =>
+    `${VITE_API_VERSION}/recommendations/?userId=${userId}`, // <-- ADD THIS
   CUSTOMER_HOME_PAGE: `${VITE_API_VERSION}/homepage`,
-  USER_COMMENTS: `${VITE_API_VERSION}/user-comments`,
+  SEND_EMAIL: `${VITE_API_VERSION}/email/payment/notify-success`, // Likely triggered by webhook now
   USERS: `${VITE_API_VERSION}/admin/users`,
   ALL_REVIEWS: `${VITE_API_VERSION}/admin/all-comments`,
   LOGOUT: `${VITE_API_VERSION}/users/logout`,
-  USER: (id: string) => `${VITE_API_VERSION}/user/${id}`, // Convert to function
-  UPDATE_USER: (id: string) => `${VITE_API_VERSION}/admin/updateUserById/${id}`, // ✅ New update function
+  USER: (id: string) => `${VITE_API_VERSION}/user/${id}`,
+  UPDATE_USER: (id: string) => `${VITE_API_VERSION}/admin/updateUserById/${id}`,
+  // Add other endpoints as needed
 };

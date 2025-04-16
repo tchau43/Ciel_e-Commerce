@@ -35,7 +35,6 @@ const {
   createInvoice,
   getInvoice,
 } = require("../controllers/invoiceController");
-const { createPaymentIntent } = require("../controllers/stripeController");
 const {
   getUserRecommendations,
 } = require("../controllers/recommendationsController");
@@ -51,6 +50,8 @@ const { getChatbotResponse } = require("../controllers/chatController");
 const {
   sendPaymentConfirmationEmail,
 } = require("../controllers/emailController");
+const { initiateStripePayment } = require("../controllers/stripeController"); // <-- Import the new function
+
 
 const routerAPI = express.Router();
 
@@ -90,7 +91,7 @@ routerAPI.delete("/cart/:userId", removeAllProductsFromCart);
 //invoice
 routerAPI.post("/invoice", createInvoice);
 routerAPI.get("/invoice/:userId", getInvoice);
-routerAPI.post("/invoice/stripe", createPaymentIntent); // routes/api.js
+routerAPI.post("/invoice/initiate-stripe", initiateStripePayment); // <-- DEFINE NEW ROUTE
 routerAPI.get("/user/:userId/purchased-products", getUserPurchased);
 
 // New route for recommendations
@@ -100,14 +101,20 @@ routerAPI.get("/recommendations", getUserRecommendations);
 routerAPI.get("/admin/users/purchases", getUsersPurchasedDetail);
 
 // Batch product details endpoint
-routerAPI.get("/products/batch", async (req, res) => {
+routerAPI.post("/products/batch", async (req, res) => { // <--- Defined as GET
   try {
-    const productIds = req.body.ids;
+    const productIds = req.body.ids; // <--- Tries to read from request BODY
     const products = await Product.find({
       _id: { $in: productIds },
     });
+    // Check if products were found (optional but good practice)
+    if (!products) {
+      return res.status(404).json({ message: "No products found for the given IDs" });
+    }
     res.status(200).json(products);
   } catch (error) {
+    // Log the error for debugging
+    console.error("Error in /products/batch:", error);
     res.status(500).json({ message: error.message });
   }
 });
@@ -122,6 +129,6 @@ routerAPI.put("/homepage/feature", updateFeature); // Update Feature
 routerAPI.post("/chat", getChatbotResponse);
 
 // Email Trigger Route
-routerAPI.post("/payment/notify-success", sendPaymentConfirmationEmail); // Add this route
+routerAPI.post("/email/payment/notify-success", sendPaymentConfirmationEmail); // Add this route
 
 module.exports = routerAPI;
