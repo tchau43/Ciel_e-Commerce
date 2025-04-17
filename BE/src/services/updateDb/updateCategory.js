@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 const Category = require('../../models/category');
 require('dotenv').config();
 
-mongoose.connect(process.env.MONGO_DB_URL, {
+mongoose.connect(process.env.MONGODB_URI, {
     useNewUrlParser: true,
     useUnifiedTopology: true
 }).then(() => {

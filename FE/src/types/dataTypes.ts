@@ -123,6 +123,7 @@ export declare type InvoiceResponse = {
   shippingAddress?: ShippingAddress; // Add the structured address (optional if it might not exist)
   createdAt: string;
   updatedAt: string; // Add updatedAt from schema timestamps
+  paymentMethod: PaymentMethod;
 };
 
 export declare type ShippingAddress = {
@@ -137,12 +138,20 @@ export enum InvoicePaymentStatus {
   PENDING = "pending",
   PAID = "paid",
   FAILED = "failed",
+  REFUND = "refund",
+}
+
+export enum PaymentMethod {
+  CARD = "CARD",
+  CASH = "CASH", // thanh toán bằng tiền mặt
+  BANK_TRANSFER = "BANK_TRANSFER",
 }
 
 export declare type InvoiceRequest = {
   userId: string;
   productsList: InvoiceProductInputData[];
-  paymentMethod: string;
+  paymentMethod: PaymentMethod;
+  paymentStatus: InvoicePaymentStatus;
   shippingAddress: ShippingAddress;
 };
 

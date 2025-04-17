@@ -15,7 +15,7 @@ const NUM_INVOICES_TO_CREATE = 20; // <--- Set how many fake invoices you want
 
 async function seedInvoices() {
     console.log('Connecting to MongoDB...');
-    await mongoose.connect(process.env.MONGO_DB_URL);
+    await mongoose.connect(process.env.MONGODB_URI);
     console.log('Connected to MongoDB.');
 
     try {

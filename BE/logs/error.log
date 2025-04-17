@@ -172,3 +172,15 @@
 {"level":"error","message":"Token verification failed: jwt expired","timestamp":"2025-04-15 23:26:23"}
 {"level":"error","message":"Token verification failed: jwt expired","timestamp":"2025-04-15 23:26:33"}
 {"level":"error","message":"Token verification failed: jwt expired","timestamp":"2025-04-15 23:26:33"}
+{"level":"error","message":"Token verification failed: jwt expired","timestamp":"2025-04-17 08:31:33"}
+{"level":"error","message":"Token verification failed: jwt expired","timestamp":"2025-04-17 10:43:50"}
+{"level":"error","message":"Token verification failed: jwt expired","timestamp":"2025-04-17 10:44:12"}
+{"level":"error","message":"Token verification failed: jwt expired","timestamp":"2025-04-17 10:51:16"}
+{"level":"error","message":"Token verification failed: jwt expired","timestamp":"2025-04-17 10:51:18"}
+{"level":"error","message":"Token verification failed: jwt expired","timestamp":"2025-04-17 10:52:44"}
+{"level":"error","message":"Token verification failed: jwt expired","timestamp":"2025-04-17 10:52:45"}
+{"level":"error","message":"Authorization header missing or malformed","timestamp":"2025-04-17 11:43:36"}
+{"level":"error","message":"Authorization header missing or malformed","timestamp":"2025-04-17 12:43:39"}
+{"level":"error","message":"Authorization header missing or malformed","timestamp":"2025-04-17 18:17:33"}
+{"level":"error","message":"Authorization header missing or malformed","timestamp":"2025-04-17 22:28:45"}
+{"level":"error","message":"Token verification failed: jwt expired","timestamp":"2025-04-17 22:53:01"}
