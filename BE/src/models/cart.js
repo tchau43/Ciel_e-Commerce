@@ -6,7 +6,7 @@ const cartSchema = new mongoose.Schema(
         user: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
         items: [{
             product: { type: mongoose.Schema.Types.ObjectId, ref: "Product", required: true },
-            variant: { type: mongoose.Schema.Types.ObjectId }, // <-- ADD THIS FIELD (stores the _id of the variant subdocument)
+            variant: { type: mongoose.Schema.Types.ObjectId, ref: 'Variant', required: true },
             quantity: { type: Number, default: 1, min: 1 }, // Ensure quantity is at least 1
             _id: false // Usually not needed for subdocuments unless referenced elsewhere
         }],

@@ -1,145 +1,237 @@
 // services/invoiceService.js
-const Invoice = require("../models/invoice");
-const { Product } = require("../models/product"); // Assuming Product model is exported this way
+// Refactored for separate Variant collection
 
-/**
- * Creates and saves a new invoice to the database.
- * Sets initial paymentStatus to 'pending'.
- * Calculates totalAmount based on products and variants.
- *
- * @param {string} userId - The ID of the user placing the order.
- * @param {Array<{productId: string, quantity: number, variantId?: string | null}>} productsList - List of products to include.
- * @param {string} paymentMethod - The intended payment method (e.g., "COD", "Stripe").
- * @param {object} shippingAddress - The structured shipping address object.
- * @param {string} [paymentIntentId] - Optional: The Stripe Payment Intent ID if applicable.
- * @returns {Promise<object>} - The saved Mongoose invoice document.
- * @throws {Error} - Throws error if product not found or saving fails.
- */
+const mongoose = require("mongoose");
+const Invoice = require("../models/invoice");
+const { Product } = require("../models/product");
+const Variant = require("../models/variant"); // <-- Import the Variant model
+
+// --- CREATE INVOICE ---
+// Creates invoice, calculates totals using Variant prices, decrements stock
 const createInvoiceService = async (
     userId,
-    productsList,
+    productsList, // Expect array of { productId, variantId, quantity }
     paymentMethod,
     shippingAddress,
-    paymentIntentId = null // Optional parameter for Stripe flow
+    paymentIntentId = null // This is now typically added *after* PI creation by the controller
 ) => {
-    console.log("SERVICE: createInvoiceService called with:", { userId, productsList, paymentMethod, shippingAddress, paymentIntentId });
+    // Use a session for atomicity (Invoice creation + Stock update)
+    const session = await mongoose.startSession();
+    session.startTransaction();
+
     try {
         let items = [];
         let totalAmount = 0;
 
-        if (!productsList || productsList.length === 0) {
+        // --- Input Validation ---
+        if (!mongoose.Types.ObjectId.isValid(userId)) {
+            throw new Error("Invalid User ID format.");
+        }
+        if (!productsList || !Array.isArray(productsList) || productsList.length === 0) {
             throw new Error("Product list cannot be empty.");
         }
+        if (!paymentMethod || !Invoice.schema.path('paymentMethod').enumValues.includes(paymentMethod)) {
+            throw new Error("Invalid or missing paymentMethod.");
+        }
+        if (!shippingAddress || !shippingAddress.street || !shippingAddress.city || !shippingAddress.country || !shippingAddress.zipCode) {
+            throw new Error("Incomplete shippingAddress provided.");
+        }
 
-        for (let productItem of productsList) {
-            if (!productItem || !productItem.productId || !productItem.quantity) {
-                console.warn("SERVICE: Skipping invalid product item:", productItem);
-                continue; // Skip malformed items
+        // --- Stock Update Preparation ---
+        const stockUpdates = []; // Operations for bulkWrite
+
+        // --- Process Items ---
+        // Optional: Pre-fetch all variants/products for efficiency if list is large
+        // ... (See previous example for pre-fetching logic using Maps) ...
+
+        for (let itemData of productsList) {
+            // Validate structure and IDs
+            if (!itemData || !itemData.productId || !mongoose.Types.ObjectId.isValid(itemData.productId) || !itemData.quantity || itemData.quantity < 1) {
+                console.warn("SERVICE: Skipping invalid item in productsList:", itemData);
+                continue; // Skip this item
+            }
+            if (itemData.variantId && !mongoose.Types.ObjectId.isValid(itemData.variantId)) {
+                console.warn(`SERVICE: Skipping item with invalid variantId format: ${itemData.variantId}`);
+                continue; // Skip this item
             }
 
-            const product = await Product.findById(productItem.productId).lean(); // Use .lean() for plain JS object if not modifying product
+            const product = await Product.findById(itemData.productId).select('name base_price').lean(); // Fetch only needed fields
             if (!product) {
-                console.error(`SERVICE: Product not found: ${productItem.productId}`);
-                throw new Error(`Product with ID ${productItem.productId} not found`);
+                throw new Error(`Product with ID ${itemData.productId} not found.`);
             }
 
             let priceAtPurchase = product.base_price ?? 0;
-            let variantInfo = null;
+            let variantIdToSave = null;
+            let currentStock = Infinity;
 
-            // Find correct price based on variant
-            if (productItem.variantId && product.variants && product.variants.length > 0) {
-                // Ensure variantId comparison is correct (ObjectId vs String)
-                variantInfo = product.variants.find(
-                    (v) => v._id && v._id.toString() === productItem.variantId
-                );
-                if (variantInfo && typeof variantInfo.price === 'number') {
-                    priceAtPurchase = variantInfo.price;
-                } else {
-                    console.warn(`SERVICE: Variant ${productItem.variantId} not found or invalid price for product ${product._id}. Using base price.`);
-                    // Keep base_price as default
+            // --- Get Variant Price and Check Stock ---
+            if (itemData.variantId) {
+                // Find the specific variant document
+                const variant = await Variant.findById(itemData.variantId).session(session); // Use session for read consistency
+                if (!variant) {
+                    throw new Error(`Variant with ID ${itemData.variantId} not found.`);
                 }
+                if (variant.product.toString() !== itemData.productId) { // Ensure variant matches product
+                    throw new Error(`Variant ${itemData.variantId} does not belong to product ${itemData.productId}.`);
+                }
+
+                // Use variant's price
+                if (typeof variant.price === 'number' && variant.price >= 0) {
+                    priceAtPurchase = variant.price;
+                } else {
+                    console.warn(`Variant ${itemData.variantId} has invalid price. Using base price.`);
+                }
+                variantIdToSave = variant._id;
+                currentStock = variant.stock; // Get current stock for check
+
+                // Check stock BEFORE potentially adding to invoice items
+                if (itemData.quantity > currentStock) {
+                    throw new Error(`Insufficient stock for ${product.name} (Variant ${variant.types}). Available: ${currentStock}, Requested: ${itemData.quantity}`);
+                }
+
+                // Prepare stock update operation
+                stockUpdates.push({
+                    updateOne: {
+                        filter: { _id: variantIdToSave },
+                        // Ensure stock doesn't go below zero with the update itself (optional safety)
+                        // filter: { _id: variantIdToSave, stock: { $gte: itemData.quantity } },
+                        update: { $inc: { stock: -itemData.quantity } }
+                    }
+                });
+
+            } else {
+                // Handle case where base product might be purchasable
+                // Needs stock field on Product schema and check here if applicable
+                console.warn(`No variantId provided for product ${itemData.productId}. Using base price.`);
+                // If only variants are sellable, uncomment the line below:
+                // throw new Error(`Product ${product.name} requires a variant selection.`);
             }
+            //--- End Variant Price/Stock ---
 
-            if (typeof priceAtPurchase !== 'number' || priceAtPurchase < 0) {
-                console.error(`SERVICE: Invalid price calculated for product ${product._id}. Price: ${priceAtPurchase}`);
-                priceAtPurchase = 0; // Fallback to 0 if price is invalid
-            }
-
-
+            // Add validated item to the invoice list
             items.push({
-                product: product._id, // Store the ObjectId reference
-                quantity: productItem.quantity,
+                product: product._id,
+                variant: variantIdToSave,
+                quantity: itemData.quantity,
                 priceAtPurchase: priceAtPurchase,
-                // Store variant ObjectId if needed:
-                // variant: variantInfo ? variantInfo._id : undefined,
             });
 
-            totalAmount += priceAtPurchase * productItem.quantity;
-        }
+            // Add to total amount
+            totalAmount += priceAtPurchase * itemData.quantity;
+        } // End for loop
 
-        // Ensure totalAmount is a non-negative number
-        if (typeof totalAmount !== 'number' || totalAmount < 0) {
-            console.error(`SERVICE: Invalid total amount calculated: ${totalAmount}. Setting to 0.`);
-            totalAmount = 0;
-        }
+        // Final check on total amount
+        if (typeof totalAmount !== 'number' || totalAmount < 0) totalAmount = 0;
 
-
-        // Prepare data matching the Mongoose Schema
+        // --- Create and Save Invoice Document ---
         const invoiceData = {
             user: userId,
             items: items,
             totalAmount: totalAmount,
-            paymentStatus: "pending", // *** Always starts as pending ***
-            paymentMethod: paymentMethod, // Store the method used (COD/Stripe)
-            shippingAddress: shippingAddress, // The structured address object
-            paymentIntentId: paymentIntentId, // Store Stripe PI ID if provided
+            paymentStatus: "pending", // Start as pending
+            paymentMethod: paymentMethod,
+            orderStatus: "processing", // Default status
+            shippingAddress: shippingAddress,
+            paymentIntentId: paymentIntentId, // Can be null initially, updated later
         };
-
-        console.log("SERVICE: Prepared invoice data for saving:", invoiceData);
-
-        // Create a new Invoice document using the Mongoose model
         const invoice = new Invoice(invoiceData);
+        const savedInvoice = await invoice.save({ session }); // Save within transaction
 
-        // Save the document to the database
-        const savedInvoice = await invoice.save();
+        console.log(`SERVICE: Invoice ${savedInvoice._id} saved successfully (within transaction).`);
 
-        console.log(`SERVICE: Invoice ${savedInvoice._id} saved successfully.`);
+        // --- Execute Stock Updates ---
+        if (stockUpdates.length > 0) {
+            console.log(`SERVICE: Executing ${stockUpdates.length} stock update operations...`);
+            const stockUpdateResult = await Variant.bulkWrite(stockUpdates, { session });
+            console.log("SERVICE: Stock update result:", JSON.stringify(stockUpdateResult));
 
-        // Return the saved document (includes _id, timestamps, etc.)
-        return savedInvoice;
+            // Check if the number of modified documents matches the expected updates
+            // This basic check might not be perfect if stock was already 0 or multiple items used same variant
+            if (stockUpdateResult.modifiedCount < stockUpdates.length && stockUpdateResult.matchedCount < stockUpdates.length) {
+                // If matched count is less, it implies the variant wasn't found OR stock was already insufficient (if filter included $gte)
+                console.error("SERVICE: Stock update failed for some items (likely insufficient stock or variant removed). Aborting transaction.");
+                throw new Error("Failed to update stock for all items. Order cancelled.");
+            }
+            console.log("SERVICE: Stock levels updated successfully.");
+        }
+
+        // --- Commit Transaction ---
+        await session.commitTransaction();
+        console.log("SERVICE: Transaction committed successfully.");
+
+        return savedInvoice; // Return the successfully created invoice
 
     } catch (error) {
-        console.error("SERVICE: Error during invoice creation:", error);
-        // Propagate the error to be handled by the controller
-        throw new Error(`Failed to save invoice: ${error.message}`);
+        // If any error occurs, abort the transaction
+        await session.abortTransaction();
+        console.error("SERVICE: Transaction aborted. Error during invoice creation/stock update:", error);
+        throw new Error(`Failed to create invoice: ${error.message}`); // Propagate error
+    } finally {
+        // Always end the session
+        session.endSession();
+        console.log("SERVICE: Session ended.");
     }
 };
 
-// --- getInvoiceService from previous answer ---
+// --- GET INVOICES FOR USER ---
 const getInvoiceService = async (userId) => {
-    // ... (implementation as provided before) ...
     try {
+        if (!mongoose.Types.ObjectId.isValid(userId)) {
+            throw new Error("Invalid User ID format");
+        }
         const invoices = await Invoice.find({ user: userId })
-            .populate({
-                path: "user",
-                select: "name email",
-            })
+            .populate({ path: "user", select: "name email" })
             .populate({
                 path: "items.product",
-                select: "name images base_price variants category brand", // Select needed fields
-                populate: {
-                    path: "category brand",
-                    select: "name", // Select only name from category/brand
-                },
+                select: "name images base_price category brand",
+                populate: { path: "category brand", select: "name" },
             })
-            .sort({ createdAt: -1 });
-
+            .populate({ path: "items.variant", select: "types price" }) // Populate variant
+            .sort({ createdAt: -1 })
+            .lean();
         return invoices;
     } catch (error) {
         console.error("Error getting invoices:", error);
         throw new Error("Error getting invoices: " + error.message);
     }
 };
-// ---
 
-module.exports = { createInvoiceService, getInvoiceService };
+// --- UPDATE INVOICE STATUS (Admin) ---
+const updateInvoiceStatusService = async (invoiceId, statusUpdates) => {
+    if (!mongoose.Types.ObjectId.isValid(invoiceId)) {
+        throw new Error("Invalid invoice ID format");
+    }
+    const validatedUpdates = {};
+    // Validate incoming statuses against schema enums
+    if (statusUpdates.orderStatus && Invoice.schema.path('orderStatus').enumValues.includes(statusUpdates.orderStatus)) {
+        validatedUpdates.orderStatus = statusUpdates.orderStatus;
+    }
+    if (statusUpdates.paymentStatus && Invoice.schema.path('paymentStatus').enumValues.includes(statusUpdates.paymentStatus)) {
+        validatedUpdates.paymentStatus = statusUpdates.paymentStatus;
+    }
+    if (Object.keys(validatedUpdates).length === 0) {
+        throw new Error("No valid status fields provided for update.");
+    }
+
+    const updatedInvoice = await Invoice.findByIdAndUpdate(
+        invoiceId,
+        { $set: validatedUpdates },
+        { new: true, runValidators: true }
+    )
+        .populate('user', 'name email')
+        .populate({ path: "items.product", select: "name" })
+        .populate({ path: "items.variant", select: "types" })
+        .lean();
+
+    if (!updatedInvoice) {
+        throw new Error(`Invoice with ID '${invoiceId}' not found.`);
+    }
+
+    // TODO: Add side effects for status changes (e.g., email notifications)
+    // if (validatedUpdates.orderStatus === 'shipped') { /* ... */ }
+    // if (validatedUpdates.paymentStatus === 'paid' && updatedInvoice.paymentMethod !== 'CARD') { /* ... e.g. clear cart if COD/Bank */ }
+
+    return updatedInvoice;
+};
+
+module.exports = { createInvoiceService, getInvoiceService, updateInvoiceStatusService };
