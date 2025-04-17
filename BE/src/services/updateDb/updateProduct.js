@@ -1,18 +1,21 @@
+// src/services/updateDb/updateProduct.js
+// Script to update ProductIndex based on Product, Category, Brand, Tags, and Variant data
+
 const mongoose = require("mongoose");
-const Category = require("../../models/category");
-const { Product, ProductIndex } = require("../../models/product"); // Assuming ProductIndex is exported here now
-const fs = require("fs").promises; // Using async FS
-const path = require("path");
+const Category = require("../../models/category"); // Adjust path if needed
+const Brand = require("../../models/brand");       // Adjust path if needed
+const Variant = require("../../models/variant");   // Adjust path if needed
+const { Product, ProductIndex } = require("../../models/product"); // Adjust path if needed
+// const fs = require("fs").promises; // fs logic removed as it wasn't part of the request
+// const path = require("path");     // path logic removed
 
 require("dotenv").config();
 
 // --- Connection Function ---
 async function connectDB() {
   try {
-    await mongoose.connect(process.env.MONGO_DB_URL, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-    });
+    // Add connection options if needed, but defaults are often fine with newer Mongoose
+    await mongoose.connect(process.env.MONGODB_URI);
     console.log("Connected to MongoDB");
   } catch (err) {
     console.error("Error connecting to MongoDB:", err);
@@ -20,211 +23,196 @@ async function connectDB() {
   }
 }
 
-// --- Function to update products ---
-const updateProducts = async () => {
-  console.log("Starting product update...");
-  try {
-    // Consider using cursor for large collections
-    const products = await Product.find({});
-    let updatedCount = 0;
-
-    for (let product of products) {
-      let hasChanged = false; // Flag to save only if changed
-
-      // --- Apply Defaults/Corrections based on Schema ---
-      if (!product.name) {
-        product.name = "Unnamed Product";
-        hasChanged = true;
-      } // Ensure name exists
-      if (product.base_price === undefined || product.base_price === null) {
-        product.base_price = 0;
-        hasChanged = true;
-      } // Use base_price
-      if (
-        !Array.isArray(product.description) ||
-        product.description.length === 0
-      ) {
-        product.description = [product.name + " description"];
-        hasChanged = true;
-      }
-      if (!product.category) {
-        // Option 1: Skip if required category is missing (prevents validation error)
-        // console.warn(`Product ${product._id} has no category, skipping category default.`);
-        // Option 2: Assign a default Category ID if you have one
-        // const defaultCategoryId = 'YOUR_DEFAULT_CATEGORY_ID';
-        // if (defaultCategoryId) { product.category = defaultCategoryId; hasChanged = true; }
-        // Option 3: Keep as is (might fail validation if required=true wasn't enforced before)
-      }
-      if (!product.tags) {
-        product.tags = [];
-        hasChanged = true;
-      } // Initialize tags if needed
-      if (product.brand === "") {
-        product.brand = null;
-        hasChanged = true;
-      } // Use null for ObjectId ref
-      if (!product.popularity && product.popularity !== 0) {
-        product.popularity = 3;
-        hasChanged = true;
-      } // Default to 3 if falsy (but not 0)
-
-      // --- Image Population Logic ---
-      const folderName = product.name.split(" ").join("_"); // Consider more robust sanitization/naming
-      const folderPath = path.join(
-        __dirname,
-        "../../public/images/product",
-        folderName
-      );
-
-      try {
-        await fs.access(folderPath); // Check if folder exists (async)
-        const files = await fs.readdir(folderPath); // Read dir (async)
-        const imageFiles = files.filter((file) =>
-          /\.(jpg|jpeg|png|gif|jfif)$/i.test(file)
-        );
-        const imagePaths = imageFiles.map(
-          (file) => `images/product/${folderName}/${file}`
-        ); // Relative path for web server
-
-        // Check if image paths actually changed before assigning
-        if (JSON.stringify(product.images) !== JSON.stringify(imagePaths)) {
-          product.images = imagePaths;
-          hasChanged = true;
-        }
-      } catch (folderError) {
-        // Folder doesn't exist or cannot be read
-        if (product.images?.length > 0) {
-          // Clear images if folder is gone but field has data
-          product.images = [];
-          hasChanged = true;
-        } else if (!product.images) {
-          // Initialize if field doesn't exist
-          product.images = [];
-          hasChanged = true;
-        }
-      }
-
-      // --- Save only if modifications occurred ---
-      if (hasChanged) {
-        await product.save();
-        updatedCount++;
-      }
-    }
-
-    console.log(
-      `${updatedCount} products potentially updated (fields defaulted, images synced).`
-    );
-  } catch (error) {
-    console.error("Error updating products:", error);
-    process.exit(1); // Exit with error
-  }
-};
-
-// --- Function to update category format --- (Looks OK)
-const updateAllProductsToSingleCategory = async () => {
-  console.log("Starting category format update...");
-  // ... (keep existing logic) ...
-};
+// --- Helper to process text for indexing ---
+const processIndexField = (field) => {
+  if (!field) return null;
+  // Handle both strings and arrays of strings (like tags)
+  const values = Array.isArray(field) ? field : [field];
+  return values
+    .map(val => String(val || "").toLowerCase().trim().replace(/\s+/g, "_")) // Convert to string, lowercase, trim, replace space with underscore
+    .filter(val => val); // Remove empty strings
+}
 
 // --- Function to update product indexes ---
 const updateProductIndex = async () => {
-  console.log("Starting product index update...");
+  console.log("Starting product index update (Refactored)...");
   try {
+    // 1. Fetch all Products (selecting necessary fields)
     const products = await Product.find({}).select(
-      "name description category base_price"
-    ); // Select only needed fields
-    const categoryIds = [
-      ...new Set(products.map((p) => p.category).filter((id) => id)),
-    ];
-    const categories = await Category.find({
-      _id: { $in: categoryIds },
-    }).select("name"); // Select only name
-    const categoryMap = new Map(categories.map((c) => [c._id.toString(), c]));
-    let updatedIndexCount = 0;
-    let linkedProductCount = 0;
+      "name description category brand tags base_price" // Added brand, tags
+    ).lean(); // Use lean for plain objects
 
-    const productUpdateOps = []; // For bulkWrite
+    if (!products || products.length === 0) {
+      console.log("No products found to index.");
+      return;
+    }
 
+    console.log(`Found ${products.length} products to process.`);
+
+    // 2. Collect all unique IDs needed for related data
+    const productIds = products.map(p => p._id);
+    const categoryIds = [...new Set(products.map(p => p.category).filter(id => id))];
+    const brandIds = [...new Set(products.map(p => p.brand).filter(id => id))];
+
+    // 3. Fetch related data in bulk
+    const [categories, brands, variants] = await Promise.all([
+      Category.find({ _id: { $in: categoryIds } }).select("name").lean(),
+      Brand.find({ _id: { $in: brandIds } }).select("name").lean(),
+      Variant.find({ product: { $in: productIds } }).select("product types price").lean() // Fetch variants linked to these products
+    ]);
+
+    // 4. Create lookup maps/groups for efficient access
+    const categoryMap = new Map(categories.map(c => [c._id.toString(), c.name]));
+    const brandMap = new Map(brands.map(b => [b._id.toString(), b.name]));
+    const variantsByProduct = variants.reduce((acc, variant) => {
+      const productIdStr = variant.product.toString();
+      if (!acc[productIdStr]) {
+        acc[productIdStr] = [];
+      }
+      acc[productIdStr].push(variant);
+      return acc;
+    }, {}); // Group variants by product ID
+
+    console.log(`Workspaceed related data: ${categories.length} categories, ${brands.length} brands, ${variants.length} variants.`);
+
+    // 5. Prepare bulk operations
+    const productIndexOps = []; // For ProductIndex upserts
+    const productLinkOps = [];  // For updating Product.productIndex field
+
+    let processedIndexCount = 0;
+
+    // 6. Process each product
     for (const p of products) {
-      const cate = categoryMap.get(p.category?.toString());
-      if (!cate) {
-        console.warn(
-          `Category not found for product ${p._id} (${p.name}), skipping index update.`
-        );
-        continue;
+      const productIdStr = p._id.toString();
+
+      // Get related data from maps/groups
+      const categoryName = categoryMap.get(p.category?.toString());
+      const brandName = brandMap.get(p.brand?.toString());
+      const productVariants = variantsByProduct[productIdStr] || []; // Get variants for this product
+
+      // Prepare parts for the index string
+      const nameParts = processIndexField(p.name);
+      const categoryParts = processIndexField(categoryName); // Use looked-up name
+      const brandParts = processIndexField(brandName);       // Use looked-up name
+      const tagParts = processIndexField(p.tags);            // Process tags array
+      const descriptionParts = processIndexField(p.description); // Process description array
+      const variantTypeParts = productVariants.flatMap(v => processIndexField(v.types)); // Process types from all variants
+
+      // Combine all parts into a unique set to avoid duplicate keywords
+      const uniqueParts = new Set([
+        ...nameParts,
+        ...(categoryParts || []),
+        ...(brandParts || []),
+        ...(tagParts || []),
+        ...(descriptionParts || []),
+        ...(variantTypeParts || [])
+      ]);
+
+      // Create the final index string
+      const productIndexStr = [...uniqueParts].join("_");
+
+      // Prepare the array of variant prices
+      let variantPrices = productVariants.map(v => v.price).filter(price => typeof price === 'number' && price >= 0);
+
+      // If there are no variants, potentially use base_price? Or leave empty?
+      // Decision: Use base_price if no variants exist and base_price is valid
+      if (variantPrices.length === 0 && typeof p.base_price === 'number' && p.base_price >= 0) {
+        variantPrices = [p.base_price];
+      } else if (variantPrices.length === 0) {
+        variantPrices = []; // Ensure it's an empty array if no variants and no base price
       }
 
-      const processField = (field) =>
-        (field || "").toLowerCase().trim().replace(/\s+/g, "_");
 
-      // Process description array correctly
-      const descriptionParts = p.description
-        .map((d) => processField(d || ""))
-        .filter((part) => part);
-
-      const parts = [
-        processField(p.name),
-        processField(cate.name),
-        ...descriptionParts,
-      ].filter((part) => part);
-
-      const productIndexStr = parts.join("_");
-
-      // Update or Insert ProductIndex
-      const productIndex = await ProductIndex.findOneAndUpdate(
-        { product: p._id },
-        {
-          product: p._id, // Ensure product field is set on upsert
-          productIndex: productIndexStr,
-          price: p.base_price, // Use base_price
-        },
-        { upsert: true, new: true } // new: true returns the updated/created doc
-      );
-      updatedIndexCount++;
-
-      // Prepare Product update to link the index (using bulkWrite later)
-      productUpdateOps.push({
+      // Prepare upsert operation for ProductIndex
+      productIndexOps.push({
         updateOne: {
-          filter: { _id: p._id },
-          update: { $set: { productIndex: productIndex._id } },
-        },
+          filter: { product: p._id }, // Find by product ID
+          update: {
+            $set: { // Set all fields
+              product: p._id,
+              productIndex: productIndexStr,
+              price: variantPrices, // Set the array of prices
+            }
+          },
+          upsert: true // Create if it doesn't exist
+        }
       });
+      processedIndexCount++;
+
+    } // End product loop
+
+    // 7. Execute bulk operations
+    if (productIndexOps.length > 0) {
+      console.log(`Executing ${productIndexOps.length} upsert operations on ProductIndex...`);
+      const indexBulkResult = await ProductIndex.bulkWrite(productIndexOps, { ordered: false });
+      console.log("ProductIndex bulkWrite result:", JSON.stringify(indexBulkResult));
+
+      // Important: We need the IDs of the upserted/matched indexes to link back to Product
+      // Fetching them after upsert is needed if we don't know them beforehand.
+      console.log("Fetching updated ProductIndex documents to link back to Products...");
+      const updatedIndexes = await ProductIndex.find({ product: { $in: productIds } }).select('_id product').lean();
+      const indexMap = new Map(updatedIndexes.map(idx => [idx.product.toString(), idx._id]));
+
+      for (const p of products) {
+        const indexId = indexMap.get(p._id.toString());
+        if (indexId) {
+          productLinkOps.push({
+            updateOne: {
+              filter: { _id: p._id },
+              update: { $set: { productIndex: indexId } }
+            }
+          });
+        } else {
+          console.warn(`Could not find ProductIndex ID for Product ${p._id} after upsert.`);
+        }
+      }
+
+      if (productLinkOps.length > 0) {
+        console.log(`Executing ${productLinkOps.length} update operations to link ProductIndex back to Product...`);
+        const productBulkResult = await Product.bulkWrite(productLinkOps, { ordered: false });
+        console.log("Product linking bulkWrite result:", JSON.stringify(productBulkResult));
+        console.log(`Product indexes processed: ${processedIndexCount}. Products successfully linked: ${productBulkResult.modifiedCount || 0}`);
+      } else {
+        console.log("No product linking operations needed.");
+      }
+
+    } else {
+      console.log("No ProductIndex operations to execute.");
     }
 
-    // Update products in bulk to link ProductIndex
-    if (productUpdateOps.length > 0) {
-      const bulkResult = await Product.bulkWrite(productUpdateOps);
-      linkedProductCount = bulkResult.modifiedCount;
-    }
-
-    console.log(
-      `Product indexes updated/created: ${updatedIndexCount}. Products linked: ${linkedProductCount}`
-    );
   } catch (error) {
     console.error("Error updating product indexes:", error);
-    process.exit(1); // Exit with error
+    // Don't exit process if run as part of larger system, just log/throw
+    // process.exit(1);
+    throw error; // Re-throw error
   }
 };
 
-// --- Main Execution Logic ---
-async function runUpdates() {
-  await connectDB(); // Ensure connection first
+// --- Other update functions (like updateProducts) can be kept or removed ---
+// const updateProducts = async () => { ... };
+// const updateAllProductsToSingleCategory = async () => { ... };
 
-  // Choose which updates to run:
-  // await updateProducts();
-  // await updateAllProductsToSingleCategory();
-  await updateProductIndex();
-
-  console.log("Update script finished.");
-  await mongoose.disconnect(); // Disconnect gracefully
-  process.exit(0);
+// --- Main Execution Logic (for standalone run) ---
+async function runScript() {
+  await connectDB();
+  try {
+    await updateProductIndex(); // Run the main function
+  } catch (e) {
+    console.error("Script execution failed.");
+  } finally {
+    console.log("Disconnecting...");
+    await mongoose.disconnect();
+    console.log("Script finished.");
+    // process.exit(0); // Exit only if run standalone
+  }
 }
 
-// runUpdates(); // Execute the main function
+// Uncomment the line below ONLY if you want to run this script directly using `node your_script_name.js`
+// runScript();
 
-// Export functions if needed elsewhere (optional for standalone script)
+// Export the function if you intend to call it from elsewhere (e.g., your main app or another script)
 module.exports = {
   updateProductIndex,
-  updateProducts,
-  updateAllProductsToSingleCategory,
+  // updateProducts, // Export others if needed
+  // updateAllProductsToSingleCategory,
 };

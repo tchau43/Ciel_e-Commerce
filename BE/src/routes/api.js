@@ -1,4 +1,14 @@
+// routes/api.js
+// Main application router after refactoring to separate Variant collection
+
 const express = require("express");
+const path = require("path"); // Keep if needed elsewhere, not directly used here
+const upload = require("../middleware/multer"); // Multer for file uploads
+
+// --- Middleware ---
+const { verifyToken, verifyAdmin } = require("../middleware/auth"); // Auth middleware
+
+// --- Controllers ---
 const {
   createUser,
   userLogin,
@@ -8,127 +18,161 @@ const {
   getUserPurchased,
   getUsersPurchasedDetail,
 } = require("../controllers/userController");
-// const multer = require('multer');
-const path = require("path");
+
 const {
   createProduct,
   getAllProducts,
   getProductById,
   getProductsByName,
-  updateProduct,
-  deleteProduct,
+  updateProduct, // Updates core Product fields ONLY
+  deleteProduct, // Deletes Product AND its Variants
   getProductsByCategory,
   searchProduct,
-} = require("../controllers/productController");
-const { verifyToken, apiKeyAuth } = require("../middleware/auth");
+  // Variant specific controllers:
+  getVariantById,
+  updateVariant,
+  deleteVariant,
+  addVariantToProduct,
+  updateVariantStock,
+} = require("../controllers/productController"); // Includes variant controllers now
+
 const {
   getAllCategories,
   createCategory,
 } = require("../controllers/categoryController");
+
 const {
-  updateProductToCart,
-  getCartInfor,
-  addProductToCart,
   removeAllProductsFromCart,
-} = require("../controllers/cartController");
+  addOrUpdateCartItem,
+  getCartInfo,
+} = require("../controllers/cartController"); // Review cart logic post-refactor if needed
+
 const {
   createInvoice,
   getInvoice,
+  updateInvoiceStatus,
 } = require("../controllers/invoiceController");
+
+const {
+  createReview,
+  getReviewsForProduct
+} = require("../controllers/reviewController");
+
 const {
   getUserRecommendations,
 } = require("../controllers/recommendationsController");
-const { Product } = require("../models/product");
-const upload = require("../middleware/multer");
+
 const {
   getHomePage,
   updateBanner,
   updateVideo,
   updateFeature,
-} = require("../controllers/customerHomePageController");
+} = require("../controllers/customerHomePageController"); // Assuming admin protected?
+
 const { getChatbotResponse } = require("../controllers/chatController");
-const {
-  sendPaymentConfirmationEmail,
-} = require("../controllers/emailController");
-const { initiateStripePayment } = require("../controllers/stripeController"); // <-- Import the new function
+const { sendPaymentConfirmationEmail } = require("../controllers/emailController");
+const { initiateStripePayment } = require("../controllers/stripeController");
+
+// Import models only if directly used (like in /products/batch)
+const { Product } = require("../models/product");
 
 
+// --- Router Definition ---
 const routerAPI = express.Router();
 
-routerAPI.all("*", verifyToken);
 
-//route for register - login
+// === PUBLIC ROUTES (No Token Required) ===
 routerAPI.post("/register", createUser);
 routerAPI.post("/login", userLogin);
-
-//route for admin
-routerAPI.get("/admin/users", getAllUsers);
-routerAPI.put("/admin/updateUserById/:id", updateUserbyId);
-
-//route for user
-routerAPI.get("/user/:id", getUserById);
-
-//category
-routerAPI.get("/categories", getAllCategories);
-routerAPI.post("/category", createCategory);
-
-//product
+// Publicly accessible read routes for products/categories/reviews
 routerAPI.get("/products", getAllProducts);
 routerAPI.get("/productsByCategory", getProductsByCategory);
-routerAPI.get("/product/:id", getProductById);
-routerAPI.get("/product", getProductsByName);
+routerAPI.get("/product/search", getProductsByName); // Consider renaming route for clarity?
 routerAPI.get("/productsBySearch", searchProduct);
-routerAPI.post("/product", createProduct);
-routerAPI.put("/product/:id", upload.single("image"), updateProduct);
-routerAPI.delete("/product/:id", deleteProduct);
+routerAPI.get("/product/:id", getProductById); // Gets product with populated variants
+routerAPI.get("/variants/:variantId", getVariantById); // Gets specific variant details
+routerAPI.get("/categories", getAllCategories);
+routerAPI.get("/products/:productId/reviews", getReviewsForProduct); // Get reviews for a product
+routerAPI.get("/homepage", getHomePage); // Get public homepage config
 
-//cart
-routerAPI.post("/cart/updateCart", updateProductToCart);
-routerAPI.post("/cart/addToCart", addProductToCart);
-routerAPI.get("/cart/:userId", getCartInfor);
+
+// === AUTHENTICATED ROUTES (Token Required for all routes below) ===
+routerAPI.use(verifyToken);
+
+// --- User Routes (Authenticated) ---
+routerAPI.get("/user/:id", getUserById); // Get own or other user's public profile? Check service logic
+routerAPI.get("/user/:userId/purchased-products", getUserPurchased); // Likely needs userId check against req.user.id
+routerAPI.post("/invoice", createInvoice); // User creates their own invoice
+routerAPI.get("/invoice/:userId", getInvoice); // User gets their own invoices (needs userId check)
+routerAPI.post("/invoice/initiate-stripe", initiateStripePayment); // User initiates payment
+routerAPI.post("/reviews", createReview); // User creates a review
+routerAPI.post("/chat", getChatbotResponse); // User interacts with chatbot
+
+// --- Cart Routes (Authenticated) ---
+routerAPI.post("/cart/item", addOrUpdateCartItem);   // Single endpoint for add/update/remove
+routerAPI.get("/cart/:userId", getCartInfo);        // User gets their own cart
 routerAPI.delete("/cart/:userId", removeAllProductsFromCart);
 
-//invoice
-routerAPI.post("/invoice", createInvoice);
-routerAPI.get("/invoice/:userId", getInvoice);
-routerAPI.post("/invoice/initiate-stripe", initiateStripePayment); // <-- DEFINE NEW ROUTE
-routerAPI.get("/user/:userId/purchased-products", getUserPurchased);
+// --- Recommendation Route (Authenticated) ---
+routerAPI.get("/recommendations", getUserRecommendations); // Needs user context from req.user
 
-// New route for recommendations
-routerAPI.get("/recommendations", getUserRecommendations);
-// routerAPI.get("/recommendations", apiKeyAuth, getUserRecommendations);
-// Get all user purchases (for collaborative filtering)
-routerAPI.get("/admin/users/purchases", getUsersPurchasedDetail);
+// --- Email Route (Potentially internal/webhook, or needs specific auth) ---
+routerAPI.post("/email/payment/notify-success", sendPaymentConfirmationEmail);
 
-// Batch product details endpoint
-routerAPI.post("/products/batch", async (req, res) => { // <--- Defined as GET
+// --- Batch Product Route (Authenticated - useful for Cart/Wishlist hydration) ---
+// Use POST for sending a list of IDs in the body
+routerAPI.post("/products/batch", async (req, res) => {
   try {
-    const productIds = req.body.ids; // <--- Tries to read from request BODY
-    const products = await Product.find({
-      _id: { $in: productIds },
-    });
-    // Check if products were found (optional but good practice)
-    if (!products) {
-      return res.status(404).json({ message: "No products found for the given IDs" });
+    const productIds = req.body.ids;
+    if (!Array.isArray(productIds) || productIds.length === 0) {
+      return res.status(400).json({ message: "Request body must contain an array of product IDs." });
     }
-    res.status(200).json(products);
+    // Validate IDs?
+    const validIds = productIds.filter(id => mongoose.Types.ObjectId.isValid(id));
+    const products = await Product.find({ _id: { $in: validIds } })
+      .populate('category', 'name')
+      .populate('brand', 'name')
+      .lean(); // Fetch necessary fields
+
+    res.status(200).json(products || []); // Return empty array if no matches
   } catch (error) {
-    // Log the error for debugging
     console.error("Error in /products/batch:", error);
     res.status(500).json({ message: error.message });
   }
 });
 
-// Routes for homepage configuration
-routerAPI.get("/homepage", getHomePage); // Get homepage
-routerAPI.put("/homepage/banner", updateBanner); // Update Banner
-routerAPI.put("/homepage/video", updateVideo); // Update Video
-routerAPI.put("/homepage/feature", updateFeature); // Update Feature
 
-//chatgpt api integrate
-routerAPI.post("/chat", getChatbotResponse);
+// === ADMIN ROUTES (Token and Admin Role Required) ===
+routerAPI.use(verifyAdmin); // Apply Admin check for all routes below
 
-// Email Trigger Route
-routerAPI.post("/email/payment/notify-success", sendPaymentConfirmationEmail); // Add this route
+// --- Admin: User Management ---
+routerAPI.get("/admin/users", getAllUsers);
+routerAPI.put("/admin/updateUserById/:id", updateUserbyId);
+routerAPI.get("/admin/users/purchases", getUsersPurchasedDetail);
+
+// --- Admin: Product & Variant Management ---
+routerAPI.post("/product", createProduct); // Renamed from /admin/product for consistency?
+routerAPI.put("/product/:id", updateProduct); // Updates only core product fields
+routerAPI.delete("/product/:id", deleteProduct);
+routerAPI.post("/products/:productId/variants", addVariantToProduct); // Add new variant to existing product
+routerAPI.patch("/variants/:variantId", updateVariant); // Update variant details (price, types, stock)
+routerAPI.patch("/variants/:variantId/stock", updateVariantStock); // Specific stock update
+routerAPI.delete("/variants/:variantId", deleteVariant);
+
+// --- Admin: Category Management ---
+routerAPI.post("/category", createCategory); // Was public, should likely be admin
+
+// --- Admin: Invoice Management ---
+routerAPI.patch("/admin/invoices/:invoiceId/status", updateInvoiceStatus); // Corrected Path
+// Could add routes for admin to view all invoices etc.
+
+// --- Admin: Homepage Management ---
+// Assuming these need admin rights
+routerAPI.put("/homepage/banner", updateBanner);
+routerAPI.put("/homepage/video", updateVideo);
+routerAPI.put("/homepage/feature", updateFeature);
+
+// --- END ADMIN ROUTES ---
+
 
 module.exports = routerAPI;

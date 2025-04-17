@@ -1,5 +1,4 @@
 const mongoose = require("mongoose");
-// const ProductIndex = require("./productIndex");
 
 const productSchema = new mongoose.Schema(
   {
@@ -18,8 +17,8 @@ const productSchema = new mongoose.Schema(
     },
     variants: [
       {
-        types: String,
-        price: Number,
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Variant",
       },
     ],
     images: [String],
@@ -29,6 +28,8 @@ const productSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "ProductIndex",
     },
+    averageRating: { type: Number, default: 0, min: 0, max: 5 },
+    numberOfReviews: { type: Number, default: 0, min: 0 },
   },
   { timestamps: true }
 );
@@ -40,10 +41,10 @@ const productIndexSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: "Product",
     required: true,
-    unique: true, // Ensures one-to-one relationship
+    unique: true,
   },
   productIndex: String,
-  price: { type: Number, required: true, min: 0 },
+  price: [{ type: Number, required: true, min: 0 }]
 });
 
 const ProductIndex = mongoose.model("ProductIndex", productIndexSchema);
