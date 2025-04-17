@@ -9,13 +9,13 @@
 
 // async function migrateAndCleanupCategoriesBrands() {
 //     // --- 1. Connect to MongoDB ---
-//     if (!process.env.MONGO_DB_URL) {
-//         console.error("Error: MONGO_DB_URL environment variable is not set.");
+//     if (!process.env.MONGODB_URI) {
+//         console.error("Error: MONGODB_URI environment variable is not set.");
 //         process.exit(1);
 //     }
 //     try {
 //         console.log(`Connecting to MongoDB...`);
-//         await mongoose.connect(process.env.MONGO_DB_URL); // No deprecated options needed
+//         await mongoose.connect(process.env.MONGODB_URI); // No deprecated options needed
 //         console.log('Successfully connected to MongoDB.');
 //     } catch (err) {
 //         console.error("Error connecting to MongoDB:", err);
@@ -235,13 +235,13 @@ const Product = mongoose.model('ProductMinimal', productSchemaMinimal); // Use a
 // --- Main Async Function ---
 async function removeOldProductFields() {
     // 1. Connect to MongoDB
-    if (!process.env.MONGO_DB_URL) {
-        console.error("Error: MONGO_DB_URL environment variable is not set.");
+    if (!process.env.MONGODB_URI) {
+        console.error("Error: MONGODB_URI environment variable is not set.");
         process.exit(1);
     }
     try {
         console.log(`Connecting to MongoDB...`);
-        await mongoose.connect(process.env.MONGO_DB_URL);
+        await mongoose.connect(process.env.MONGODB_URI);
         console.log('Successfully connected to MongoDB.');
     } catch (err) {
         console.error("Error connecting to MongoDB:", err);

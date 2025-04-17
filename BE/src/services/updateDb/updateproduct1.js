@@ -3,9 +3,9 @@ require('dotenv').config();
 const mongoose = require('mongoose');
 
 async function migrateProducts() {
-    const url = process.env.MONGO_DB_URL;
+    const url = process.env.MONGODB_URI;
     if (!url) {
-        throw new Error('Environment variable MONGO_DB_URL must be set');
+        throw new Error('Environment variable MONGODB_URI must be set');
     }
 
     await mongoose.connect(url, {

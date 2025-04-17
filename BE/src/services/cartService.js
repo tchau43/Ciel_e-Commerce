@@ -1,182 +1,260 @@
-const Cart = require("../models/cart")
+// services/cartService.js
+const mongoose = require('mongoose');
+const Cart = require("../models/cart");      // Adjust path if needed
+const User = require("../models/user");      // Adjust path if needed
+const Variant = require("../models/variant");  // Adjust path if needed
+const { Product } = require('../models/product'); // Adjust path if needed
 
-const User = require("../models/user")
-
-const createCartService = async (cartData) => {
+// --- CREATE CART ---
+// Creates an empty cart if one doesn't exist.
+const createCartService = async (userId) => { // Simplified input
     try {
-        const userId = cartData.user; // assuming user is passed as an ID
-        const user = await User.findById(userId);
+        if (!mongoose.Types.ObjectId.isValid(userId)) {
+            throw new Error("Invalid User ID format");
+        }
+        const user = await User.findById(userId).select('_id'); // Check if user exists
         if (!user) {
             throw new Error("User not found");
         }
 
-        const newCart = new Cart({
-            ...cartData,
-            user: user._id
-        });
-        await newCart.save();
-        return newCart;
+        let cart = await Cart.findOne({ user: userId });
+        if (!cart) {
+            console.log(`Creating new cart for user ${userId}`);
+            cart = new Cart({ user: userId, items: [] });
+            await cart.save();
+        } else {
+            console.warn(`Cart already exists for user ${userId}.`);
+        }
+        return cart.toObject(); // Return plain object
     } catch (error) {
+        console.error("Error creating cart:", error);
         throw new Error("Error creating cart: " + error.message);
     }
 };
 
-
-const addProductToCartService = async (userId, productId, variantId, quantity) => { // Parameter is named 'quantity'
+// --- ADD/UPDATE/REMOVE ITEM IN CART (Consolidated) ---
+// Handles adding new items, updating quantity of existing items,
+// and removing items if quantity is set to 0. Includes stock check.
+const addOrUpdateProductInCartService = async (userId, productId, variantId, quantity) => {
     try {
-        const targetQuantity = parseInt(quantity, 10); // parseInt(undefined) results in NaN
-        if (isNaN(targetQuantity) || targetQuantity < 0) { // isNaN(NaN) is true
-            throw new Error("Invalid target quantity provided"); // Error thrown!
-        }
+        // 1. Validate Inputs
+        if (!mongoose.Types.ObjectId.isValid(userId)) throw new Error("Invalid User ID format");
+        if (!mongoose.Types.ObjectId.isValid(productId)) throw new Error("Invalid Product ID format");
+        // Ensure variantId is either valid ObjectId or null/undefined
+        if (variantId && !mongoose.Types.ObjectId.isValid(variantId)) throw new Error("Invalid Variant ID format");
 
-        let cart = await Cart.findOne({ user: userId });
-        if (!cart) {
-            cart = await new Cart({ user: userId, items: [] });
-        }
-
-        const productIndex = cart.items.findIndex(item =>
-            item.product.toString() === productId &&
-            (item.variant?.toString() === variantId || (!item.variant && !variantId))
-        );
-
-        if (targetQuantity === 0) {
-            // If target quantity is 0, remove the item if it exists
-            if (productIndex > -1) {
-                cart.items.splice(productIndex, 1);
-            }
-            // If item doesn't exist and quantity is 0, do nothing
-        } else {
-            // Target quantity is > 0
-            if (productIndex > -1) {
-                // Item exists, update its quantity to the target quantity
-                cart.items[productIndex].quantity = targetQuantity;
-            } else {
-                // Item does not exist, add it with the target quantity
-                cart.items.push({ product: productId, variant: variantId || null, quantity: targetQuantity });
-            }
-        }
-
-        await cart.save();
-        // You might want to populate before returning if the controller/frontend needs it immediately
-        // await cart.populate({ path: 'items.product', populate: [{ path: 'category' }, { path: 'brand' }] });
-        return cart;
-
-    } catch (error) {
-        console.error("Error Adding/Updating Cart:", error);
-        throw new Error(`Error Changing Cart: ${error.message}`);
-    }
-};
-
-
-
-const updateProductToCartService = async (userId, productId, variantId, quantity) => {
-    try {
         const targetQuantity = parseInt(quantity, 10);
-
-        // Validate the target quantity
         if (isNaN(targetQuantity) || targetQuantity < 0) {
-            throw new Error("Invalid target quantity provided for update");
+            throw new Error("Invalid target quantity provided (must be 0 or greater)");
         }
+        const effectiveVariantId = variantId || null; // Use null if variantId is undefined/empty string
 
+        // 2. Find or Create Cart for the user
         let cart = await Cart.findOne({ user: userId });
-
         if (!cart) {
-            // Should not happen if updating, but handle defensively
-            // If quantity > 0 maybe create cart? Or just error out.
-            if (targetQuantity > 0) {
-                console.warn(`Cart not found for update, but quantity > 0. User: ${userId}`);
-                // Optionally create cart and add item? Or throw error. Let's throw for now.
-                throw new Error(`Cart not found for user ${userId}`);
-            } else {
-                return null; // No cart and quantity is 0, nothing to do.
-            }
+            if (targetQuantity === 0) return await getCartInfoService(userId); // Return standard empty cart structure
+            console.log(`Creating new cart for user ${userId}`);
+            cart = new Cart({ user: userId, items: [] });
         }
 
-        // *** FIX: Find item matching product AND variant ***
-        const productIndex = cart.items.findIndex(item =>
+        // 3. Find Existing Item Index based on product AND variant
+        const itemIndex = cart.items.findIndex(item =>
             item.product.toString() === productId &&
-            (item.variant?.toString() === variantId || (!item.variant && !variantId)) // Match variantId or handle null/undefined
+            (item.variant?.toString() === effectiveVariantId?.toString()) // Compare ObjectIds or nulls
         );
 
-        if (productIndex > -1) {
-            // Item found in cart
-            if (targetQuantity === 0) {
-                // *** FIX: Remove item if quantity is 0 ***
-                cart.items.splice(productIndex, 1);
+        // 4. Handle Quantity = 0 (Remove Item)
+        if (targetQuantity === 0) {
+            if (itemIndex > -1) {
+                console.log(`Removing item (Product: ${productId}, Variant: ${effectiveVariantId || 'N/A'}) from cart.`);
+                cart.items.splice(itemIndex, 1); // Remove item from array
+            }
+            // If item not found and quantity is 0, do nothing further.
+        }
+        // 5. Handle Quantity > 0 (Add or Update Item)
+        else {
+            // --- Stock Check ---
+            let availableStock = Infinity;
+            if (effectiveVariantId) { // Only check stock if it's a specific variant
+                const variant = await Variant.findById(effectiveVariantId).select('stock').lean();
+                if (!variant) throw new Error(`Variant with ID ${effectiveVariantId} not found.`);
+                // Verify variant belongs to product (optional sanity check)
+                // if (variant.product.toString() !== productId) throw new Error("Variant does not belong to product");
+                availableStock = variant.stock;
             } else {
-                // *** FIX: Update quantity to the target quantity ***
-                cart.items[productIndex].quantity = targetQuantity;
+                // If adding base product (no variantId), implement stock check if your Product model has stock
+                console.warn(`Stock check skipped for base product ${productId} (no variantId provided).`);
+                // If only specific variants are sellable, throw an error here:
+                // throw new Error("A specific variant must be selected to add this product.");
             }
-        } else {
-            // Item specific variant not found in cart
-            if (targetQuantity > 0) {
-                // *** FIX: Item not found, ADD it if quantity > 0 ***
-                // This makes the update endpoint behave like addOrUpdate
-                cart.items.push({ product: productId, variant: variantId || null, quantity: targetQuantity });
+
+            // Compare needed quantity (target) vs available stock
+            if (targetQuantity > availableStock) {
+                throw new Error(`Insufficient stock. Available: ${availableStock}, Requested: ${targetQuantity}`);
             }
-            // If item not found and quantity is 0, do nothing.
+            // --- End Stock Check ---
+
+            if (itemIndex > -1) {
+                // Item exists, update its quantity
+                console.log(`Updating quantity for item (Product: ${productId}, Variant: ${effectiveVariantId || 'N/A'}) to ${targetQuantity}.`);
+                cart.items[itemIndex].quantity = targetQuantity;
+            } else {
+                // Item does not exist, add it to the items array
+                console.log(`Adding new item (Product: ${productId}, Variant: ${effectiveVariantId || 'N/A'}) with quantity ${targetQuantity}.`);
+                cart.items.push({
+                    product: productId,
+                    variant: effectiveVariantId, // Store ObjectId or null
+                    quantity: targetQuantity
+                });
+            }
         }
 
-        await cart.save(); // Save the changes
+        // 6. Save the updated cart
+        await cart.save();
 
-        // Populate before returning if needed (consider performance)
-        // await cart.populate({ path: 'items.product', populate: [{ path: 'category' }, { path: 'brand' }] });
-        return cart;
+        // 7. Fetch and return the updated cart with populated details and calculated total
+        return await getCartInfoService(userId);
 
     } catch (error) {
-        console.error("Error Updating Cart Item Service:", error); // Log specific error
-        // Don't overwrite Mongoose validation errors, let them bubble up or re-throw carefully
-        throw new Error(`Error Updating Cart: ${error.message}`);
+        console.error("Error Add/Update Cart Item Service:", error);
+        // Don't obscure specific errors (like stock or validation)
+        throw error; // Re-throw original error
     }
 };
 
+// Aliases for potential backward compatibility if needed, but recommend using the main name
+const updateProductToCartService = addOrUpdateProductInCartService;
+const addProductToCartService = addOrUpdateProductInCartService;
 
-const getCartInforService = async (userId) => {
+
+// --- GET CART INFO (WITH POPULATED DETAILS & TOTAL) ---
+const getCartInfoService = async (userId) => {
     try {
-        // Populate product details. If you need variant details here, it's more complex.
+        if (!mongoose.Types.ObjectId.isValid(userId)) {
+            throw new Error("Invalid User ID format");
+        }
+
+        // Find cart and populate nested details
         let cart = await Cart.findOne({ user: userId })
             .populate({
                 path: 'items.product',
-                populate: [ // Also populate nested fields if needed
-                    { path: 'category' },
-                    { path: 'brand' }
+                select: 'name images category brand base_price', // Select needed product fields
+                populate: [ // Populate nested refs within product
+                    { path: 'category', select: 'name' },
+                    { path: 'brand', select: 'name' }
                 ]
-            });
+            })
+            .populate({
+                path: 'items.variant', // Populate the referenced Variant document
+                select: 'types price stock' // Select needed variant fields
+            })
+            .lean(); // Get plain JS objects
+
+        // If no cart exists, return a standard empty cart structure
         if (!cart) {
-            // Return a structure consistent with an empty cart
-            return { user: userId, items: [], _id: null, createdAt: null, updatedAt: null };
+            return { user: userId, items: [], _id: null, calculatedTotalPrice: 0, createdAt: null, updatedAt: null };
         }
-        // Note: cart.items will contain the product object, but not the specific variant details yet.
-        // We also need the variantId stored alongside the item.
-        return cart;
+
+        // Calculate total price and format items AFTER population
+        let calculatedTotalPrice = 0;
+        let itemsWithDetails = [];
+
+        if (cart.items && cart.items.length > 0) {
+            itemsWithDetails = cart.items.map(item => {
+                // Gracefully handle potentially missing populated data (though populate should ensure it)
+                if (!item.product) return null; // Skip item if product somehow didn't populate
+
+                let itemPrice = 0;
+                // Prefer variant price if variant exists and has a valid price
+                if (item.variant && typeof item.variant.price === 'number') {
+                    itemPrice = item.variant.price;
+                }
+                // Fallback to product base_price if no valid variant/variant price
+                else if (typeof item.product.base_price === 'number') {
+                    if (item.variant) { // Log if variant existed but price didn't
+                        console.warn(`Variant price missing/invalid for variant ${item.variant._id}, using base price ${item.product.base_price} for product ${item.product._id}`);
+                    }
+                    itemPrice = item.product.base_price;
+                } else {
+                    // Log error if no price could be determined
+                    console.error(`Could not determine price for cart item: Product=${item.product._id}, Variant=${item.variant?._id}`);
+                }
+
+                const quantity = item.quantity || 0; // Default quantity to 0 if missing
+                const itemSubtotal = itemPrice * quantity;
+                calculatedTotalPrice += itemSubtotal;
+
+                // Structure the item detail for the response
+                return {
+                    productId: item.product._id,
+                    variantId: item.variant?._id || null, // Send variantId or null
+                    quantity: quantity,
+                    name: item.product.name,
+                    variantTypes: item.variant?.types, // Include variant description
+                    pricePerUnit: itemPrice,
+                    subtotal: itemSubtotal,
+                    imageUrl: item.product.images?.[0], // First product image
+                    stock: item.variant?.stock, // Available stock for the variant
+                    category: item.product.category?.name, // Populated category name
+                    brand: item.product.brand?.name, // Populated brand name
+                };
+            }).filter(Boolean); // Filter out any null items from map
+        }
+
+        // Return the structured cart data
+        return {
+            _id: cart._id,
+            user: cart.user,
+            items: itemsWithDetails,
+            calculatedTotalPrice: calculatedTotalPrice,
+            createdAt: cart.createdAt,
+            updatedAt: cart.updatedAt
+        };
+
     } catch (error) {
         console.error("Error Getting Cart Info:", error);
         throw new Error(`Error Getting Cart: ${error.message}`);
     }
-}
+};
 
 
+// --- REMOVE ALL PRODUCTS FROM CART ---
 const removeAllProductsFromCartService = async (userId) => {
     try {
-        // Find the cart for the user
-        let cart = await Cart.findOne({ user: userId });
-
-        if (!cart) {
-            throw new Error("Cart not found for the user");
+        if (!mongoose.Types.ObjectId.isValid(userId)) {
+            throw new Error("Invalid User ID format");
         }
 
-        // Empty the items array to remove all products
-        cart.items = [];
+        // Find the cart and update it by setting items to an empty array
+        const cart = await Cart.findOneAndUpdate(
+            { user: userId },
+            { $set: { items: [] } },
+            { new: true } // Return the modified document
+        );
 
-        // Save the updated cart
-        await cart.save();
+        if (!cart) {
+            // It's okay if the cart didn't exist, just means it's already clear
+            console.warn(`Attempted to clear cart for user ${userId}, but no cart was found.`);
+            // Return the standard empty cart structure
+            return await getCartInfoService(userId);
+        }
 
-        return cart; // Return the updated cart
+        // Return the updated (now empty) cart using the standard getter
+        return await getCartInfoService(userId);
+
     } catch (error) {
+        console.error("Error removing all products from cart:", error);
         throw new Error("Error removing all products from cart: " + error.message);
     }
 };
 
 
-
-module.exports = { createCartService, addProductToCartService, updateProductToCartService, getCartInforService, removeAllProductsFromCartService };
+module.exports = {
+    createCartService,
+    addOrUpdateProductInCartService, // Use this primarily
+    // Keep aliases if controllers still reference them, but phase out
+    addProductToCartService,
+    updateProductToCartService,
+    getCartInfoService,
+    removeAllProductsFromCartService
+};

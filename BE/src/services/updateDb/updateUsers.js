@@ -5,7 +5,7 @@ require("dotenv").config();
 
 // Connect to MongoDB (if not already connected)
 mongoose
-  .connect(process.env.MONGO_DB_URL, {
+  .connect(process.env.MONGODB_URI, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
   })
