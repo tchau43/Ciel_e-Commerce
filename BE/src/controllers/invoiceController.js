@@ -3,13 +3,17 @@ const { createInvoiceService, getInvoiceService, updateInvoiceStatusService } = 
 const Invoice = require('../models/invoice'); // Need Invoice model for validation potentially
 
 const createInvoice = async (req, res) => {
-    const { userId, productsList, paymentMethod, shippingAddress } = req.body; // <-- Updated names
+    // Remove recipientEmail from here
+    const { userId, productsList, paymentMethod, shippingAddress } = req.body;
 
+    // Keep validation for required fields (excluding recipientEmail)
     if (!userId || !productsList || !paymentMethod || !shippingAddress) {
-        return res.status(400).json({ message: "Missing required invoice fields." });
+        return res.status(400).json({ message: "Missing required fields (userId, productsList, paymentMethod, shippingAddress)." });
     }
+    // Add other validation...
 
     try {
+        // Call service WITHOUT recipientEmail
         const data = await createInvoiceService(
             userId,
             productsList,
@@ -18,14 +22,19 @@ const createInvoice = async (req, res) => {
         );
 
         res.status(201).json({
-            message: "Invoice created successfully",
+            message: "Invoice created successfully, confirmation email sent to account address.", // Updated message
             invoice: data,
         });
     } catch (error) {
         console.error("Invoice Creation Error:", error);
-        res.status(500).json({ message: error.message || "Failed to create invoice." });
+        if (error.message.includes("Insufficient stock") || error.message.includes("not found")) {
+            res.status(400).json({ message: error.message });
+        } else {
+            res.status(500).json({ message: error.message || "Failed to create invoice." });
+        }
     }
 };
+
 
 // getInvoice remains the same structurally
 const getInvoice = async (req, res) => {
