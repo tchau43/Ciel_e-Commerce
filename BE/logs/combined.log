@@ -4063,3 +4063,35 @@
 {"level":"info","message":"Admin access granted for user: tchau2802@gmail.com","timestamp":"2025-04-17 22:59:16"}
 {"level":"info","message":"Token verified for user: tchau2802@gmail.com","timestamp":"2025-04-17 22:59:25"}
 {"level":"info","message":"Admin access granted for user: tchau2802@gmail.com","timestamp":"2025-04-17 22:59:25"}
+{"level":"info","message":"Token verified for user: tchau2802@gmail.com","timestamp":"2025-04-17 22:59:39"}
+{"level":"info","message":"Admin access granted for user: tchau2802@gmail.com","timestamp":"2025-04-17 22:59:39"}
+{"level":"info","message":"Token verified for user: tchau2802@gmail.com","timestamp":"2025-04-17 22:59:49"}
+{"level":"info","message":"Admin access granted for user: tchau2802@gmail.com","timestamp":"2025-04-17 22:59:49"}
+{"level":"info","message":"Token verified for user: tchau2802@gmail.com","timestamp":"2025-04-17 23:02:45"}
+{"level":"info","message":"Admin access granted for user: tchau2802@gmail.com","timestamp":"2025-04-17 23:02:45"}
+{"level":"info","message":"Token verified for user: tchau2802@gmail.com","timestamp":"2025-04-17 23:04:23"}
+{"level":"info","message":"Admin access granted for user: tchau2802@gmail.com","timestamp":"2025-04-17 23:04:23"}
+{"level":"info","message":"Token verified for user: tchau2802@gmail.com","timestamp":"2025-04-17 23:04:47"}
+{"level":"info","message":"Admin access granted for user: tchau2802@gmail.com","timestamp":"2025-04-17 23:04:47"}
+{"level":"info","message":"Token verified for user: tchau2802@gmail.com","timestamp":"2025-04-18 11:10:44"}
+{"level":"info","message":"Token verified for user: tchau2802@gmail.com","timestamp":"2025-04-18 11:11:11"}
+{"level":"info","message":"Token verified for user: tchau2802@gmail.com","timestamp":"2025-04-18 11:11:32"}
+{"level":"info","message":"Admin access granted for user: tchau2802@gmail.com","timestamp":"2025-04-18 11:11:32"}
+{"level":"info","message":"Token verified for user: tchau2802@gmail.com","timestamp":"2025-04-18 11:11:56"}
+{"level":"info","message":"Token verified for user: tchau2802@gmail.com","timestamp":"2025-04-18 11:13:55"}
+{"level":"info","message":"Token verified for user: tchau28021@gmail.com","timestamp":"2025-04-18 11:18:01"}
+{"level":"warn","message":"Forbidden access attempt: User tchau28021@gmail.com is not an Admin. Path: /v1/cart/addToCart","timestamp":"2025-04-18 11:18:01"}
+{"level":"info","message":"Token verified for user: tchau28021@gmail.com","timestamp":"2025-04-18 11:18:02"}
+{"level":"info","message":"Token verified for user: tchau28021@gmail.com","timestamp":"2025-04-18 11:18:04"}
+{"level":"info","message":"Token verified for user: tchau28021@gmail.com","timestamp":"2025-04-18 11:18:10"}
+{"level":"warn","message":"Forbidden access attempt: User tchau28021@gmail.com is not an Admin. Path: /v1/cart/addToCart","timestamp":"2025-04-18 11:18:10"}
+{"level":"info","message":"Token verified for user: tchau28021@gmail.com","timestamp":"2025-04-18 11:18:11"}
+{"level":"info","message":"Token verified for user: tchau28021@gmail.com,chaupt2823@gmail.com","timestamp":"2025-04-18 11:40:56"}
+{"level":"info","message":"Token verified for user: chaupt2823@gmail.com","timestamp":"2025-04-18 11:41:41"}
+{"level":"info","message":"Token verified for user: chaupt2823@gmail.com","timestamp":"2025-04-18 11:41:46"}
+{"level":"info","message":"Token verified for user: chaupt2823@gmail.com","timestamp":"2025-04-18 11:43:19"}
+{"level":"info","message":"Token verified for user: chaupt2823@gmail.com","timestamp":"2025-04-18 11:43:43"}
+{"level":"info","message":"Token verified for user: chaupt2823@gmail.com","timestamp":"2025-04-18 11:44:34"}
+{"level":"info","message":"Token verified for user: chaupt2823@gmail.com","timestamp":"2025-04-18 11:47:16"}
+{"level":"info","message":"Token verified for user: chaupt2823@gmail.com","timestamp":"2025-04-18 11:47:32"}
+{"level":"info","message":"Token verified for user: chaupt2823@gmail.com","timestamp":"2025-04-18 11:53:39"}
