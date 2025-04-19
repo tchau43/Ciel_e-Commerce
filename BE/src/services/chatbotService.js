@@ -1,115 +1,171 @@
-// services/chatbotService.js (Improved Intent & Context)
-const { GoogleGenerativeAI } = require("@google/generative-ai");
-const invoiceService = require('./invoiceService');
-const productService = require('./productService');
-const mongoose = require('mongoose'); // For ObjectId check
+// BE/src/services/chatbotService.js
+const { GoogleGenerativeAI } = require('@google/generative-ai');
+require('dotenv').config();
+const logger = require('../config/logger'); // <--- IMPORT LOGGER TRỰC TIẾP
 
-// Initialize LLM Client
+// Import các Mongoose models cần thiết
+const Category = require('../models/category');
+const Brand = require('../models/brand');
+const Coupon = require('../models/coupon');
+const Review = require('../models/review');
+const Cart = require('../models/cart');
+const Invoice = require('../models/invoice');
+const Variant = require('../models/variant'); // Đảm bảo đã import Variant
+const { Product } = require('../models/product');
+
+// Khởi tạo Gemini Client
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash-latest" });
+const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash-latest" }); // Hoặc model bạn muốn dùng
 
-async function handleChatbotQueryService(userId, userMessage) {
+// Hàm helper để lấy dữ liệu (có thể tách ra file riêng nếu phức tạp)
+const getStoreContext = async (userId) => {
     try {
-        let intent = 'general_query';
-        let extractedData = {};
-        const lowerMessage = userMessage.toLowerCase();
+        // 1. Lấy thông tin chung
+        const categories = await Category.find({ deleted: false }).limit(10).lean();
+        const brands = await Brand.find({ deleted: false }).limit(10).lean();
+        const coupons = await Coupon.find({
+            deleted: false,
+            expiryDate: { $gt: new Date() }
+        }).limit(5).lean();
 
-        // --- 1. Improved Intent Recognition ---
-        const orderStatusMatch = lowerMessage.match(/order status.*#?([a-fA-F0-9]{24})\b/);
-        const productNameMatch = lowerMessage.match(/(?:product|item|about|any|have)\s+(.+)/); // Simple extraction
+        const popularProducts = await Product.find({ deleted: false })
+            .sort({ sold: -1, totalViews: -1 })
+            .limit(5)
+            .populate('variants', 'variantName price stock images')
+            .populate('category', 'name')
+            .populate('brand', 'name')
+            .lean();
 
-        if (orderStatusMatch && mongoose.Types.ObjectId.isValid(orderStatusMatch[1])) {
-            intent = 'order_status';
-            extractedData.invoiceId = orderStatusMatch[1];
-        } else if (productNameMatch && productNameMatch[1]) {
-            // Check if it looks like a specific product request
-            intent = 'product_info';
-            // Extract potential product name/type (very basic, needs improvement)
-            extractedData.productName = productNameMatch[1].replace(/[?.!]$/, '').trim(); // Remove trailing punctuation
-            // Filter out vague terms if needed
-            if (['it', 'them', 'something'].includes(extractedData.productName)) {
-                intent = 'general_query'; // Revert if too vague
-                delete extractedData.productName;
+        // 2. Lấy thông tin người dùng (nếu có userId)
+        let userCart = null;
+        let userInvoices = null;
+        if (userId) {
+            userCart = await Cart.findOne({ userId: userId })
+                .populate({
+                    path: 'items.variant',
+                    select: 'variantName price product',
+                    populate: {
+                        path: 'product',
+                        select: 'name slug thumbnail'
+                    }
+                })
+                .lean();
+
+            userInvoices = await Invoice.find({ userId: userId })
+                .sort({ createdAt: -1 })
+                .limit(3)
+                .select('orderCode status shippingAddress paymentMethod totalAmount createdAt items')
+                .populate({
+                    path: 'items.variant',
+                    select: 'variantName price product',
+                    populate: {
+                        path: 'product',
+                        select: 'name'
+                    }
+                })
+                .lean();
+        }
+
+        // 3. Format dữ liệu thành context text
+        let contextText = `You are a helpful E-commerce Assistant for 'My Awesome Shop'. Answer the user's questions based *only* on the information provided below. Do not make up information or URLs. Be concise and friendly. Current date: ${new Date().toLocaleDateString()}\n\n`;
+
+        contextText += "=== General Information ===\n";
+        contextText += `Categories: ${categories.map(c => c.name).join(', ')}\n`;
+        contextText += `Brands: ${brands.map(b => b.name).join(', ')}\n`;
+        contextText += `Available Coupons: ${coupons.map(c => `${c.code} (${c.discountType === 'percentage' ? c.discountValue + '%' : '$' + c.discountValue} off, expires ${new Date(c.expiryDate).toLocaleDateString()})`).join('; ')}\n`;
+
+        contextText += "\n=== Popular Products ===\n";
+        popularProducts.forEach((p, index) => {
+            contextText += `${index + 1}. ${p.name} (Brand: ${p.brand.name}, Category: ${p.category.name})\n`;
+            if (p.variants && p.variants.length > 0) {
+                const firstVariant = p.variants[0];
+                contextText += `   - Example Variant: ${firstVariant.variantName}, Price: $${firstVariant.price}, Stock: ${firstVariant.stock > 0 ? 'Available' : 'Out of Stock'}\n`;
+                if (p.variants.length > 1) {
+                    contextText += `   - (${p.variants.length} total variants available)\n`
+                }
+            } else {
+                contextText += `   - Price: $${p.originalPrice}\n`;
             }
-        } else if (lowerMessage.includes('iphone') || lowerMessage.includes('laptop') || lowerMessage.includes('watch')) {
-            // Catch specific keywords if the general match fails
-            intent = 'product_info';
-            // Attempt to extract the keyword itself as the search term
-            const keywords = ['iphone', 'laptop', 'watch', /* add other common category/brand names */];
-            extractedData.productName = keywords.find(kw => lowerMessage.includes(kw)) || 'product'; // Fallback
-        }
-        // Add more sophisticated intent recognition if needed (e.g., using the LLM itself)
-        // --- End Intent Recognition ---
+            contextText += `   - View Product: /product/${p.slug}\n`;
+        });
 
 
-        let contextData = "";
-        let promptPrefix = `You are a helpful e-commerce assistant for 'TechWorld Store'. Be friendly and answer the user's question concisely based ONLY on the information provided below. If the information isn't sufficient, politely say you cannot answer that specific query or ask for clarification.\n\n`;
-        let finalPrompt = "";
-
-        // --- 2. Fetch Data from DB based on Intent ---
-        switch (intent) {
-            case 'order_status':
-                if (!extractedData.invoiceId) return "Please provide the order ID.";
-
-                // Fetch specific invoice securely
-                const userInvoices = await invoiceService.getInvoiceService(userId); // Assumes this fetches only user's invoices
-                const specificInvoice = userInvoices.find(inv => inv._id.toString() === extractedData.invoiceId);
-
-                if (!specificInvoice) {
-                    return `Sorry, I couldn't find order #${extractedData.invoiceId} associated with your account.`;
-                }
-                // Build more detailed context if needed
-                contextData = `Relevant Invoice Data:\nID: ${specificInvoice._id}\nOrder Status: ${specificInvoice.orderStatus}\nPayment Status: ${specificInvoice.paymentStatus}\nTotal Amount: ${specificInvoice.totalAmount}\nOrder Date: ${specificInvoice.createdAt}`;
-                finalPrompt = `${promptPrefix}CONTEXT:\n${contextData}\n\nUSER QUESTION:\n${userMessage}\n\nASSISTANT ANSWER:`;
-                break;
-
-            case 'product_info':
-                if (!extractedData.productName) return "Which product or item are you asking about?";
-
-                // Use your product service to search the DB
-                console.log(`Searching DB for products matching: "${extractedData.productName}"`);
-                const products = await productService.getProductsByNameService(extractedData.productName);
-
-                if (!products || products.length === 0) {
-                    return `Sorry, I couldn't find any products matching "${extractedData.productName}" in our catalog right now.`;
-                }
-
-                // --- Build context based on search results ---
-                contextData = `Found the following product(s) matching "${extractedData.productName}":\n\n`;
-                // List first few results (e.g., up to 3)
-                products.slice(0, 3).forEach((p, index) => {
-                    contextData += `${index + 1}. Name: ${p.name}\n   Price: ${p.base_price} VND\n   Description: ${p.description ? p.description[0] : 'N/A'}\n\n`; // Add more details? Stock?
+        if (userId && (userCart || userInvoices)) {
+            contextText += "\n=== Your Information ===\n";
+            if (userCart && userCart.items && userCart.items.length > 0) {
+                contextText += "Your Cart:\n";
+                userCart.items.forEach(item => {
+                    if (item.variant && item.variant.product) {
+                        contextText += ` - ${item.quantity}x ${item.variant.product.name} (${item.variant.variantName}) - Price: $${item.variant.price}\n`;
+                    } else {
+                        contextText += ` - ${item.quantity}x [Product details unavailable]\n`;
+                    }
                 });
-                if (products.length > 3) {
-                    contextData += `...and ${products.length - 3} more.`;
-                }
-                contextData += `\nBased *only* on this product data, answer the user's question.`;
-                // --- End context building ---
+                contextText += `   Cart Total: $${userCart.totalAmount}\n`;
+                contextText += `   View Cart: /cart\n`;
+            } else if (userCart) {
+                contextText += "Your Cart is empty.\n";
+            }
 
-                finalPrompt = `${promptPrefix}CONTEXT:\n${contextData}\n\nUSER QUESTION:\n${userMessage}\n\nASSISTANT ANSWER:`;
-                break;
-
-            default: // General query
-                finalPrompt = `${promptPrefix}USER QUESTION:\n${userMessage}\n\nASSISTANT ANSWER:`;
-                break;
+            if (userInvoices && userInvoices.length > 0) {
+                contextText += "\nYour Recent Orders:\n";
+                userInvoices.forEach(inv => {
+                    contextText += ` - Order ${inv.orderCode} (Placed: ${new Date(inv.createdAt).toLocaleDateString()}): Status - ${inv.status}, Total: $${inv.totalAmount}\n`;
+                    // contextText += `   View Order: /user/purchase/order/${inv._id}\n`;
+                    contextText += `   View Order Details: /user/purchase/order/${inv._id}\n`; // Sửa lại link cho rõ nghĩa hơn
+                });
+                contextText += `   View All Orders: /user/purchase\n`;
+            }
+        } else if (userId) {
+            contextText += "\n=== Your Information ===\n";
+            contextText += "Your cart is empty and you have no recent orders.\n";
         }
 
-        // --- 3. Call LLM API ---
-        console.log("Sending prompt to LLM:", finalPrompt.substring(0, 300) + "...");
-        const result = await model.generateContent(finalPrompt);
+
+        contextText += "\n=========================\n";
+        // Sử dụng chuỗi 'debug', 'warn' thay vì GLogLevel
+        logger.debug(`Generated Context Length: ${contextText.length}`); // <--- Sửa: logger.debug(...)
+        const MAX_CONTEXT_LENGTH = 15000;
+        if (contextText.length > MAX_CONTEXT_LENGTH) {
+            contextText = contextText.substring(0, MAX_CONTEXT_LENGTH) + "\n... (context truncated)\n=========================\n";
+            logger.warn(`Context truncated due to length limit.`); // <--- Sửa: logger.warn(...)
+        }
+
+        return contextText;
+
+    } catch (error) {
+        // Sử dụng logger đã import
+        logger.error(`Error fetching store context: ${error.message}`, error); // <--- Sửa: logger.error(...)
+        return "Error retrieving store information. Please try again later.\n";
+    }
+};
+
+const generateResponse = async (userQuery, userId) => {
+    try {
+        const context = await getStoreContext(userId);
+        const prompt = `${context}\nUser Question: ${userQuery}\n\nAssistant Answer:`;
+
+        // Sử dụng logger đã import
+        logger.info(`Sending prompt to Gemini for user: ${userId || 'Guest'}`); // <--- Sửa: logger.info(...)
+        // logger.debug(`Full Prompt: ${prompt}`); // logger.debug(...)
+
+        const result = await model.generateContent(prompt);
         const response = await result.response;
         const text = response.text();
-        console.log("LLM Response received.");
+
+        // Sử dụng logger đã import
+        logger.info(`Received response from Gemini for user: ${userId || 'Guest'}`); // <--- Sửa: logger.info(...)
+        // logger.debug(`Gemini Response: ${text}`); // logger.debug(...)
 
         return text;
 
     } catch (error) {
-        console.error("Chatbot Service Error:", error);
-        if (error.name === 'GoogleGenerativeAIFetchError') {
-            return `Sorry, I'm having trouble connecting to the AI service right now (${error.status || 'Unknown Status'}). Please try again later.`;
-        }
-        return "Sorry, I encountered an internal error trying to process your request. Please try again later.";
+        // Sử dụng logger đã import
+        logger.error(`Error generating response from Gemini: ${error.message}`, error); // <--- Sửa: logger.error(...)
+        return "I'm sorry, I encountered an error while processing your request. Please try again later.";
     }
-}
+};
 
-module.exports = { handleChatbotQueryService };
+module.exports = {
+    generateResponse,
+};
