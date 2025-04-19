@@ -1,84 +1,85 @@
 // controllers/invoiceController.js
 const { createInvoiceService, getInvoiceService, updateInvoiceStatusService } = require("../services/invoiceService");
-const Invoice = require('../models/invoice'); // Need Invoice model for validation potentially
+const Invoice = require('../models/invoice'); // For enum validation if needed
+const mongoose = require('mongoose');
 
 const createInvoice = async (req, res) => {
-    // Remove recipientEmail from here
-    const { userId, productsList, paymentMethod, shippingAddress } = req.body;
+    // Expect optional couponCode
+    const { userId, productsList, paymentMethod, shippingAddress, couponCode } = req.body;
 
-    // Keep validation for required fields (excluding recipientEmail)
+    // Basic Validation
     if (!userId || !productsList || !paymentMethod || !shippingAddress) {
         return res.status(400).json({ message: "Missing required fields (userId, productsList, paymentMethod, shippingAddress)." });
     }
-    // Add other validation...
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
+        return res.status(400).json({ message: "Invalid userId format." });
+    }
+    // Add more validation for productsList structure, shippingAddress details if needed
 
     try {
-        // Call service WITHOUT recipientEmail
-        const data = await createInvoiceService(
+        // Pass couponCode (can be null/undefined) to the service
+        const createdInvoice = await createInvoiceService(
             userId,
             productsList,
             paymentMethod,
-            shippingAddress
+            shippingAddress,
+            couponCode // Pass coupon code string or null
         );
 
         res.status(201).json({
-            message: "Invoice created successfully, confirmation email sent to account address.", // Updated message
-            invoice: data,
+            message: "Invoice created successfully, confirmation email processing.",
+            invoice: createdInvoice,
         });
     } catch (error) {
-        console.error("Invoice Creation Error:", error);
-        if (error.message.includes("Insufficient stock") || error.message.includes("not found")) {
-            res.status(400).json({ message: error.message });
-        } else {
-            res.status(500).json({ message: error.message || "Failed to create invoice." });
+        console.error("Invoice Creation Controller Error:", error);
+        // Check for specific user-friendly errors from the service
+        if (error.message.includes("Coupon code") ||
+            error.message.includes("Insufficient stock") ||
+            error.message.includes("not found") || // Product/Variant/Coupon not found
+            error.message.includes("minimum purchase") ||
+            error.message.includes("invalid or expired") ||
+            error.message.includes("usage limit")) {
+            res.status(400).json({ message: error.message }); // Bad request for these issues
+        } else if (error.message.includes("Invalid")) {
+            res.status(400).json({ message: error.message }); // Other validation errors
+        }
+        else {
+            res.status(500).json({ message: error.message || "Failed to create invoice due to server error." });
         }
     }
 };
 
-
-// getInvoice remains the same structurally
+// Get User's Invoices
 const getInvoice = async (req, res) => {
     const { userId } = req.params;
+    const authenticatedUserId = req.user?._id; // Assuming verifyToken adds req.user
+
+    // Security check: User can only get their own invoices (or admin bypass needed)
+    if (!authenticatedUserId || authenticatedUserId.toString() !== userId) {
+        return res.status(403).json({ message: "Forbidden: Cannot access another user's invoices." });
+    }
+
     try {
         const data = await getInvoiceService(userId);
         res.status(200).json(data);
     } catch (error) {
-        console.error("Get Invoice Error:", error);
-        res.status(500).json({ message: error.message || "Failed to get invoices." });
+        console.error(`Get Invoice Controller Error for User ${userId}:`, error);
+        if (error.message.includes("Invalid")) {
+            res.status(400).json({ message: error.message });
+        } else {
+            res.status(500).json({ message: error.message || "Failed to get invoices." });
+        }
     }
 };
 
+// Admin Update Invoice Status
 const updateInvoiceStatus = async (req, res) => {
     try {
         const { invoiceId } = req.params;
         const statusUpdates = req.body; // e.g., { "orderStatus": "shipped", "paymentStatus": "paid" }
 
-        // --- Input Validation ---
-        const allowedOrderStatuses = Invoice.schema.path('orderStatus').enumValues;
-        const allowedPaymentStatuses = Invoice.schema.path('paymentStatus').enumValues;
-        const updatesToApply = {};
-
-        if (statusUpdates.orderStatus) {
-            if (!allowedOrderStatuses.includes(statusUpdates.orderStatus)) {
-                return res.status(400).json({ message: `Invalid orderStatus. Must be one of: ${allowedOrderStatuses.join(', ')}` });
-            }
-            updatesToApply.orderStatus = statusUpdates.orderStatus;
-        }
-
-        if (statusUpdates.paymentStatus) {
-            if (!allowedPaymentStatuses.includes(statusUpdates.paymentStatus)) {
-                return res.status(400).json({ message: `Invalid paymentStatus. Must be one of: ${allowedPaymentStatuses.join(', ')}` });
-            }
-            updatesToApply.paymentStatus = statusUpdates.paymentStatus;
-        }
-
-        // Check if there's anything actually to update
-        if (Object.keys(updatesToApply).length === 0) {
-            return res.status(400).json({ message: "No valid status fields provided for update (use orderStatus or paymentStatus)." });
-        }
-        // --- End Input Validation ---
-
-        const updatedInvoice = await updateInvoiceStatusService(invoiceId, updatesToApply);
+        // Validation is handled within the service now
+        const updatedInvoice = await updateInvoiceStatusService(invoiceId, statusUpdates);
 
         res.status(200).json({
             message: "Invoice status updated successfully",
@@ -87,10 +88,12 @@ const updateInvoiceStatus = async (req, res) => {
 
     } catch (error) {
         console.error(`Error in updateInvoiceStatus controller for ID ${req.params.invoiceId}:`, error);
-        // Check for specific errors from the service
-        if (error.message.includes("not found") || error.message.includes("Invalid invoice ID")) {
-            res.status(404).json({ message: error.message });
-        } else {
+        if (error.message.includes("not found") || error.message.includes("Invalid")) {
+            res.status(404).json({ message: error.message }); // Not found or Invalid ID
+        } else if (error.message.includes("No valid status")) {
+            res.status(400).json({ message: error.message }); // Bad Request
+        }
+        else {
             res.status(500).json({ message: error.message || "Failed to update invoice status." });
         }
     }
