@@ -5,53 +5,62 @@ const couponSchema = new mongoose.Schema({
     code: { // The unique code customers enter (e.g., "SUMMER20", "SAVE100K")
         type: String,
         required: true,
-        unique: true, // Ensure codes are unique
+        unique: true,
         trim: true,
-        uppercase: true, // Store codes consistently (e.g., all uppercase)
+        uppercase: true,
         index: true
     },
-    description: { // Optional description for admin reference
+    description: {
         type: String,
         trim: true
     },
-    discountType: { // Type of discount
+    discountType: {
         type: String,
         required: true,
-        enum: ['PERCENTAGE', 'FIXED_AMOUNT'] // Specify allowed types
+        enum: ['PERCENTAGE', 'FIXED_AMOUNT'] // Discount type
     },
-    discountValue: { // The actual discount value
+    discountValue: {
         type: Number,
         required: true,
-        min: 0 // Value must be non-negative
+        min: 0 // Non-negative value
     },
-    minPurchaseAmount: { // Minimum order subtotal required to use the coupon
+    minPurchaseAmount: { // Minimum subtotal required
         type: Number,
         required: true,
         min: 0,
-        default: 0 // Default to no minimum purchase
+        default: 0
     },
-    maxUses: { // Maximum number of times this coupon can be used in total
+    maxUses: { // Total usage limit for the coupon
         type: Number,
         required: true,
-        min: 1 // Must be usable at least once
+        min: 1
     },
-    usedCount: { // How many times this coupon has been used
+    usedCount: { // How many times it has been used
         type: Number,
         required: true,
         default: 0,
-        min: 0
+        min: 0,
+        validate: { // Ensure usedCount never exceeds maxUses
+            validator: function (value) {
+                // `this` refers to the document being saved/updated
+                return value <= this.maxUses;
+            },
+            message: 'Coupon usage limit reached.'
+        }
     },
-    expiresAt: { // Expiry date/time for the coupon
+    expiresAt: { // Expiry date
         type: Date,
         required: true
     },
-    isActive: { // Allows manually activating/deactivating coupons
+    isActive: { // Manual activation toggle
         type: Boolean,
         default: true
     }
-}, { timestamps: true }); // Add createdAt/updatedAt automatically
+}, { timestamps: true });
 
-// Method to check if the coupon is still valid (not expired, within usage limits)
+// --- Instance Methods ---
+
+// Check if the coupon is currently valid for use (syntactic check)
 couponSchema.methods.isValid = function () {
     const now = new Date();
     return this.isActive &&
@@ -59,25 +68,30 @@ couponSchema.methods.isValid = function () {
         this.usedCount < this.maxUses;
 };
 
-// Method to calculate the discount amount based on subtotal
+// Check if the coupon can be applied to a given subtotal (functional check)
+couponSchema.methods.canApply = function (subtotal) {
+    if (!this.isValid()) return false; // Must pass basic validity first
+    return subtotal >= this.minPurchaseAmount; // Check minimum purchase
+};
+
+
+// Calculate the discount amount for a given subtotal
 couponSchema.methods.calculateDiscount = function (subtotal) {
-    if (subtotal < this.minPurchaseAmount) {
-        return 0; // Subtotal doesn't meet minimum requirement
+    if (!this.canApply(subtotal)) {
+        return 0; // Cannot apply if not valid or min purchase not met
     }
 
     let discount = 0;
     if (this.discountType === 'PERCENTAGE') {
-        // Calculate percentage discount, ensure value is reasonable (e.g., 0-100)
-        const percentage = Math.max(0, Math.min(100, this.discountValue));
+        const percentage = Math.max(0, Math.min(100, this.discountValue)); // Clamp percentage 0-100
         discount = (subtotal * percentage) / 100;
     } else if (this.discountType === 'FIXED_AMOUNT') {
         discount = this.discountValue;
     }
 
-    // Ensure discount doesn't exceed the subtotal
-    return Math.min(discount, subtotal);
+    // Discount cannot be more than the subtotal
+    return Math.round(Math.min(discount, subtotal)); // Round discount to avoid fractional VND
 };
-
 
 const Coupon = mongoose.model('Coupon', couponSchema);
 
