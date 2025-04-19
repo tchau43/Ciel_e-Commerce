@@ -98,16 +98,28 @@ const getUserByIdService = async (id) => {
 
 const updateUserbyIdService = async (id, name, email, status, role) => {
   try {
+    // --- Add { new: true } here ---
     const user = await User.findByIdAndUpdate(id, {
       name,
-      email,
+      // email, // Avoid updating email directly here - needs verification flow
       status,
       role,
-    });
-    return user;
+    }, { new: true, runValidators: true }).select("-password"); // Exclude password
+    // --- End Add { new: true } ---
+
+    // Check if a user was found and updated
+    if (!user) {
+      console.log(`User not found for update with ID: ${id}`);
+      return null; // Explicitly return null if not found
+    }
+    return user; // Return the UPDATED user object (without password)
   } catch (error) {
-    console.log(error);
-    return null;
+    console.log(`Error updating user ${id}:`, error);
+    // Re-throw specific types of errors if needed, otherwise return null
+    if (error.name === 'ValidationError') {
+      throw new Error(`Validation failed: ${error.message}`); // Let controller handle validation errors
+    }
+    throw error; // Re-throw other errors
   }
 };
 

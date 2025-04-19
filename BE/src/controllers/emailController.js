@@ -58,7 +58,6 @@ const sendPaymentConfirmationEmail = async (req, res) => {
     // 4. Generate Email Content
     const formattedTotal = formatCurrencyVND(totalAmount); // Use your helper
     const formattedShippingAddress = `
-            ${shippingAddress.name || ''}<br>
             ${shippingAddress.street || ''}<br>
             ${shippingAddress.city || ''}, ${shippingAddress.state || ''} ${shippingAddress.zipCode || ''}<br>
             ${shippingAddress.country || ''}
@@ -102,7 +101,6 @@ ${items.map(item => `- ${item.product?.name || 'Item'} ${item.variant?.types ? '
 Total: ${formattedTotal}
 
 Shipping To:
-${shippingAddress.name || ''}
 ${shippingAddress.street || ''}
 ${shippingAddress.city || ''}, ${shippingAddress.state || ''} ${shippingAddress.zipCode || ''}
 ${shippingAddress.country || ''}

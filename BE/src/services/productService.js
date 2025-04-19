@@ -125,6 +125,8 @@ const createProductService = async (productData) => {
   }
 };
 
+
+
 // --- GET ALL PRODUCTS ---
 // Fetches a list of products without populating their variant details.
 const getAllProductsService = async (sort) => {
@@ -185,6 +187,8 @@ const getProductByIdService = async (id) => {
     throw new Error(error.message || "Error getting product by ID");
   }
 };
+
+
 
 // --- GET PRODUCTS BY NAME ---
 // Fetches products matching a name, without populating variant details.
