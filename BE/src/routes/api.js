@@ -75,7 +75,7 @@ const { initiateStripePayment } = require("../controllers/stripeController");
 // Import models only if directly used (like in /products/batch)
 const { Product } = require("../models/product");
 const { validateCouponForUser, createCoupon, getAllCoupons, getCouponById, updateCoupon, deleteCoupon } = require("../controllers/couponController");
-const { handleChatbotQuery } = require("../controllers/chatbotController");
+const { handleChatbotQuery, handleChat } = require("../controllers/chatbotController");
 
 
 // --- Router Definition ---
@@ -101,7 +101,8 @@ routerAPI.get("/homepage", getHomePage); // Get public homepage config
 routerAPI.use(verifyToken);
 
 // ... AUTHENTICATED ROUTES ...
-routerAPI.post("/chatbot/query", handleChatbotQuery);
+// routerAPI.post("/chatbot/query", handleChatbotQuery);
+routerAPI.post('/chatbot', handleChat); // Hoặc router.post('/chatbot', chatbotController.handleChat);
 
 // --- User Routes (Authenticated) ---
 routerAPI.get("/user/:id", getUserById); // Get own or other user's public profile? Check service logic
