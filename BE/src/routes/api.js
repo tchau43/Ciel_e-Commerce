@@ -69,12 +69,13 @@ const {
   updateFeature,
 } = require("../controllers/customerHomePageController"); // Assuming admin protected?
 
-const { getChatbotResponse } = require("../controllers/chatController");
 const { sendPaymentConfirmationEmail } = require("../controllers/emailController");
 const { initiateStripePayment } = require("../controllers/stripeController");
 
 // Import models only if directly used (like in /products/batch)
 const { Product } = require("../models/product");
+const { validateCouponForUser, createCoupon, getAllCoupons, getCouponById, updateCoupon, deleteCoupon } = require("../controllers/couponController");
+const { handleChatbotQuery } = require("../controllers/chatbotController");
 
 
 // --- Router Definition ---
@@ -99,6 +100,9 @@ routerAPI.get("/homepage", getHomePage); // Get public homepage config
 // === AUTHENTICATED ROUTES (Token Required for all routes below) ===
 routerAPI.use(verifyToken);
 
+// ... AUTHENTICATED ROUTES ...
+routerAPI.post("/chatbot/query", handleChatbotQuery);
+
 // --- User Routes (Authenticated) ---
 routerAPI.get("/user/:id", getUserById); // Get own or other user's public profile? Check service logic
 routerAPI.get("/user/:userId/purchased-products", getUserPurchased); // Likely needs userId check against req.user.id
@@ -106,7 +110,6 @@ routerAPI.post("/invoice", createInvoice); // User creates their own invoice
 routerAPI.get("/invoice/:userId", getInvoice); // User gets their own invoices (needs userId check)
 routerAPI.post("/invoice/initiate-stripe", initiateStripePayment); // User initiates payment
 routerAPI.post("/reviews", createReview); // User creates a review
-routerAPI.post("/chat", getChatbotResponse); // User interacts with chatbot
 
 // --- Cart Routes (Authenticated) ---
 routerAPI.post("/cart/item", addOrUpdateCartItem);   // Single endpoint for add/update/remove
@@ -118,6 +121,9 @@ routerAPI.get("/recommendations", getUserRecommendations); // Needs user context
 
 // --- Email Route (Potentially internal/webhook, or needs specific auth) ---
 routerAPI.post("/email/payment/notify-success", sendPaymentConfirmationEmail);
+
+// Add route for user to validate a coupon code before applying at checkout
+routerAPI.get("/coupons/validate", validateCouponForUser);
 
 // --- Batch Product Route (Authenticated - useful for Cart/Wishlist hydration) ---
 // Use POST for sending a list of IDs in the body
@@ -172,6 +178,12 @@ routerAPI.put("/homepage/banner", updateBanner);
 routerAPI.put("/homepage/video", updateVideo);
 routerAPI.put("/homepage/feature", updateFeature);
 
+// --- Admin: Coupon Management ---
+routerAPI.post("/admin/coupons", createCoupon);
+routerAPI.get("/admin/coupons", getAllCoupons);
+routerAPI.get("/admin/coupons/:id", getCouponById);
+routerAPI.patch("/admin/coupons/:id", updateCoupon); // Use PATCH for partial updates
+routerAPI.delete("/admin/coupons/:id", deleteCoupon);
 // --- END ADMIN ROUTES ---
 
 

@@ -184,3 +184,6 @@
 {"level":"error","message":"Authorization header missing or malformed","timestamp":"2025-04-17 18:17:33"}
 {"level":"error","message":"Authorization header missing or malformed","timestamp":"2025-04-17 22:28:45"}
 {"level":"error","message":"Token verification failed: jwt expired","timestamp":"2025-04-17 22:53:01"}
+{"level":"error","message":"Authorization header missing or malformed","timestamp":"2025-04-18 17:25:22"}
+{"level":"error","message":"Authorization header missing or malformed","timestamp":"2025-04-18 17:25:58"}
+{"level":"error","message":"Authorization header missing or malformed","timestamp":"2025-04-18 17:26:38"}
