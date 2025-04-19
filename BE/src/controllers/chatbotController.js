@@ -1,44 +1,31 @@
-// controllers/chatbotController.js
+// BE/src/controllers/chatbotController.js
+const { generateResponse } = require('../services/chatbotService');
+const logger = require('../config/logger'); // <--- IMPORT LOGGER TRỰC TIẾP
 
-const { handleChatbotQueryService } = require("../services/chatbotService");
-
-/**
- * Handles incoming chatbot queries from authenticated users.
- * POST /chatbot/query
- */
-const handleChatbotQuery = async (req, res) => {
-  console.log("API call received for handleChatbotQuery");
+const handleChat = async (req, res, next) => {
   try {
-    // 1. Get user message from request body
-    const { message } = req.body;
-    if (!message || typeof message !== 'string' || message.trim().length === 0) {
-      return res.status(400).json({ message: "Message content is required and must be a non-empty string." });
+    const userQuery = req.body.message;
+    const userId = req.user ? req.user.id : null;
+
+    if (!userQuery) {
+      // Sử dụng logger đã import
+      logger.error('Missing user message in request body'); // <--- Sửa: logger.error(...)
+      return res.status(400).json({ message: 'Missing message in request body' });
     }
 
-    // 2. Get authenticated user ID from middleware (verifyToken)
-    const userId = req.user?._id; // Assumes verifyToken attached req.user
-    if (!userId) {
-      // Should ideally be caught by verifyToken, but good to check
-      console.warn("Chatbot query received without authenticated user ID.");
-      return res.status(401).json({ message: "Authentication required to use the chatbot." });
-    }
+    // Sử dụng logger đã import
+    logger.info(`Handling chat for user: ${userId || 'Guest'}, Query: ${userQuery}`); // <--- Sửa: logger.info(...)
 
-    console.log(`Chatbot query from User ${userId}: "${message}"`);
+    const response = await generateResponse(userQuery, userId);
 
-    // 3. Call the chatbot service to process the message
-    // The service will handle intent recognition, DB fetching (if needed), and LLM interaction
-    const reply = await handleChatbotQueryService(userId.toString(), message.trim());
-
-    // 4. Send the chatbot's reply back to the frontend
-    res.status(200).json({ reply: reply });
-
+    res.status(200).json({ reply: response });
   } catch (error) {
-    console.error("Error in handleChatbotQuery controller:", error);
-    // Send a generic error response
-    res.status(500).json({ message: "Sorry, the chatbot encountered an error. Please try again later." });
+    // Sử dụng logger đã import (Dòng 25 cũ)
+    logger.error(`Error in handleChat controller: ${error.message}`, error); // <--- Sửa: logger.error(...)
+    next(error);
   }
 };
 
 module.exports = {
-  handleChatbotQuery,
+  handleChat,
 };
