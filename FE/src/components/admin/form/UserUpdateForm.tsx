@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { User } from "@/types/dataTypes";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
+import { Card } from "@/components/ui/Card";
 import { Loader } from "lucide-react"; // Importing a loading icon
 import { useUpdateUserByIdMutation } from "@/services/user/updateUserByIdMutation";
 
