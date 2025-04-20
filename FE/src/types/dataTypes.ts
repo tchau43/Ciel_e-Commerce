@@ -127,7 +127,7 @@ export declare type InvoiceResponse = {
 };
 
 export declare type ShippingAddress = {
-  street?: string; // Use optional if not all fields are always required
+  street?: string;
   city?: string;
   state?: string;
   country?: string;

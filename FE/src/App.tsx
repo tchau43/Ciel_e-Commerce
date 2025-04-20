@@ -10,7 +10,7 @@ import AdminUserManagementPage from "./pages/admin/AdminUserManagementPage .tsx"
 import AdminLayout from "./components/layout/admin/AdminLayout.tsx";
 import UserLayout from "./components/layout/user/UserLayout.tsx";
 import UserHomePage from "./pages/customer/CustomerHomePage.tsx";
-import ProductPage from "./pages/product/ProductPage.tsx";
+import ProductsPage from "./pages/product/ProductsPage.tsx";
 import CartPage from "./pages/cart/CartPage.tsx";
 import PaymentPage from "./pages/payment/PaymentPage.tsx";
 import StripePaymentPage from "./pages/payment/StripePaymentPage.tsx";
@@ -75,7 +75,7 @@ function App() {
               path="product/*"
               element={
                 // <Suspense fallback={<LoadingSpinner />}>
-                <ProductPage />
+                <ProductsPage />
                 // </Suspense>
               }
             ></Route>

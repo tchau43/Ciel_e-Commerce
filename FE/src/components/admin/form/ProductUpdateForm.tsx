@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
+import { Card } from "@/components/ui/Card";
 import { useGetAllCategoriesQuery } from "@/services/category/getAllCategoriesQuery";
 import { useUpdateProductMutation } from "@/services/product/updateProductMutation";
 import { ProductRes, ProductReq } from "@/types/dataTypes";
