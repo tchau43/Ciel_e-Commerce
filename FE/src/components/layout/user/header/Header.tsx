@@ -1,36 +1,70 @@
+// src/components/layout/user/header/Header.tsx (or relevant path)
+
 import React from "react";
-import Navbar from "./Navbar";
+import Navbar from "./Navbar"; // Assuming Navbar is in the same directory
 import { NavLink } from "react-router-dom";
-import { clearAuthCredentials } from "@/utils/authUtil";
+import { clearAuthCredentials } from "@/utils/authUtil"; // Adjust path if needed
 import { FaShoppingCart } from "react-icons/fa";
 import { FaHistory } from "react-icons/fa"; // History icon
+import { cn } from "@/lib/utils"; // Import cn if needed for additional classes
 
 const Header: React.FC = () => {
   const handleLogout = () => {
     clearAuthCredentials();
+    // Optionally redirect here if needed, though NavLink already does
+    // window.location.href = '/login';
   };
+
   return (
-    <div className="h-max w-screen m-0 relative">
-      <div className="right-4 top-1 w-fit absolute flex  items-center gap-x-4">
-        <NavLink to="/cart">
-          <FaShoppingCart />
-        </NavLink>
-        <NavLink to="/invoice">
-          <FaHistory />
-        </NavLink>
-        <NavLink
-          to="/login"
-          className="hover:underline hover:text-blue-500 "
-          onClick={handleLogout}
-        >
-          Logout
-        </NavLink>
-      </div>
-      <div className="h-full flex flex-col items-center my-8 gap-4">
-        <img className="h-16" src="../logo.png"></img>
+    // Main header container: flex row, space between items, center vertically, padding
+    <div
+      className={cn(
+        "w-full bg-gradient-to-r from-ch-red-50 to-ch-blue-50 dark:bg-ch-gray-900 shadow-md px-4 sm:px-6 lg:px-8 py-3", // Add background, shadow, padding
+        "flex justify-between items-center" // Core flex layout
+      )}
+    >
+      {/* Left Side: Logo */}
+      {/* Wrap logo in a Link to homepage if desired */}
+      <NavLink to="/" aria-label="Homepage">
+        <img
+          className="h-10 sm:h-12 lg:h-14 w-auto"
+          src="/logo.png"
+          alt="DCQT Logo"
+        />
+        {/* Adjusted height, added alt text, ensure logo path is correct from public folder */}
+      </NavLink>
+
+      {/* Right Side: Group Navbar and Icons/Logout */}
+      <div className="flex items-center space-x-6 lg:space-x-8">
+        {/* Navigation */}
         <Navbar />
+
+        {/* Icons and Logout */}
+        <div className="flex items-center space-x-4">
+          <NavLink
+            to="/cart"
+            className="text-gray-600 hover:text-ch-blue dark:text-gray-300 dark:hover:text-ch-blue-light transition-colors duration-200"
+            aria-label="Shopping Cart"
+          >
+            <FaShoppingCart className="w-5 h-5 sm:w-6 sm:h-6" />
+          </NavLink>
+          <NavLink
+            to="/invoice"
+            className="text-gray-600 hover:text-ch-blue dark:text-gray-300 dark:hover:text-ch-blue-light transition-colors duration-200"
+            aria-label="Order History"
+          >
+            <FaHistory className="w-5 h-5 sm:w-6 sm:h-6" />
+          </NavLink>
+          <NavLink
+            to="/login"
+            className="text-sm font-medium text-gray-600 hover:text-ch-blue dark:text-gray-300 dark:hover:text-ch-blue-light transition-colors duration-200"
+            onClick={handleLogout}
+          >
+            Logout
+          </NavLink>
+        </div>
       </div>
-    </div>
+    </div> // End Main Header Container
   );
 };
 
