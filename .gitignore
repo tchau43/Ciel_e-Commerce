@@ -1,3 +1,7 @@
 node_modules/
 logs/
+# Logs
+BE/logs/
+FE/logs/
+*.log
 env/
