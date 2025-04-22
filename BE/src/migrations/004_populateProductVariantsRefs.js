@@ -1,10 +1,4 @@
-// populateProductVariantsRefs.js
-// PURPOSE: Finds all Variants related to a Product and populates the
-// Product.variants array with the ObjectIds of those Variants.
-// PREREQUISITE: Assumes variants have already been migrated to a separate
-//              'variants' collection and the old embedded 'variants' array
-//              has been removed from the 'products' collection.
-
+//node ./src/migrations/004_populateProductVariantsRefs.js
 require('dotenv').config();
 const mongoose = require('mongoose');
 // Use the NEW Product model definition (with the variants array of Refs)

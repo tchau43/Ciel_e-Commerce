@@ -125,13 +125,13 @@ const ProductsPage = () => {
     // Added padding and relative position for close button
     <div className="p-4 relative h-full flex flex-col">
       {/* Close button for mobile */}
-      <button
+      {/* <button
         onClick={() => setIsSidebarOpen(false)}
         className="absolute top-2 right-2 md:hidden p-1 text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-white rounded-full focus:outline-none focus:ring-2 focus:ring-inset focus:ring-ch-blue"
         aria-label="Close filters"
       >
         <CloseIcon />
-      </button>
+      </button> */}
 
       {/* Search Section - Improved Styling */}
       <div className="mb-6">
@@ -143,7 +143,6 @@ const ProductsPage = () => {
         </label>
         {/* Use flex for input + button */}
         <div className="flex">
-          {" "}
           {/* Lays out input and button side-by-side */}
           <input
             id="searchBoxSidebar"
@@ -178,7 +177,6 @@ const ProductsPage = () => {
         {/* Pass setQueryParams directly as requested */}
         {/* Assuming CategoriesList knows how to use this to update URL */}
         <div className="flex-grow overflow-y-auto">
-          {" "}
           {/* Make list scrollable if sidebar height is limited */}
           <CategoriesList
             data={categoriesData}

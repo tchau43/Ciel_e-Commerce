@@ -1,4 +1,4 @@
-// migrateVariants.js
+//node ./src/migrations/002_migrateVariants.js
 require('dotenv').config();
 const mongoose = require('mongoose');
 // Ensure these paths correctly point to your model files
