@@ -1,6 +1,4 @@
-// removeEmbeddedVariants.js
-// WARNING: RUN ONLY AFTER DATA IS SUCCESSFULLY MIGRATED TO 'variants' COLLECTION
-// OR IF YOU INTEND TO PERMANENTLY DELETE EMBEDDED VARIANT DATA.
+//node ./src/migrations/003_removeEmbeddedVariants.js
 
 require('dotenv').config();
 const mongoose = require('mongoose');
