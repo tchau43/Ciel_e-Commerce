@@ -1,4 +1,4 @@
-// scripts/migrateAndCleanupCategoriesBrands.js
+//node ./src/migrations/005_cate_and_brand_remove_and_add.js
 require('dotenv').config(); // Load environment variables FIRST
 
 const mongoose = require('mongoose');
