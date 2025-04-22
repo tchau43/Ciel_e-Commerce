@@ -1,5 +1,5 @@
-// src/components/shared/ProductCard.tsx (Adjust path as needed)
-import { IoCartOutline } from "react-icons/io5";
+// src/components/shared/ProductCard.tsx
+import { IoCartOutline } from "react-icons/io5"; // Or your preferred cart icon
 import React, { useState, useRef, MouseEvent } from "react";
 import {
   Card,
@@ -7,17 +7,16 @@ import {
   CardTitle,
   CardDescription,
   CardContent,
-  CardBorder,
-  // CardFooter, // Removed as the button is gone
-} from "@/components/ui/Card"; // Import the composable components
-import { ProductData } from "@/types/dataTypes"; // Adjust import path
-import { cn } from "@/lib/utils"; // Adjust import path
+  CardBorder, // Import the border wrapper
+} from "@/components/ui/Card";
+import { ProductData } from "@/types/dataTypes"; //
+import { cn } from "@/lib/utils"; //
 
 // --- Helper: Price Formatting ---
 const formatPrice = (price: number) => {
   return new Intl.NumberFormat("en-US", {
     style: "currency",
-    currency: "USD",
+    currency: "USD", // Adjust currency as needed
   }).format(price);
 };
 
@@ -27,7 +26,7 @@ const StarIcon = ({ className }: { className?: string }) => (
     xmlns="http://www.w3.org/2000/svg"
     viewBox="0 0 20 20"
     fill="currentColor"
-    className={cn("w-4 h-4", className)}
+    className={cn("w-3 h-3 sm:w-4 sm:h-4", className)}
   >
     <path
       fillRule="evenodd"
@@ -36,7 +35,6 @@ const StarIcon = ({ className }: { className?: string }) => (
     />
   </svg>
 );
-
 const BagIcon = ({ className }: { className?: string }) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
@@ -44,7 +42,7 @@ const BagIcon = ({ className }: { className?: string }) => (
     viewBox="0 0 24 24"
     strokeWidth={1.5}
     stroke="currentColor"
-    className={cn("w-4 h-4", className)}
+    className={cn("w-3 h-3 sm:w-4 sm:h-4", className)}
   >
     <path
       strokeLinecap="round"
@@ -66,129 +64,128 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, className }) => {
 
   const handleMouseMove = (e: MouseEvent<HTMLDivElement>) => {
     if (!cardRef.current) return;
-
     const rect = cardRef.current.getBoundingClientRect();
-    const width = rect.width;
-    const height = rect.height;
-    const mouseX = e.clientX - rect.left;
-    const mouseY = e.clientY - rect.top;
-
-    // Calculate rotation values (adjust multiplier for sensitivity)
-    const rotateY = (mouseX / width - 0.5) * 25; // Tilt left/right
-    const rotateX = -(mouseY / height - 0.5) * 25; // Tilt up/down
-
+    const { width, height, left, top } = rect;
+    const mouseX = e.clientX - left;
+    const mouseY = e.clientY - top;
+    const rotateY = (mouseX / width - 0.5) * 15; // Reduced sensitivity slightly
+    const rotateX = -(mouseY / height - 0.5) * 15; // Reduced sensitivity slightly
     setRotate({ x: rotateX, y: rotateY });
   };
 
   const handleMouseLeave = () => {
-    setRotate({ x: 0, y: 0 }); // Reset tilt
+    setRotate({ x: 0, y: 0 });
   };
 
   const imageUrl = product.images?.[0] || "/placeholder-image.png";
 
-  // --- Add to Cart Click Handler (Placeholder) ---
   const handleAddToCartClick = (e: React.MouseEvent) => {
-    e.stopPropagation(); // Prevent card click events if needed
-    e.preventDefault(); // Prevent potential navigation if wrapped in link
+    e.stopPropagation();
+    e.preventDefault();
     console.log(`Add ${product.name} (ID: ${product._id}) to cart`);
-    // Add your actual add to cart logic here (e.g., call mutation)
+    // Add actual add to cart logic here
   };
 
   return (
-    <CardBorder
-      className={cn(
-        "bg-gradient-to-br from-ch-red to-ch-blue rounded-lg",
-        className
-      )}
+    <CardBorder // Use the wrapper for the border and tilt effect
+      className={cn("h-full", className)} // Ensure border wrapper takes full height
       style={{
-        transform: `perspective(1000px) rotateX(${rotate.x / 10}deg) rotateY(${
-          rotate.y / 10
-        }deg) scale3d(1, 1, 1)`, // Apply tilt dynamically
-        transformStyle: "preserve-3d", // Important for perspective
-        transition: "transform 0.1s ease-out", // Smooth reset on mouse leave
+        transform: `perspective(1000px) rotateX(${rotate.x}deg) rotateY(${rotate.y}deg) scale3d(1, 1, 1)`,
+        transformStyle: "preserve-3d",
+        transition: "transform 0.1s ease-out",
       }}
     >
-      <Card
-        ref={cardRef}
+      <Card // The main card content, gets background/mouse events
+        ref={cardRef} // Attach ref here for coordinate calculation
         className={cn(
-          "group relative overflow-hidden", // Keep group, add relative and overflow-hidden
-          "transition-transform duration-150 ease-out", // Smooth transition for reset
-          "border-0",
-          className
+          "group relative overflow-hidden", // group for hover effects
+          "h-full" // Ensure inner card takes full height of border wrapper
+          // className prop from ProductCard is passed to CardBorder, not here, to avoid conflicts
         )}
         onMouseMove={handleMouseMove}
         onMouseLeave={handleMouseLeave}
       >
-        {/* Image Section - Stays mostly the same */}
-        <div className="relative aspect-square overflow-hidden rounded-t-lg">
+        {/* Image Section */}
+        <div className="relative aspect-square overflow-hidden">
+          {" "}
+          {/* Removed rounded-t-lg as Card is rounded */}
           <img
             src={imageUrl}
             alt={product.name}
-            // Make image less reactive to direct hover, rely on card hover
             className="object-cover w-full h-full transition-transform duration-300 ease-in-out group-hover:scale-105"
           />
-          {/* Optional: Tag/Badge - Use accent-red */}
+          {/* Tag */}
           {product.tags?.[0] && (
-            <span className="absolute top-2 left-2 bg-accent-red text-white text-xs font-semibold px-2 py-1 rounded z-10 shadow-sm">
-              {product.tags[0]}
+            <span className="absolute top-2 left-2 bg-ch-red text-white text-[10px] sm:text-xs font-semibold px-1.5 sm:px-2 py-0.5 sm:py-1 rounded z-10 shadow-sm">
+              {product.tags[0]} {/* Responsive text/padding */}
             </span>
           )}
-          {/* Optional: Gradient Overlay */}
+          {/* Overlay */}
           <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-
-          {/* --- Cart Icon on Hover --- */}
+          {/* Cart Icon - Slides from right */}
           <button
             onClick={handleAddToCartClick}
             aria-label={`Add ${product.name} to cart`}
             className={cn(
-              "absolute bottom-2 right-2 z-20 p-2 rounded-full shadow-md",
-              "bg-ch-blue-100 text-white", // Use blue for the button
-              "opacity-0 translate-y-3 group-hover:opacity-100 group-hover:translate-y-0", // Appear from bottom
+              "absolute top-1/2 right-2 z-20 transform -translate-y-1/2",
+              "p-1.5 sm:p-2 rounded-md shadow-md", // Responsive padding
+              "bg-ch-blue text-white",
+              "opacity-0 translate-x-4 group-hover:opacity-100 group-hover:translate-x-0",
               "transition-all duration-300 ease-in-out",
-              "hover:bg-ch-blue scale-100 hover:scale-110" // Hover effect on icon itself
+              "hover:bg-ch-blue-900 scale-100 hover:scale-110"
             )}
           >
-            <IoCartOutline />
+            <IoCartOutline className="w-4 h-4 sm:w-5 sm:h-5" />
+            {/* Responsive icon */}
           </button>
         </div>
 
         {/* Content Section */}
-        <div className="flex flex-col flex-grow p-4">
-          {" "}
-          {/* Add flex-grow to push footer (if any) */}
-          {/* Header with Category and Title */}
-          <CardHeader className="p-0 pb-2">
-            <CardTitle className="group-hover:text-accent-blue">
+        <div className="flex flex-col flex-grow p-3 sm:p-4">
+          {/* Header */}
+          <CardHeader className="p-0 pb-1 sm:pb-2">
+            {/* Apply hover color directly here */}
+            <CardTitle className="group-hover:text-ch-blue dark:group-hover:text-ch-blue-light transition-colors duration-200">
               {product.name}
             </CardTitle>
             {product.category?.name && (
-              <CardDescription className="mb-1">
+              <CardDescription className="mb-1 mt-0.5 sm:mt-1">
+                {" "}
+                {/* Added top margin */}
                 {product.category.name}
               </CardDescription>
             )}
           </CardHeader>
-          {/* Content with Price and Placeholders */}
-          <CardContent className="p-0 pb-2 flex-grow">
-            {" "}
-            {/* Added flex-grow */}
-            <p className="text-xl font-bold text-accent-red dark:text-accent-red-light mb-2">
+
+          {/* Content */}
+          <CardContent className="p-0 pb-1 sm:pb-2 flex-grow">
+            <p
+              className={cn(
+                "font-bold text-ch-red dark:text-ch-red-light",
+                "text-lg sm:text-xl mb-1 sm:mb-2"
+              )}
+            >
               {formatPrice(product.base_price)}
             </p>
-            {/* --- Placeholder for Reviews/Purchases --- */}
-            <div className="flex items-center space-x-3 text-xs text-gray-500 dark:text-gray-400 mt-1">
-              <span className="flex items-center">
-                <StarIcon className="w-4 h-4 mr-1 text-yellow-400" />
-                <span>4.5 (120)</span> {/* Placeholder */}
+            {/* Placeholders */}
+            <div
+              className={cn(
+                "flex flex-wrap items-center gap-x-2 sm:gap-x-3 mt-1",
+                "text-[10px] sm:text-xs"
+              )}
+            >
+              {/* Use appropriate text colors for contrast */}
+              <span className="flex items-center whitespace-nowrap text-gray-400 dark:text-gray-500">
+                <StarIcon className="w-3 h-3 sm:w-4 sm:h-4 mr-0.5 sm:mr-1 text-yellow-400" />
+                <span>4.5 (120)</span>
               </span>
-              <span className="flex items-center">
-                <BagIcon className="w-4 h-4 mr-1 text-gray-400" />
-                <span>500+ sold</span> {/* Placeholder */}
+              <span className="flex items-center whitespace-nowrap text-gray-400 dark:text-gray-500">
+                <BagIcon className="w-3 h-3 sm:w-4 sm:h-4 mr-0.5 sm:mr-1" />{" "}
+                {/* Icon color from text */}
+                <span>500+ sold</span>
               </span>
             </div>
           </CardContent>
-          {/* Footer removed as button moved to image */}
-          {/* If you need a footer for other things, add CardFooter here */}
-          {/* <CardFooter className="p-0 pt-2 mt-auto">...</CardFooter> */}
         </div>
       </Card>
     </CardBorder>
