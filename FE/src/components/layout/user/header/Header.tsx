@@ -29,42 +29,36 @@ const Header: React.FC = () => {
         <img
           className="h-10 sm:h-12 lg:h-14 w-auto"
           src="/logo.png"
-          alt="DCQT Logo"
+          alt="Logo" // Ensure alt text is descriptive
         />
         {/* Adjusted height, added alt text, ensure logo path is correct from public folder */}
       </NavLink>
 
-      {/* Right Side: Group Navbar and Icons/Logout */}
-      <div className="flex items-center space-x-6 lg:space-x-8">
-        {/* Navigation */}
-        <Navbar />
-
-        {/* Icons and Logout */}
-        <div className="flex items-center space-x-4">
-          <NavLink
-            to="/cart"
-            className="text-gray-600 hover:text-ch-blue dark:text-gray-300 dark:hover:text-ch-blue-light transition-colors duration-200"
-            aria-label="Shopping Cart"
-          >
-            <FaShoppingCart className="w-5 h-5 sm:w-6 sm:h-6" />
-          </NavLink>
-          <NavLink
-            to="/invoice"
-            className="text-gray-600 hover:text-ch-blue dark:text-gray-300 dark:hover:text-ch-blue-light transition-colors duration-200"
-            aria-label="Order History"
-          >
-            <FaHistory className="w-5 h-5 sm:w-6 sm:h-6" />
-          </NavLink>
-          <NavLink
-            to="/login"
-            className="text-sm font-medium text-gray-600 hover:text-ch-blue dark:text-gray-300 dark:hover:text-ch-blue-light transition-colors duration-200"
-            onClick={handleLogout}
-          >
-            Logout
-          </NavLink>
-        </div>
+      {/* Icons and Logout */}
+      <div className="flex items-center space-x-4">
+        <NavLink
+          to="/cart"
+          className="text-gray-600 hover:text-ch-blue dark:text-gray-300 dark:hover:text-ch-blue-light transition-colors duration-200"
+          aria-label="Shopping Cart"
+        >
+          <FaShoppingCart className="w-5 h-5 sm:w-6 sm:h-6" />
+        </NavLink>
+        <NavLink
+          to="/invoice"
+          className="text-gray-600 hover:text-ch-blue dark:text-gray-300 dark:hover:text-ch-blue-light transition-colors duration-200"
+          aria-label="Order History"
+        >
+          <FaHistory className="w-5 h-5 sm:w-6 sm:h-6" />
+        </NavLink>
+        <NavLink
+          to="/login"
+          className="text-sm font-medium text-gray-600 hover:text-ch-blue dark:text-gray-300 dark:hover:text-ch-blue-light transition-colors duration-200"
+          onClick={handleLogout}
+        >
+          Logout
+        </NavLink>
       </div>
-    </div> // End Main Header Container
+    </div>
   );
 };
 

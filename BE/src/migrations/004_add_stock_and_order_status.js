@@ -1,4 +1,4 @@
-//node ./src/migrations/001_add_stock_and_order_status.js
+//node ./src/migrations/004_add_stock_and_order_status.js
 const mongoose = require('mongoose');
 const { Product } = require('../models/product');
 const Invoice = require('../models/invoice');

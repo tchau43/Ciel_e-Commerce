@@ -90,7 +90,9 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, className }) => {
     <CardBorder // Use the wrapper for the border and tilt effect
       className={cn("h-full", className)} // Ensure border wrapper takes full height
       style={{
-        transform: `perspective(1000px) rotateX(${rotate.x}deg) rotateY(${rotate.y}deg) scale3d(1, 1, 1)`,
+        transform: `perspective(1000px) rotateX(${rotate.x / 8}deg) rotateY(${
+          rotate.y / 8
+        }deg) scale3d(1, 1, 1)`,
         transformStyle: "preserve-3d",
         transition: "transform 0.1s ease-out",
       }}
@@ -98,7 +100,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, className }) => {
       <Card // The main card content, gets background/mouse events
         ref={cardRef} // Attach ref here for coordinate calculation
         className={cn(
-          "group relative overflow-hidden", // group for hover effects
+          "group relative overflow-hidden hover:cursor-pointer", // group for hover effects
           "h-full" // Ensure inner card takes full height of border wrapper
           // className prop from ProductCard is passed to CardBorder, not here, to avoid conflicts
         )}
@@ -145,7 +147,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, className }) => {
           {/* Header */}
           <CardHeader className="p-0 pb-1 sm:pb-2">
             {/* Apply hover color directly here */}
-            <CardTitle className="group-hover:text-ch-blue dark:group-hover:text-ch-blue-light transition-colors duration-200">
+            <CardTitle className="group-hover:text-ch-blue-50 dark:group-hover:text-ch-blue-light transition-colors duration-200">
               {product.name}
             </CardTitle>
             {product.category?.name && (
