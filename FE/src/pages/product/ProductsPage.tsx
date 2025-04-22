@@ -123,7 +123,7 @@ const ProductsPage = () => {
   // --- Sidebar Content JSX ---
   const sidebarContent = (
     // Added padding and relative position for close button
-    <div className="p-4 relative h-full flex flex-col">
+    <div className="p-4 relative max-h-screen flex flex-col max-w-full">
       {/* Close button for mobile */}
       {/* <button
         onClick={() => setIsSidebarOpen(false)}
@@ -169,7 +169,6 @@ const ProductsPage = () => {
 
       {/* Categories Section */}
       <div className="flex-grow flex flex-col">
-        {" "}
         {/* Allow category list to grow */}
         <h3 className="text-base sm:text-lg font-semibold mb-3 text-gray-800 dark:text-gray-100 border-t dark:border-gray-700 pt-4">
           Categories
