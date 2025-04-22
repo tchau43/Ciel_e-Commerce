@@ -18,7 +18,7 @@ const UserLayout: React.FC = () => {
       {/* <Topbar></Topbar> */}
       <Header />
       <div className="p-4 flex bg-primary-foreground w-full flex-1 justify-center items-start">
-        <div className="min-h-full w-full max-w-7xl">
+        <div className="min-h-full w-full max-w-9xl">
           <Outlet />
         </div>
       </div>
