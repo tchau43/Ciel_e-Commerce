@@ -1,7 +1,7 @@
 // src/pages/product/ProductsPage.tsx (Renamed and Updated)
 import React, { useEffect, useState, ChangeEvent } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import CategoriesList from "@/components/product/CategoriesList";
+import CategoriesList from "@/features/category/components/CategoriesList";
 import ProductsList from "@/pages/product/component/ProductsList"; // Using the updated ProductsList
 import { useGetAllCategoriesQuery } from "@/services/category/getAllCategoriesQuery";
 import { useGetProductBySearchQuery } from "@/services/product/getProductBySearchQuery";

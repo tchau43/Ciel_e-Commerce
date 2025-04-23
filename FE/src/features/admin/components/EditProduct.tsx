@@ -1,6 +1,6 @@
 import { useParams } from "react-router-dom";
 import { useGetProductByIdQuery } from "@/services/product/getProductByIdQuery";
-import ProductUpdateForm from "../form/ProductUpdateForm";
+import ProductUpdateForm from "./ProductUpdateForm";
 
 const EditProduct: React.FC = () => {
   const { id } = useParams(); // Get user ID from URL

@@ -2,18 +2,18 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/Card";
 import { useGetAllCategoriesQuery } from "@/services/category/getAllCategoriesQuery";
 import { useUpdateProductMutation } from "@/services/product/updateProductMutation";
-import { ProductRes, ProductReq } from "@/types/dataTypes";
+import { ProductData } from "@/types/dataTypes";
 import { Loader } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 const VITE_BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
 interface ProductUpdateFormProps {
-  product: ProductRes;
+  product: ProductData;
 }
 
 const ProductUpdateForm = ({ product }: ProductUpdateFormProps) => {
-  const [formData, setFormData] = useState<ProductReq>({ ...product });
+  const [formData, setFormData] = useState<ProductData>({ ...product });
   // console.log(">>>>>>>>formData", formData);
   const [newImageUrl, setNewImageUrl] = useState("");
   const navigate = useNavigate();
@@ -54,10 +54,8 @@ const ProductUpdateForm = ({ product }: ProductUpdateFormProps) => {
 
     // Append all text fields
     formDataToSend.append("name", formData.name);
-    formDataToSend.append("price", formData.price.toString());
+    formDataToSend.append("price", formData.base_price.toString());
     formDataToSend.append("description", formData.description);
-    formDataToSend.append("shortDescription", formData.shortDescription);
-    formDataToSend.append("moreInformation", formData.moreInfomation);
     formDataToSend.append("category", formData.category._id); // Use category ID
 
     // Append the image file
@@ -155,7 +153,7 @@ const ProductUpdateForm = ({ product }: ProductUpdateFormProps) => {
             <input
               type="number"
               name="price"
-              value={formData.price}
+              value={formData.base_price}
               onChange={handleChange}
               className="w-full border p-2 rounded"
               placeholder="Enter price"
@@ -189,36 +187,6 @@ const ProductUpdateForm = ({ product }: ProductUpdateFormProps) => {
               onChange={handleChange}
               className="w-full border p-2 rounded"
               placeholder="Enter description"
-            />
-          </div>
-
-          {/* Short Description */}
-          <div>
-            <label className="block text-sm font-medium">
-              Short Description:
-            </label>
-            <input
-              type="text"
-              name="shortDescription"
-              value={formData.shortDescription}
-              onChange={handleChange}
-              className="w-full border p-2 rounded"
-              placeholder="Enter short description"
-            />
-          </div>
-
-          {/* More Information */}
-          <div>
-            <label className="block text-sm font-medium">
-              More Information:
-            </label>
-            <input
-              type="text"
-              name="moreInfomation"
-              value={formData.moreInfomation}
-              onChange={handleChange}
-              className="w-full border p-2 rounded"
-              placeholder="Enter more information"
             />
           </div>
 
