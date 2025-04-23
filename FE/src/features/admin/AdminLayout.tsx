@@ -1,8 +1,8 @@
 import React from "react";
 import { Outlet, Navigate } from "react-router-dom";
-import { getAuthCredentials } from "../../../utils/authUtil";
-import { Role } from "../../../types/dataTypes";
-import Header from "./header/Header";
+import { getAuthCredentials } from "../../utils/authUtil";
+import { Role } from "../../types/dataTypes";
+import Header from "./components/Header";
 
 const AdminLayout: React.FC = () => {
   const { token, role } = getAuthCredentials();

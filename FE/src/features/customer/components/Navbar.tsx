@@ -1,4 +1,3 @@
-// src/components/layout/user/header/Navbar.tsx (adjust path if needed)
 import React from "react";
 import { NavLink } from "react-router-dom";
 import { cn } from "@/lib/utils"; // Adjust path if needed

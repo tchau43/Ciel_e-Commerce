@@ -1,25 +1,25 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import LoginPage from "./pages/auth/LoginPage.tsx";
+import LoginPage from "./features/auth/pages/LoginPage.tsx";
 import { Suspense } from "react";
 import LandingPage from "./pages/LandingPage.tsx";
-import RegisterPage from "./pages/auth/RegisterPage.tsx";
+import RegisterPage from "./features/auth/pages/RegisterPage.tsx";
 import RoleBasedRoute from "./routes/RoleBasedRoute.tsx";
 import { Role } from "./types/dataTypes.ts";
 import AdminDashBoardPage from "./pages/admin/AdminDashBoardPage.tsx";
 import AdminUserManagementPage from "./pages/admin/AdminUserManagementPage .tsx";
-import AdminLayout from "./components/layout/admin/AdminLayout.tsx";
-import UserLayout from "./components/layout/user/UserLayout.tsx";
-import UserHomePage from "./pages/customer/CustomerHomePage.tsx";
+import AdminLayout from "./features/admin/AdminLayout.tsx";
+import CustomerLayout from "./features/customer/CustomerLayout.tsx";
+import UserHomePage from "./features/customer/pages/CustomerHomePage.tsx";
 import ProductsPage from "./pages/product/ProductsPage.tsx";
 import CartPage from "./pages/cart/CartPage.tsx";
 import PaymentPage from "./pages/payment/PaymentPage.tsx";
 import StripePaymentPage from "./pages/payment/StripePaymentPage.tsx";
 import InvoicePage from "./pages/invoice/InvoicePage.tsx";
 import AdminProductsManagementPage from "./pages/admin/productMan/AdminProductsManagementPage.tsx";
-import EditUser from "./components/admin/edit/EditUser.tsx";
-import EditProduct from "./components/admin/edit/EditProduct.tsx";
+import EditUser from "./features/admin/components/EditUser.tsx";
+import EditProduct from "./features/admin/components/EditProduct.tsx";
 import TestPage from "./pages/TestPage.tsx";
-import Product from "./components/product/Product.tsx";
+import Product from "./features/products/components/Product.tsx";
 import RecommendedProductsPage from "./pages/recommendations/RecommendedProductsPage.tsx";
 
 function LoadingSpinner() {
@@ -64,7 +64,7 @@ function App() {
             element={
               <RoleBasedRoute allowedRoles={[Role.CUSTOMER]}>
                 <Suspense fallback={<LoadingSpinner />}>
-                  <UserLayout />
+                  <CustomerLayout />
                   {/* <StripePayment /> */}
                 </Suspense>
               </RoleBasedRoute>
