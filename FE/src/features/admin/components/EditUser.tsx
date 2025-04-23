@@ -1,5 +1,5 @@
 import { useParams } from "react-router-dom";
-import UserUpdateForm from "@/components/admin/form/UserUpdateForm";
+import UserUpdateForm from "@/features/admin/components/UserUpdateForm";
 import { useGetUserQuery } from "@/services/user/getUserQuery";
 
 const EditUser: React.FC = () => {

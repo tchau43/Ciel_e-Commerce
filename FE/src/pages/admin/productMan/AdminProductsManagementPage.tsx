@@ -1,5 +1,5 @@
 import { useGetAllProductsQuery } from "@/services/product/getAllProductsQuery";
-import ProductsManagementTable from "../../../components/admin/mangement/ProductsManagementTable";
+import ProductsManagementTable from "../../../features/admin/components/ProductsManagementTable";
 
 const AdminProductsManagementPage = () => {
   const {
@@ -15,6 +15,7 @@ const AdminProductsManagementPage = () => {
 
   return (
     <>
+      ks
       <ProductsManagementTable data={productsList} />
     </>
   );

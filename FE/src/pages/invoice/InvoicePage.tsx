@@ -1,4 +1,4 @@
-import InvoiceItems from "@/components/invoice/InvoiceItems";
+import InvoiceItems from "@/features/invoices/components/InvoiceItems";
 import { useGetInvoiceQuery } from "@/services/invoice/getInvoiceQuery";
 import { getAuthCredentials } from "@/utils/authUtil";
 

@@ -1,13 +1,13 @@
 import React from "react";
 import { Outlet, Navigate } from "react-router-dom";
-import { getAuthCredentials } from "../../../utils/authUtil";
-import Header from "./header/Header";
-import { Role } from "../../../types/dataTypes";
-import Topbar from "./Topbar";
-import Footer from "./Footer";
-import Navbar from "./header/Navbar";
+import { getAuthCredentials } from "../../utils/authUtil";
+import Header from "./components/Header";
+import { Role } from "../../types/dataTypes";
+import Topbar from "./components/Topbar";
+import Footer from "./components/Footer";
+import Navbar from "./components/Navbar";
 
-const UserLayout: React.FC = () => {
+const CustomerLayout: React.FC = () => {
   const { token, role } = getAuthCredentials();
 
   if (!token || role !== Role.CUSTOMER) {
@@ -29,4 +29,4 @@ const UserLayout: React.FC = () => {
   );
 };
 
-export default UserLayout;
+export default CustomerLayout;
