@@ -1,6 +1,6 @@
 // pages/CartPage.tsx (Example structure)
 
-import CartItem from "@/components/cart/CartItem"; // Assuming you have this
+import CartItem from "@/features/carts/components/CartItem"; // Assuming you have this
 import { useGetCartQuery } from "@/services/cart/getCartQuery";
 import { getAuthCredentials } from "@/utils/authUtil";
 import { useNavigate } from "react-router-dom";

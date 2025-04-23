@@ -1,6 +1,6 @@
 // src/pages/recommendations/RecommendedProductsPage.tsx
 
-import ProductCard from "@/components/product/ProductCard"; // Adjust path
+import ProductCard from "@/features/products/components/ProductCard"; // Adjust path
 import { useGetRecommendationProductQuery } from "@/services/recommendation/getRecommendationProductQuery";
 import { ProductData } from "@/types/dataTypes";
 import { getAuthCredentials } from "@/utils/authUtil";

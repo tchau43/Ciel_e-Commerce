@@ -1,7 +1,7 @@
 // src/components/product/ProductsList.tsx (Updated)
 import { ProductData } from "@/types/dataTypes";
 // import ProductIntro from "./ProductIntro"; // Remove this
-import ProductCard from "@/components/shared/ProductCard"; // Import ProductCard
+import ProductCard from "@/features/components/ProductCard"; // Import ProductCard
 import { useEffect, useState } from "react";
 import { Pagination } from "antd"; // Keep Ant Design pagination
 
