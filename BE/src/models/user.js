@@ -18,8 +18,14 @@ const userSchema = new mongoose.Schema(
     },
     status: { type: Boolean, default: true },
     image: String,
-    address: String,
-    phoneNumber: Number,
+    address: {
+      street: String,
+      city: String,
+      state: String,
+      country: String,
+      zipCode: String,
+    },
+    phoneNumber: String,
   },
   { timestamps: true }
 );

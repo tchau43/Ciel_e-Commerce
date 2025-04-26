@@ -1,6 +1,7 @@
 // src/components/shared/ProductCard.tsx
 import { IoCartOutline } from "react-icons/io5"; // Or your preferred cart icon
 import React, { useState, useRef, MouseEvent } from "react";
+import { useNavigate } from "react-router-dom"; // <-- Import useNavigate
 import {
   Card,
   CardHeader,
@@ -8,19 +9,25 @@ import {
   CardDescription,
   CardContent,
   CardBorder, // Import the border wrapper
-} from "@/components/ui/Card";
-import { ProductData } from "@/types/dataTypes"; //
+} from "@/components/ui/card";
+// import { ProductData } from "@/types/dataTypes"; // <-- Change this
+import { Product } from "@/types/dataTypes"; // <-- Use the correct type 'Product'
 import { cn } from "@/lib/utils"; //
 
-// --- Helper: Price Formatting ---
+// --- Helper: Price Formatting (Updated for VND) ---
 const formatPrice = (price: number) => {
-  return new Intl.NumberFormat("en-US", {
+  // return new Intl.NumberFormat("en-US", { // <-- Old version
+  //   style: "currency",
+  //   currency: "USD", // Adjust currency as needed
+  // }).format(price);
+  return new Intl.NumberFormat("vi-VN", {
+    // <-- Use Vietnamese locale
     style: "currency",
-    currency: "USD", // Adjust currency as needed
+    currency: "VND", // <-- Use VND currency
   }).format(price);
 };
 
-// --- Helper: Placeholder Icons ---
+// --- Helper: Placeholder Icons (Keep as is) ---
 const StarIcon = ({ className }: { className?: string }) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
@@ -35,6 +42,7 @@ const StarIcon = ({ className }: { className?: string }) => (
     />
   </svg>
 );
+
 const BagIcon = ({ className }: { className?: string }) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
@@ -54,13 +62,20 @@ const BagIcon = ({ className }: { className?: string }) => (
 
 // --- Product Card Component ---
 interface ProductCardProps {
-  product: ProductData;
+  // product: ProductData; // <-- Change this
+  product: Product; // <-- Use the correct type 'Product'
   className?: string;
 }
 
 const ProductCard: React.FC<ProductCardProps> = ({ product, className }) => {
   const cardRef = useRef<HTMLDivElement>(null);
   const [rotate, setRotate] = useState({ x: 0, y: 0 });
+  const navigate = useNavigate(); // <-- Initialize useNavigate
+
+  // --- Click Handler for Navigation ---
+  const handleCardClick = () => {
+    navigate(`/product/${product._id}`); // Navigate to product detail page
+  };
 
   const handleMouseMove = (e: MouseEvent<HTMLDivElement>) => {
     if (!cardRef.current) return;
@@ -80,7 +95,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, className }) => {
   const imageUrl = product.images?.[0] || "/placeholder-image.png";
 
   const handleAddToCartClick = (e: React.MouseEvent) => {
-    e.stopPropagation();
+    e.stopPropagation(); // Prevent card click navigation when clicking button
     e.preventDefault();
     console.log(`Add ${product.name} (ID: ${product._id}) to cart`);
     // Add actual add to cart logic here
@@ -90,27 +105,26 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, className }) => {
     <CardBorder // Use the wrapper for the border and tilt effect
       className={cn("h-full", className)} // Ensure border wrapper takes full height
       style={{
-        transform: `perspective(1000px) rotateX(${rotate.x / 8}deg) rotateY(${
-          rotate.y / 8
+        transform: `perspective(1000px) rotateX(${rotate.x / 4}deg) rotateY(${
+          rotate.y / 4
         }deg) scale3d(1, 1, 1)`,
         transformStyle: "preserve-3d",
         transition: "transform 0.1s ease-out",
       }}
+      onClick={handleCardClick} // <-- Add onClick handler to the outer border wrapper
     >
       <Card // The main card content, gets background/mouse events
         ref={cardRef} // Attach ref here for coordinate calculation
         className={cn(
           "group relative overflow-hidden hover:cursor-pointer", // group for hover effects
           "h-full" // Ensure inner card takes full height of border wrapper
-          // className prop from ProductCard is passed to CardBorder, not here, to avoid conflicts
         )}
         onMouseMove={handleMouseMove}
         onMouseLeave={handleMouseLeave}
+        // Remove onClick from here if CardBorder handles it
       >
         {/* Image Section */}
         <div className="relative aspect-square overflow-hidden">
-          {" "}
-          {/* Removed rounded-t-lg as Card is rounded */}
           <img
             src={imageUrl}
             alt={product.name}
@@ -126,7 +140,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, className }) => {
           <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
           {/* Cart Icon - Slides from right */}
           <button
-            onClick={handleAddToCartClick}
+            onClick={handleAddToCartClick} // Ensure this stops propagation
             aria-label={`Add ${product.name} to cart`}
             className={cn(
               "absolute top-1/2 right-2 z-20 transform -translate-y-1/2",
@@ -146,14 +160,11 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, className }) => {
         <div className="flex flex-col flex-grow p-3 sm:p-4">
           {/* Header */}
           <CardHeader className="p-0 pb-1 sm:pb-2">
-            {/* Apply hover color directly here */}
             <CardTitle className="group-hover:text-ch-blue-50 dark:group-hover:text-ch-blue-light transition-colors duration-200">
               {product.name}
             </CardTitle>
             {product.category?.name && (
               <CardDescription className="mb-1 mt-0.5 sm:mt-1">
-                {" "}
-                {/* Added top margin */}
                 {product.category.name}
               </CardDescription>
             )}
@@ -167,7 +178,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, className }) => {
                 "text-lg sm:text-xl mb-1 sm:mb-2"
               )}
             >
-              {formatPrice(product.base_price)}
+              {formatPrice(product.base_price)} {/* Now displays in VND */}
             </p>
             {/* Placeholders */}
             <div
@@ -176,14 +187,17 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, className }) => {
                 "text-[10px] sm:text-xs"
               )}
             >
-              {/* Use appropriate text colors for contrast */}
               <span className="flex items-center whitespace-nowrap text-gray-400 dark:text-gray-500">
                 <StarIcon className="w-3 h-3 sm:w-4 sm:h-4 mr-0.5 sm:mr-1 text-yellow-400" />
-                <span>4.5 (120)</span>
+                {/* You might want to replace these with actual data if available */}
+                <span>
+                  {product.averageRating?.toFixed(1) || "N/A"} (
+                  {product.numberOfReviews || 0})
+                </span>
               </span>
               <span className="flex items-center whitespace-nowrap text-gray-400 dark:text-gray-500">
-                <BagIcon className="w-3 h-3 sm:w-4 sm:h-4 mr-0.5 sm:mr-1" />{" "}
-                {/* Icon color from text */}
+                <BagIcon className="w-3 h-3 sm:w-4 sm:h-4 mr-0.5 sm:mr-1" />
+                {/* Replace with actual sales data if available */}
                 <span>500+ sold</span>
               </span>
             </div>

@@ -22,7 +22,7 @@ const invoiceSchema = new mongoose.Schema({
   totalAmount: { type: Number, required: true, min: 0 }, // Final amount: subtotal - discount + deliveryFee
 
   paymentStatus: {
-    type: String, enum: ["pending", "paid", "failed", "refunded"], default: "pending", required: true
+    type: String, enum: ["pending", "paid", "failed", "refunded", "cancelled"], default: "pending", required: true
   },
   paymentMethod: { type: String, required: true, enum: ["CARD", "CASH", "BANK_TRANSFER"] },
   orderStatus: { type: String, enum: ["processing", "shipped", "delivered", "cancelled", "returned"], default: "processing", required: true },

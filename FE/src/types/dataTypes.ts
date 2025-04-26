@@ -1,193 +1,360 @@
+// src/types/dataTypes.ts
+
+// =============================
+// CORE ENUMS (Các hằng số dùng chung)
+// =============================
+
 export enum Role {
   ADMIN = "ADMIN",
   CUSTOMER = "CUSTOMER",
-  MODERATOR = "MODERATOR",
 }
 
-export type UserInfo = {
+export enum PaymentStatus { // Dùng cho Invoice
+  PENDING = "pending",
+  PAID = "paid",
+  FAILED = "failed",
+  REFUNDED = "refunded",
+  CANCELLED = "cancelled",
+}
+
+export enum OrderStatus { // Dùng cho Invoice
+  PENDING = "pending",
+  PROCESSING = "processing",
+  SHIPPED = "shipped",
+  DELIVERED = "delivered",
+  CANCELLED = "cancelled",
+  RETURNED = "returned",
+}
+
+export enum PaymentMethod { // Dùng cho Invoice
+  CARD = "CARD",
+  CASH = "CASH",
+  BANK_TRANSFER = "BANK_TRANSFER",
+}
+
+export enum CouponDiscountType { // Dùng cho Coupon
+  PERCENTAGE = "PERCENTAGE",
+  FIXED_AMOUNT = "FIXED_AMOUNT",
+}
+
+// =============================
+// BASE & UTILITY TYPES (Kiểu cơ sở và tiện ích)
+// =============================
+
+// Kiểu cơ sở cho mọi document từ MongoDB
+export type BaseDoc = {
   _id: string;
-  email?: string;
-  name: string;
-  address: string;
+  createdAt: string; // Luôn là string từ JSON
+  updatedAt: string; // Luôn là string từ JSON
 };
 
-export declare type LoginInput = {
-  email: string;
-  password: string;
-};
-
-export declare type LoginWithTokenInput = {
-  access_token: string;
-  id: string;
-};
-
-export declare type RegisterInput = {
-  name: string;
-  email: string;
-  password: string;
-};
-
-export declare type User = {
-  _id: number;
-  createdDate: string;
-  email: string;
-  name: string | null;
-  imageUrl: string | null;
-  role: Role;
-  status: boolean;
-};
-
-export declare type CategoryData = {
-  _id: string;
-  name: string;
-};
-
-export declare type BrandData = {
-  _id: string;
-  name: string;
-};
-
-export declare type VariantData = {
-  _id: string;
-  types: string;
-  price: number;
-};
-
-export declare type ProductData = {
-  _id: string;
-  name: string;
-  base_price: number;
-  category: CategoryData;
-  brand: BrandData;
-  tags: string[];
-  status: string;
-  images: string[];
-  image?: File | string;
-  createdAt: string;
-  updatedAt: string;
-  description: [string];
-  url: string;
-  variants: [VariantData];
-};
-
-// Define the main type for the payment confirmation email data
-export declare type EmailPaymentData = {
-  userEmail: string;
-  invoiceId: string;
-  items: EmailItemData[];
-  totalAmount: number;
-  paymentStatus: InvoicePaymentStatus;
-  shippingAddress?: ShippingAddress;
-};
-
-export declare type EmailItemData = {
-  name: string;
-  quantity: number;
-  price?: number;
-};
-
-export declare type UpdateCartItemData = {
-  userId: string;
-  productId: ProductData["_id"];
-  variantId?: string | null; // <-- ADD THIS (optional)
-  quantity: number;
-};
-
-// Also update CartItemData for clarity on what the cart fetch returns
-export declare type CartItemData = {
-  product: ProductData; // This holds ALL variants
-  variant?: string; // The ID of the selected variant FOR THIS cart line item
-  quantity: number;
-  _id: string; // This is the ID of the cart item itself, often default behaviour of Mongoose
-};
-
-export declare type CartData = {
-  _id: string | null; // Can be null if cart was just created virtually
-  user: string;
-  items: CartItemData[];
-  createdAt?: string | null;
-  updatedAt?: string | null;
-};
-
-export declare type StripeData = {
-  amount: number;
-};
-
-//invoice
-export declare type InvoiceResponse = {
-  _id: string;
-  user: Partial<User>; // Or a more specific User subset if needed
-  items: InvoiceItems[];
-  totalAmount: number;
-  paymentStatus: InvoicePaymentStatus; // Use the enum
-  shippingAddress?: ShippingAddress; // Add the structured address (optional if it might not exist)
-  createdAt: string;
-  updatedAt: string; // Add updatedAt from schema timestamps
-  paymentMethod: PaymentMethod;
-};
-
-export declare type ShippingAddress = {
+// Địa chỉ giao hàng/thông tin địa chỉ chung
+export type Address = {
   street?: string;
   city?: string;
-  state?: string;
+  state?: string; // Tỉnh/Thành phố
   country?: string;
   zipCode?: string;
 };
 
-export enum InvoicePaymentStatus {
-  PENDING = "pending",
-  PAID = "paid",
-  FAILED = "failed",
-  REFUND = "refund",
-}
+// Kiểu tham chiếu cơ bản (chỉ ID và name)
+export type BaseReference = Pick<BaseDoc, "_id"> & { name: string };
 
-export enum PaymentMethod {
-  CARD = "CARD",
-  CASH = "CASH", // thanh toán bằng tiền mặt
-  BANK_TRANSFER = "BANK_TRANSFER",
-}
-
-export declare type InvoiceRequest = {
-  userId: string;
-  productsList: InvoiceProductInputData[];
-  paymentMethod: PaymentMethod;
-  paymentStatus: InvoicePaymentStatus;
-  shippingAddress: ShippingAddress;
+// Kiểu dữ liệu cho API trả về có phân trang
+export type Paginated<T> = {
+  data: T[];
+  totalDocs: number;
+  limit: number;
+  totalPages: number;
+  page: number;
+  hasPrevPage: boolean;
+  hasNextPage: boolean;
+  // Có thể thêm các trường phân trang khác nếu BE trả về
 };
 
-export declare type InvoiceProductInputData = {
+// =============================
+// ENTITY TYPES (Kiểu cho các thực thể chính)
+// =============================
+
+// --- User ---
+export type User = BaseDoc & {
+  name: string;
+  email: string;
+  role: Role;
+  status: boolean;
+  image?: string;
+  address?: Address; // Sử dụng lại Address type
+  phoneNumber?: number;
+};
+
+export type UserReference = Pick<User, "_id" | "name" | "email"> & {
+  address?: Address;
+  image?: string;
+};
+
+// --- Category ---
+export type Category = BaseDoc & {
+  name: string;
+  description?: string;
+};
+export type CategoryReference = BaseReference; // ID và name là đủ
+
+// --- Brand ---
+export type Brand = BaseDoc & {
+  name: string;
+  description?: string; // Hoặc logoUrl,... nếu có
+};
+export type BrandReference = BaseReference; // ID và name là đủ
+
+// --- Variant ---
+export type Variant = BaseDoc & {
+  types: string; // Ví dụ: "Màu:Đỏ, Size:XL"
+  price: number;
+  stock: number;
+  product: string; // ID sản phẩm cha
+};
+export type VariantReference = Pick<
+  Variant,
+  "_id" | "types" | "price" | "stock"
+>; // Tham chiếu biến thể (có thể cần stock)
+
+// --- Product ---
+export type Product = BaseDoc & {
+  name: string;
+  base_price: number;
+  description?: string[];
+  category: CategoryReference; // Dùng reference
+  brand?: BrandReference; // Dùng reference, optional
+  tags?: string[];
+  images: string[];
+  averageRating?: number;
+  numberOfReviews?: number;
+  variants: Variant[]; // Chi tiết sẽ có danh sách variant đầy đủ
+};
+
+// Dùng cho danh sách sản phẩm, ít chi tiết hơn
+export type ProductSummary = Omit<Product, "variants" | "description"> & {
+  variants: string[]; // Chỉ trả về ID của variants trong danh sách
+};
+
+export type ProductReference = Pick<
+  Product,
+  "_id" | "name" | "images" | "category" | "brand"
+>; // Dùng khi product nhúng vào entity khác (InvoiceItem)
+
+// --- Cart ---
+// Item trong giỏ hàng có cấu trúc khá đặc thù từ BE, khó gộp chung
+export type CartItem = {
   productId: string;
+  variantId?: string;
   quantity: number;
-  variantId?: string | null; // <-- ADD VARIANT ID HERE
+  name: string;
+  variantTypes?: string;
+  pricePerUnit: number;
+  subtotal: number;
+  imageUrl?: string;
+  stock?: number;
+  category?: CategoryReference;
+  brand?: BrandReference;
 };
 
-export declare type InvoiceItems = {
-  _id: string;
-  product: ProductData;
+export type Cart = BaseDoc & {
+  user: string; // User ID
+  items: CartItem[];
+  calculatedTotalPrice: number;
+};
+
+// --- Invoice ---
+export type InvoiceItem = {
+  product: ProductReference; // Dùng reference
+  variant?: VariantReference; // Dùng reference, optional
   quantity: number;
   priceAtPurchase: number;
 };
 
-//Home Page
-export declare type HomePageRes = {
-  banners: BannerHomePage[];
-  videos: VideoHomePage[];
-  features: FeatureHomePage[];
+export type Invoice = BaseDoc & {
+  user: UserReference; // Dùng reference
+  items: InvoiceItem[];
+  totalAmount: number;
+  shippingAddress: Address; // Dùng lại Address type
+  paymentMethod: PaymentMethod;
+  paymentStatus: PaymentStatus;
+  orderStatus: OrderStatus;
+  couponCode?: string;
+  discountAmount?: number;
 };
 
-export declare type BannerHomePage = {
-  photo_url: string;
+// --- Review ---
+export type Review = BaseDoc & {
+  user: UserReference; // Dùng reference
+  product: string; // Product ID
+  variant?: Pick<VariantReference, "_id" | "types">; // Chỉ cần type của variant
+  rating: number;
+  comment?: string;
 };
 
-export declare type VideoHomePage = {
-  title: string;
-  photo_url: string;
-  video_youtube: string;
-  photo_thumb: string;
+// --- Coupon ---
+export type Coupon = BaseDoc & {
+  code: string;
+  description?: string;
+  discountType: CouponDiscountType;
+  discountValue: number;
+  minPurchaseAmount?: number;
+  maxUses?: number;
+  usedCount?: number;
+  expiresAt: string; // ISO Date string
+  isActive: boolean;
 };
 
-export declare type FeatureHomePage = {
-  title: string;
-  description: string;
-  image_url: string;
+// --- HomePage ---
+// Gom các item của homepage lại, dùng optional fields
+export type HomePageItem = BaseDoc & {
+  // Giả sử mỗi item cũng có _id, createdAt,...
+  title?: string;
+  description?: string;
+  photo_url?: string; // Dùng cho banner, video
+  image_url?: string; // Dùng cho feature
+  video_youtube?: string; // Dùng cho video
+  photo_thumb?: string; // Dùng cho video
 };
+
+export type HomePage = BaseDoc & {
+  // Document chứa cấu hình trang chủ
+  banners: HomePageItem[];
+  videos: HomePageItem[];
+  features: HomePageItem[];
+};
+
+// =============================
+// API INPUT TYPES (Kiểu cho dữ liệu gửi đi)
+// =============================
+// Đặt tên theo [Action?][Entity]Input
+
+// --- Auth ---
+export type LoginInput = {
+  email: string;
+  password: string;
+};
+
+export type RegisterInput = LoginInput & {
+  name: string;
+  address?: Address; // Dùng lại Address type
+  phoneNumber?: string;
+};
+
+// --- User Update (Admin) ---
+export type UpdateUserInput = Partial<Pick<User, "name" | "status" | "role">>; // Chỉ cho phép cập nhật các trường này
+
+// --- Category/Brand Create/Update ---
+export type CategoryInput = Pick<Category, "name" | "description">;
+export type BrandInput = Pick<Brand, "name" | "description">;
+
+// --- Variant Create/Update ---
+export type VariantInput = Pick<Variant, "types" | "price" | "stock">;
+
+// --- Product Create/Update ---
+export type ProductInput = {
+  name: string;
+  base_price: number;
+  description?: string[];
+  category: string; // Gửi ID hoặc Name
+  brand?: string; // Gửi ID hoặc Name
+  tags?: string[];
+  images?: string[];
+  // Khi tạo mới có thể gửi kèm variants, khi cập nhật thì không
+  variants?: VariantInput[];
+};
+
+export type UpdateProductInput = Omit<ProductInput, "variants">;
+
+export type ProductBatchInput = { ids: string[] }; // Lấy product theo danh sách ID
+
+// --- Cart ---
+export type CartItemInput = {
+  productId: string;
+  variantId?: string | null;
+  quantity: number; // = 0 để xóa
+};
+
+// --- Invoice ---
+export type InvoiceItemInput = Pick<
+  CartItemInput,
+  "productId" | "variantId" | "quantity"
+>; // Giống CartItemInput nhưng quantity > 0
+
+export type CreateInvoiceInput = {
+  productsList: InvoiceItemInput[];
+  paymentMethod: PaymentMethod;
+  shippingAddress: Address; // Dùng lại Address type
+  couponCode?: string;
+};
+
+export type UpdateInvoiceStatusInput = Partial<
+  Pick<Invoice, "orderStatus" | "paymentStatus">
+>;
+
+// --- Review ---
+export type CreateReviewInput = {
+  productId: string;
+  variantId?: string;
+  rating: number;
+  comment?: string;
+};
+
+// --- Coupon ---
+// Dùng chung cho Create/Update, bỏ các trường không được sửa khi update
+export type CouponInput = Omit<Coupon, keyof BaseDoc | "usedCount">;
+
+// --- HomePage Update ---
+// Gửi toàn bộ hoặc một phần của HomePageItem, _id là optional khi tạo mới
+export type UpdateHomePageItemInput = Partial<
+  Omit<HomePageItem, keyof BaseDoc>
+> & { _id?: string };
+
+// =============================
+// API SPECIFIC RESPONSE TYPES (Kiểu cho các response đặc biệt)
+// =============================
+
+// --- Auth ---
+export type LoginResponse = {
+  message: string;
+  EC: number;
+  accessToken: string;
+  user: Pick<User, "_id" | "name" | "email" | "role"> & {
+    address?: Address;
+    image?: string;
+  };
+};
+
+// --- Stripe ---
+export type StripeInitiateResponse = {
+  clientSecret: string | null;
+  invoiceId: string;
+  totalAmount: number;
+};
+
+// --- Coupon Validation ---
+export type ValidateCouponResponse = {
+  valid: boolean;
+  reason?: string;
+  coupon?: Pick<
+    Coupon,
+    "code" | "description" | "discountType" | "discountValue"
+  > & {
+    calculatedDiscount?: number;
+  };
+};
+
+// --- Chatbot ---
+export type ChatbotInput = { message: string };
+export type ChatbotResponse = { reply: string };
+
+// --- Recommendations ---
+// Kiểu này phụ thuộc vào response thực tế từ service recommendations
+export type RecommendationResponse = {
+  recommendedProductIds?: string[];
+  // ...
+};
+
+// --- Email Notification ---
+export type NotifyPaymentSuccessInput = { invoiceId: string }; // Chỉ cần ID hóa đơn
