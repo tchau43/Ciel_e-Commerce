@@ -1,18 +1,27 @@
-import Cart from "@/repositories/cart/cart";
-import { CartData } from "@/types/dataTypes";
+import CartRepository from "@/repositories/cart/cart"; // Renamed import to avoid conflict
+// Import the correct type 'Cart' from dataTypes.ts
+import { Cart } from "@/types/dataTypes"; // Changed from CartData
 import { API_ENDPOINTS } from "@/utils/api/endpoint";
 import { useQuery, UseQueryResult } from "@tanstack/react-query";
 
 export const useGetCartQuery = (
-  _id: string,
+  // Use userId instead of _id for clarity, assuming it's the user's ID
+  userId: string,
   options?: any
-): UseQueryResult<CartData> => {
-  return useQuery<CartData>({
-    queryKey: ["cart", _id],
+  // Update the return type hint to use Cart
+): UseQueryResult<Cart> => {
+  // Changed from CartData
+  // Update the query type hint to use Cart
+  return useQuery<Cart>({
+    // Changed from CartData
+    // Use a more specific query key including the userId
+    queryKey: ["cart", userId],
     queryFn: () => {
-      return Cart.getCart(API_ENDPOINTS.CART(_id));
+      // Call the repository method
+      return CartRepository.getCart(API_ENDPOINTS.CART(userId));
     },
-    enabled: !!_id, // Only fetch if _Id exists
+    // Ensure the query only runs if userId is truthy
+    enabled: !!userId,
     ...options,
   });
 };

@@ -1,19 +1,16 @@
-// src/components/product/ProductsList.tsx (Updated)
-import { ProductData } from "@/types/dataTypes";
-// import ProductIntro from "./ProductIntro"; // Remove this
-import ProductCard from "@/features/components/ProductCard"; // Import ProductCard
-import { useEffect, useState } from "react";
-import { Pagination } from "antd"; // Keep Ant Design pagination
+import React, { useEffect, useState } from "react";
+import { Product } from "@/types/dataTypes"; // Corrected import
+import ProductCard from "@/features/components/ProductCard";
+import { Pagination } from "antd";
 
 interface ProductsListProps {
-  data: ProductData[];
+  data: Product[]; // Corrected type
 }
 
 const ProductsList = ({ data }: ProductsListProps) => {
   const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage, setItemsPerPage] = useState(9); // Keep your itemsPerPage logic
+  const [itemsPerPage, setItemsPerPage] = useState(9);
 
-  // --- Keep all your useEffect hooks for itemsPerPage and resetting currentPage ---
   useEffect(() => {
     const updateItemsPerPage = () => {
       const width = window.innerWidth;
@@ -29,7 +26,6 @@ const ProductsList = ({ data }: ProductsListProps) => {
       } else {
         newSize = 5;
       }
-      // Only update if size actually changes to avoid unnecessary re-renders
       setItemsPerPage((prevSize) =>
         prevSize !== newSize ? newSize : prevSize
       );
@@ -43,7 +39,7 @@ const ProductsList = ({ data }: ProductsListProps) => {
       }, 200);
     };
 
-    updateItemsPerPage(); // Initial call
+    updateItemsPerPage();
     window.addEventListener("resize", debouncedHandler);
     return () => {
       if (timeoutId) clearTimeout(timeoutId);
@@ -52,9 +48,8 @@ const ProductsList = ({ data }: ProductsListProps) => {
   }, []);
 
   useEffect(() => {
-    setCurrentPage(1); // Reset page when data changes
+    setCurrentPage(1);
   }, [data]);
-  // --- End of existing useEffect hooks ---
 
   const startIndex = (currentPage - 1) * itemsPerPage;
   const paginatedData = data
@@ -63,35 +58,29 @@ const ProductsList = ({ data }: ProductsListProps) => {
 
   const handleAntdPageChange = (page: number) => {
     setCurrentPage(page);
-    window.scrollTo({ top: 0, behavior: "smooth" }); // Scroll to top on page change
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  // --- Keep handleAntdSizeChange ---
   const handleAntdSizeChange = (current: number, size: number) => {
     setItemsPerPage(size);
-    setCurrentPage(1); // Reset to page 1 when size changes
+    setCurrentPage(1);
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   if (!data || data.length === 0) {
-    // Use the existing "No products found" message from ProductsPage for consistency
-    return null; // Let ProductsPage handle the "no products" message
+    return null;
   }
 
   const totalPages = Math.ceil(data.length / itemsPerPage);
 
   return (
     <div>
-      {/* Use your existing grid classes */}
       <div className="w-full grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-5 gap-6 md:gap-8 lg:gap-10 mb-10">
         {paginatedData.map((p) => (
-          // Use ProductCard instead of ProductIntro
-          // Removed the extra div with justify-center, ProductCard should handle its own alignment if needed
           <ProductCard key={p._id} product={p} />
         ))}
       </div>
 
-      {/* Keep your Ant Design Pagination */}
       {totalPages > 1 && (
         <div className="flex justify-center mt-8">
           <Pagination
@@ -100,8 +89,8 @@ const ProductsList = ({ data }: ProductsListProps) => {
             total={data.length}
             onChange={handleAntdPageChange}
             onShowSizeChange={handleAntdSizeChange}
-            showSizeChanger={true}
-            pageSizeOptions={[8, 9, 10, 12, 24, 36]} // Keep your options
+            showSizeChanger
+            pageSizeOptions={[8, 9, 10, 12, 24, 36]}
             showQuickJumper
           />
         </div>

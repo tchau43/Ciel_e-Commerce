@@ -1,9 +1,9 @@
-import { CategoryData } from "@/types/dataTypes";
+import { Category } from "@/types/dataTypes";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 interface CategoriesListProps {
-  data: CategoryData[];
+  data: Category[];
   queryParams: string | null;
   setQueryParams: React.Dispatch<React.SetStateAction<string>>;
 }

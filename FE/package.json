@@ -17,6 +17,7 @@
     "@stripe/stripe-js": "^6.0.0",
     "@tailwindcss/vite": "^4.0.8",
     "@tanstack/react-query": "^5.66.10",
+    "@vn-utils/phone-validate": "^0.0.1-rc.7",
     "antd": "^5.24.2",
     "axios": "^1.7.9",
     "class-variance-authority": "^0.7.1",
