@@ -825,3 +825,44 @@
 {"level":"info","message":"Token verified for user: tchau28021@gmail.com","timestamp":"2025-03-25 16:14:51"}
 {"level":"info","message":"Token verified for user: chaupt2823@gmail.com","timestamp":"2025-04-21 11:32:29"}
 {"level":"info","message":"Token verified for user: chaupt2823@gmail.com","timestamp":"2025-04-21 11:32:29"}
+{"level":"info","message":"Token verified for user: chaupt2823@gmail.com","timestamp":"2025-04-25 21:33:49"}
+{"level":"info","message":"Token verified for user: chaupt2823@gmail.com","timestamp":"2025-04-25 21:33:54"}
+{"level":"info","message":"Token verified for user: chaupt2823@gmail.com","timestamp":"2025-04-25 21:38:54"}
+{"level":"info","message":"Token verified for user: chaupt2823@gmail.com","timestamp":"2025-04-25 21:38:55"}
+{"level":"info","message":"Token verified for user: chaupt2823@gmail.com","timestamp":"2025-04-25 21:38:56"}
+{"level":"info","message":"Token verified for user: chaupt2823@gmail.com","timestamp":"2025-04-25 21:38:58"}
+{"level":"info","message":"Token verified for user: chaupt2823@gmail.com","timestamp":"2025-04-25 21:39:01"}
+{"level":"info","message":"Token verified for user: chaupt2823@gmail.com","timestamp":"2025-04-25 21:39:01"}
+{"level":"info","message":"Token verified for user: chaupt2823@gmail.com","timestamp":"2025-04-25 21:39:02"}
+{"level":"info","message":"Token verified for user: chaupt2823@gmail.com","timestamp":"2025-04-25 21:39:02"}
+{"level":"info","message":"Token verified for user: chaupt2823@gmail.com","timestamp":"2025-04-25 21:39:02"}
+{"level":"info","message":"Token verified for user: chaupt2823@gmail.com","timestamp":"2025-04-25 21:39:04"}
+{"level":"error","message":"Token verification failed: jwt expired","timestamp":"2025-04-25 21:40:00"}
+{"level":"info","message":"Token verified for user: chaupt2823@gmail.com","timestamp":"2025-04-25 21:41:43"}
+{"level":"info","message":"Token verified for user: chaupt2823@gmail.com","timestamp":"2025-04-25 21:42:13"}
+{"level":"info","message":"Token verified for user: chaupt2823@gmail.com","timestamp":"2025-04-25 21:51:10"}
+{"level":"info","message":"Token verified for user: chaupt2823@gmail.com","timestamp":"2025-04-25 21:51:11"}
+{"level":"info","message":"Token verified for user: chaupt2823@gmail.com","timestamp":"2025-04-25 21:53:39"}
+{"level":"info","message":"Token verified for user: chaupt2823@gmail.com","timestamp":"2025-04-25 21:53:42"}
+{"level":"info","message":"Token verified for user: chaupt2823@gmail.com","timestamp":"2025-04-25 21:54:40"}
+{"level":"info","message":"Token verified for user: chaupt2823@gmail.com","timestamp":"2025-04-25 21:54:42"}
+{"level":"info","message":"Token verified for user: chaupt2823@gmail.com","timestamp":"2025-04-25 21:55:10"}
+{"level":"info","message":"Token verified for user: chaupt2823@gmail.com","timestamp":"2025-04-25 21:55:23"}
+{"level":"info","message":"Token verified for user: chaupt2823@gmail.com","timestamp":"2025-04-25 21:55:59"}
+{"level":"info","message":"Token verified for user: chaupt2823@gmail.com","timestamp":"2025-04-25 22:01:08"}
+{"level":"info","message":"Token verified for user: chaupt2823@gmail.com","timestamp":"2025-04-25 22:01:12"}
+{"level":"info","message":"Token verified for user: chaupt2823@gmail.com","timestamp":"2025-04-25 22:02:03"}
+{"level":"info","message":"Token verified for user: chaupt2823@gmail.com","timestamp":"2025-04-25 22:02:04"}
+{"level":"info","message":"Token verified for user: chaupt2823@gmail.com","timestamp":"2025-04-25 22:02:06"}
+{"level":"info","message":"Token verified for user: chaupt2823@gmail.com","timestamp":"2025-04-25 22:02:06"}
+{"level":"info","message":"Token verified for user: chaupt2823@gmail.com","timestamp":"2025-04-25 22:02:08"}
+{"level":"info","message":"Token verified for user: chaupt2823@gmail.com","timestamp":"2025-04-25 22:02:08"}
+{"level":"info","message":"Token verified for user: chaupt2823@gmail.com","timestamp":"2025-04-25 22:02:11"}
+{"level":"info","message":"Token verified for user: chaupt2823@gmail.com","timestamp":"2025-04-25 22:02:14"}
+{"level":"info","message":"Token verified for user: chaupt2823@gmail.com","timestamp":"2025-04-25 22:02:15"}
+{"level":"info","message":"Token verified for user: chaupt2823@gmail.com","timestamp":"2025-04-26 10:54:40"}
+{"level":"info","message":"Token verified for user: chaupt2823@gmail.com","timestamp":"2025-04-26 11:05:44"}
+{"level":"info","message":"Token verified for user: chaupt2823@gmail.com","timestamp":"2025-04-26 13:15:14"}
+{"level":"info","message":"Handling chat for user: Guest, Query: which is the most expensive product ???","timestamp":"2025-04-26 13:15:14"}
+{"level":"info","message":"Sending prompt to Gemini for user: Guest","timestamp":"2025-04-26 13:15:15"}
+{"level":"info","message":"Received response from Gemini for user: Guest","timestamp":"2025-04-26 13:15:17"}

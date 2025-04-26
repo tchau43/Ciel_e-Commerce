@@ -1,5 +1,5 @@
+import Header from "@/features/landing/components/Header";
 import { Outlet } from "react-router-dom";
-import Header from "../components/layout/home/Header";
 
 const LandingPage: React.FC = () => {
   return (
