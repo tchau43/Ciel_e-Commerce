@@ -1,1 +1,22 @@
 @import "tailwindcss";
+
+@theme {
+    --container-8xl: 1920px;
+    --container-9xl: 2560px;
+
+    /* red */
+    --color-ch-red-10: rgb(255, 220, 220);
+    --color-ch-red-50: rgb(255, 190, 190);
+    --color-ch-red-100: rgb(255, 77, 77);
+    --color-ch-red: rgb(255, 0, 0);
+
+    /* blue */
+    --color-ch-blue-50: rgb(190, 190, 255);
+    --color-ch-blue-100: rgb(77, 77, 255);
+    --color-ch-blue: rgb(0, 0, 255);
+
+    /* gray */
+    --color-ch-gray-100: rgb(240, 240, 240);
+    --color-ch-gray-500: rgb(115, 115, 115);
+    --color-ch-gray-900: rgb(20, 20, 20);
+}
