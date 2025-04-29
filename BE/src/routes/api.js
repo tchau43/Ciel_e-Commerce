@@ -76,6 +76,7 @@ const { initiateStripePayment } = require("../controllers/stripeController");
 const { Product } = require("../models/product");
 const { validateCouponForUser, createCoupon, getAllCoupons, getCouponById, updateCoupon, deleteCoupon } = require("../controllers/couponController");
 const { handleChatbotQuery, handleChat } = require("../controllers/chatbotController");
+const { handleOpenAIChat } = require("../controllers/openaiChatController");
 
 
 // --- Router Definition ---
@@ -103,6 +104,8 @@ routerAPI.use(verifyToken);
 // ... AUTHENTICATED ROUTES ...
 // routerAPI.post("/chatbot/query", handleChatbotQuery);
 routerAPI.post('/chatbot', handleChat); // Hoặc router.post('/chatbot', chatbotController.handleChat);
+routerAPI.post('/openai-chat', handleOpenAIChat);
+
 
 // --- User Routes (Authenticated) ---
 routerAPI.get("/user/:id", getUserById); // Get own or other user's public profile? Check service logic
