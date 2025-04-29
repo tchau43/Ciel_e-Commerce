@@ -9,6 +9,7 @@ const Variant = require("../models/variant");   // Adjust path for NEW Variant m
 const { generateCombinations } = require("../utils/helper"); // Adjust path if needed
 const { createCategoryService } = require("./categoryService"); // Adjust path if needed
 const { updateProductIndex } = require("./updateDb/updateProduct"); // Adjust path & ensure this function is updated for new structure
+const logger = require('../config/logger'); // Đảm bảo đường dẫn chính xác
 
 // --- CREATE PRODUCT (with Variants) ---
 // Creates a Product document, then creates associated Variant documents,
@@ -544,6 +545,122 @@ const updateVariantStockService = async (variantId, stockChange) => {
 };
 
 
+const getProductsSortedByPriceService = async (sortOrder = -1, limit = 1) => {
+  try {
+    logger.debug(`Sorting products by effective price: order=${sortOrder}, limit=${limit}`); //
+
+    const aggregationPipeline = [
+      // Stage 1: Lấy thông tin các variants liên quan
+      {
+        $lookup: {
+          from: 'variants', // Tên collection của variants
+          localField: 'variants', // Trường chứa array ObjectId trong Product
+          foreignField: '_id',    // Trường _id trong Variant
+          as: 'variantDetails' // Tên mảng mới chứa thông tin variants
+        }
+      },
+      // Stage 2: "Mở" mảng variantDetails, giữ lại SP không có variant
+      {
+        $unwind: {
+          path: '$variantDetails',
+          preserveNullAndEmptyArrays: true // Quan trọng: Giữ lại SP không có variant nào
+        }
+      },
+      // Stage 3: Nhóm theo sản phẩm để tìm giá cao/thấp nhất của variant (hoặc giữ base_price)
+      {
+        $group: {
+          _id: '$_id', // Nhóm theo Product ID
+          name: { $first: '$name' },
+          category: { $first: '$category' }, // Giữ lại ID để populate sau
+          brand: { $first: '$brand' },       // Giữ lại ID để populate sau
+          // Tìm giá cao nhất/thấp nhất trong các variant của SP này
+          extremeVariantPrice: sortOrder === -1
+            ? { $max: '$variantDetails.price' } // Tìm giá variant cao nhất nếu sort descending
+            : { $min: '$variantDetails.price' }, // Tìm giá variant thấp nhất nếu sort ascending
+          base_price: { $first: '$base_price' } // Giữ lại base_price
+          // Thêm các trường khác của Product bạn muốn giữ lại với $first
+        }
+      },
+      // Stage 4: Xác định giá hiệu dụng để sắp xếp
+      // Ưu tiên giá variant nếu nó tồn tại và hợp lệ, nếu không dùng base_price
+      {
+        $addFields: {
+          effectivePrice: {
+            $ifNull: ["$extremeVariantPrice", "$base_price"]
+            // Logic phức tạp hơn có thể cần:
+            // $cond: {
+            //    if: { $and: [ { $ne: ["$extremeVariantPrice", null] }, { $gte: ["$extremeVariantPrice", 0] } ] },
+            //    then: "$extremeVariantPrice",
+            //    else: "$base_price"
+            // }
+          }
+        }
+      },
+      // Stage 5: Lọc bỏ những sản phẩm không xác định được giá
+      {
+        $match: {
+          effectivePrice: { $ne: null, $exists: true }
+        }
+      },
+      // Stage 6: Sắp xếp theo giá hiệu dụng
+      {
+        $sort: {
+          effectivePrice: sortOrder // -1 cho cao nhất, 1 cho thấp nhất
+        }
+      },
+      // Stage 7: Giới hạn số lượng kết quả
+      {
+        $limit: limit
+      },
+      // --- TÙY CHỌN: Populate Category/Brand sau khi aggregate ---
+      // Stage 8: Lookup Category
+      {
+        $lookup: {
+          from: 'categories', // Tên collection categories
+          localField: 'category',
+          foreignField: '_id',
+          as: 'categoryInfo'
+        }
+      },
+      // Stage 9: Lookup Brand
+      {
+        $lookup: {
+          from: 'brands', // Tên collection brands
+          localField: 'brand',
+          foreignField: '_id',
+          as: 'brandInfo'
+        }
+      },
+      // Stage 10: Định dạng lại output, lấy tên category/brand
+      {
+        $project: {
+          _id: 1,
+          name: 1,
+          effectivePrice: 1, // Giữ lại giá đã dùng để sort
+          base_price: 1, // Có thể giữ hoặc bỏ
+          category: { $arrayElemAt: ['$categoryInfo.name', 0] }, // Lấy tên category
+          brand: { $arrayElemAt: ['$brandInfo.name', 0] }, // Lấy tên brand
+          // Thêm các trường khác nếu cần
+        }
+      }
+    ];
+
+    const products = await Product.aggregate(aggregationPipeline);
+    logger.debug(`Aggregation result for extreme products: ${JSON.stringify(products)}`); //
+
+    return products; // Trả về mảng sản phẩm đã aggregate và sort
+
+  } catch (error) {
+    logger.error(`Error getting products sorted by price (aggregation): ${error.message}`, error); //
+    throw error;
+  }
+};
+
+// ... (Phần còn lại của file productService.js, đảm bảo export hàm mới)
+
+
+
+
 module.exports = {
   createProductService,
   getAllProductsService,
@@ -559,4 +676,6 @@ module.exports = {
   updateVariantService,
   deleteVariantService,
   updateVariantStockService,
+  //
+  getProductsSortedByPriceService
 };
