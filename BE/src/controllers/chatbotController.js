@@ -1,28 +1,55 @@
-// BE/src/controllers/chatbotController.js
-const { generateResponse } = require('../services/chatbotService');
-const logger = require('../config/logger'); // <--- IMPORT LOGGER TRỰC TIẾP
+// src/controllers/chatbotController.js
+const chatbotService = require('../services/chatbotService'); //
+const chatHistoryService = require('../services/chatHistoryService');
+const logger = require('../config/logger'); //
+const { v4: uuidv4 } = require('uuid');
 
 const handleChat = async (req, res, next) => {
   try {
     const userQuery = req.body.message;
-    const userId = req.user ? req.user.id : null;
+    const userId = req.user ? req.user._id : null;
+    let clientSessionId = req.body.sessionId; // Frontend should send this for guests
 
     if (!userQuery) {
-      // Sử dụng logger đã import
-      logger.error('Missing user message in request body'); // <--- Sửa: logger.error(...)
+      logger.error('Missing user message in request body');
       return res.status(400).json({ message: 'Missing message in request body' });
     }
 
-    // Sử dụng logger đã import
-    logger.info(`Handling chat for user: ${userId || 'Guest'}, Query: ${userQuery}`); // <--- Sửa: logger.info(...)
+    // --- Session Management ---
+    let session;
+    if (userId) {
+      session = await chatHistoryService.getOrCreateSession(userId, null);
+      clientSessionId = session._id.toString();
+    } else if (clientSessionId) {
+      session = await chatHistoryService.getOrCreateSession(null, clientSessionId);
+      clientSessionId = session.guestSessionId || session._id.toString(); // Prefer guestSessionId if available
+    } else {
+      session = await chatHistoryService.getOrCreateSession(null, null);
+      clientSessionId = session.guestSessionId;
+    }
 
-    const response = await generateResponse(userQuery, userId);
+    if (!session || !session._id) {
+      throw new Error("Failed to establish a chat session.");
+    }
+    const currentSessionId = session._id; // Mongoose ObjectId
+    // ------------------------
 
-    res.status(200).json({ reply: response });
+    logger.info(`Handling chat for Session: ${currentSessionId}, User: ${userId || `Guest (${session.guestSessionId || clientSessionId})`}, Query: ${userQuery}`);
+
+    // Call service (which now also saves history internally)
+    const response = await chatbotService.generateResponse(userQuery, userId, currentSessionId);
+
+    // Return reply and session identifier
+    res.status(200).json({
+      reply: response,
+      // Return the ID frontend should use for subsequent requests
+      sessionId: userId ? currentSessionId.toString() : clientSessionId
+    });
+
   } catch (error) {
-    // Sử dụng logger đã import (Dòng 25 cũ)
-    logger.error(`Error in handleChat controller: ${error.message}`, error); // <--- Sửa: logger.error(...)
-    next(error);
+    logger.error(`Error in handleChat controller: ${error.message}`, error);
+    res.status(500).json({ message: "An internal server error occurred." });
+    // next(error);
   }
 };
 
