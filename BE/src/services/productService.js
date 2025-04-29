@@ -3,13 +3,13 @@
 
 const mongoose = require("mongoose");
 const Category = require("../models/category"); // Adjust path if needed
-const Brand = require("../models/brand");       // Adjust path if needed
+const Brand = require("../models/brand"); // Adjust path if needed
 const { Product, ProductIndex } = require("../models/product"); // Adjust path for NEW Product model
-const Variant = require("../models/variant");   // Adjust path for NEW Variant model
+const Variant = require("../models/variant"); // Adjust path for NEW Variant model
 const { generateCombinations } = require("../utils/helper"); // Adjust path if needed
 const { createCategoryService } = require("./categoryService"); // Adjust path if needed
 const { updateProductIndex } = require("./updateDb/updateProduct"); // Adjust path & ensure this function is updated for new structure
-const logger = require('../config/logger'); // Đảm bảo đường dẫn chính xác
+const logger = require("../config/logger"); // Đảm bảo đường dẫn chính xác
 
 // --- CREATE PRODUCT (with Variants) ---
 // Creates a Product document, then creates associated Variant documents,
@@ -26,32 +26,37 @@ const createProductService = async (productData) => {
       if (mongoose.Types.ObjectId.isValid(categoryInput)) {
         category = await Category.findById(categoryInput).lean();
       }
-      if (!category && typeof categoryInput === 'string') { // If not found by ID or not an ID, try name
+      if (!category && typeof categoryInput === "string") {
+        // If not found by ID or not an ID, try name
         category = await Category.findOne({ name: categoryInput }).lean();
       }
       // Optionally auto-create category if not found by name
-      if (!category && typeof categoryInput === 'string') {
+      if (!category && typeof categoryInput === "string") {
         console.warn(`Auto-creating category: ${categoryInput}`);
         // Assuming createCategoryService takes { name } and returns the document
         category = await createCategoryService({ name: categoryInput });
       }
     }
-    if (!category) { // Ensure category was resolved
-      throw new Error("Valid category (ID or Name) is required and must exist or be creatable.");
+    if (!category) {
+      // Ensure category was resolved
+      throw new Error(
+        "Valid category (ID or Name) is required and must exist or be creatable."
+      );
     }
 
     // --- 2. Handle Brand (NEW LOGIC) ---
     const brandInput = mainProductData.brand;
     let resolvedBrandId = null; // Brand is optional in schema, so default to null
 
-    if (brandInput) { // Only process if brand was provided
+    if (brandInput) {
+      // Only process if brand was provided
       let brand = null;
       // Try finding by ID if it's a valid format
       if (mongoose.Types.ObjectId.isValid(brandInput)) {
         brand = await Brand.findById(brandInput).lean();
       }
       // If not found by ID or not a valid ID format, try finding by name
-      if (!brand && typeof brandInput === 'string') {
+      if (!brand && typeof brandInput === "string") {
         brand = await Brand.findOne({ name: brandInput }).lean();
       }
 
@@ -66,9 +71,11 @@ const createProductService = async (productData) => {
 
       if (brand && brand._id) {
         resolvedBrandId = brand._id; // Get the ObjectId
-      } else if (typeof brandInput === 'string') {
+      } else if (typeof brandInput === "string") {
         // Throw error if brand name provided but not found (and not auto-creating)
-        throw new Error(`Brand '${brandInput}' not found. Please create it first or provide a valid Brand ID.`);
+        throw new Error(
+          `Brand '${brandInput}' not found. Please create it first or provide a valid Brand ID.`
+        );
       } else {
         // Throw error if invalid input type provided for brand
         throw new Error(`Invalid brand identifier provided: ${brandInput}`);
@@ -76,26 +83,25 @@ const createProductService = async (productData) => {
     }
     // --- End Brand Handling ---
 
-
     // 3. Create the Product document
     const newProduct = new Product({
       ...mainProductData,
       category: category._id, // Use resolved category ID
       brand: resolvedBrandId, // <-- Use resolved brand ID (or null)
-      variants: [] // Initialize empty, will be updated later if refs are added
+      variants: [], // Initialize empty, will be updated later if refs are added
     });
     await newProduct.save();
 
     // 4. Create Variant documents
     let createdVariantIds = [];
     if (variants && Array.isArray(variants) && variants.length > 0) {
-      const variantsToCreate = variants.map(variantData => ({
+      const variantsToCreate = variants.map((variantData) => ({
         ...variantData,
-        product: newProduct._id
+        product: newProduct._id,
       }));
       try {
         const createdVariants = await Variant.insertMany(variantsToCreate);
-        createdVariantIds = createdVariants.map(v => v._id);
+        createdVariantIds = createdVariants.map((v) => v._id);
       } catch (variantError) {
         await Product.findByIdAndDelete(newProduct._id); // Cleanup
         throw new Error(`Failed to create variants: ${variantError.message}`);
@@ -115,27 +121,24 @@ const createProductService = async (productData) => {
       .populate("brand", "name")
       .lean();
     return populatedProduct;
-
   } catch (error) {
     console.error("Error in createProductService:", error);
     // Check if it's a Mongoose validation error to provide better feedback
-    if (error.name === 'ValidationError') {
+    if (error.name === "ValidationError") {
       throw new Error(`Product validation failed: ${error.message}`);
     }
     throw new Error(error.message || "Error creating product");
   }
 };
 
-
-
 // --- GET ALL PRODUCTS ---
 // Fetches a list of products without populating their variant details.
 const getAllProductsService = async (sort) => {
   try {
     let sortOption = {};
-    if (sort && typeof sort === 'string') {
+    if (sort && typeof sort === "string") {
       const [field, order] = sort.split(":");
-      if (field && order && ['asc', 'desc'].includes(order.toLowerCase())) {
+      if (field && order && ["asc", "desc"].includes(order.toLowerCase())) {
         sortOption[field] = order.toLowerCase() === "desc" ? -1 : 1;
       } else {
         console.warn(`Invalid sort parameter: ${sort}. Using default.`);
@@ -148,10 +151,11 @@ const getAllProductsService = async (sort) => {
     const products = await Product.find({})
       .sort(sortOption)
       .populate("category", "name") // Populate only names for efficiency
-      .populate("brand", "name")   // Populate only names for efficiency
+      .populate("brand", "name") // Populate only names for efficiency
       .lean();
 
     // Note: products here will have product.variants as an array of ObjectIds
+    // console.log("----------------------------products", products);
     return products;
   } catch (error) {
     console.error("Error in getAllProductsService:", error);
@@ -170,9 +174,10 @@ const getProductByIdService = async (id) => {
     const product = await Product.findById(id)
       .populate("category", "name") // Populate necessary fields
       .populate("brand", "name")
-      .populate({ // Populate the variants array using the references
-        path: 'variants',
-        model: 'Variant' // Explicitly state model if needed, usually inferred from ref
+      .populate({
+        // Populate the variants array using the references
+        path: "variants",
+        model: "Variant", // Explicitly state model if needed, usually inferred from ref
         // select: 'types price stock' // Optionally select specific variant fields
       })
       .lean(); // Use lean at the end
@@ -182,14 +187,11 @@ const getProductByIdService = async (id) => {
     }
     // product.variants will now be an array of variant objects
     return product;
-
   } catch (error) {
     console.error(`Error in getProductByIdService for ID ${id}:`, error);
     throw new Error(error.message || "Error getting product by ID");
   }
 };
-
-
 
 // --- GET PRODUCTS BY NAME ---
 // Fetches products matching a name, without populating variant details.
@@ -221,18 +223,26 @@ const updateProductService = async (id, productData) => {
     // 1. Handle Category Resolution
     let resolvedCategoryId;
     const categoryInput = productData.category;
-    if (categoryInput !== undefined) { // Only process if category was provided
-      if (typeof categoryInput === 'object' && categoryInput !== null && categoryInput._id) {
+    if (categoryInput !== undefined) {
+      // Only process if category was provided
+      if (
+        typeof categoryInput === "object" &&
+        categoryInput !== null &&
+        categoryInput._id
+      ) {
         resolvedCategoryId = categoryInput._id; // Assume valid if object with _id
-      } else if (typeof categoryInput === 'string') {
+      } else if (typeof categoryInput === "string") {
         let foundCategory = null;
         if (mongoose.Types.ObjectId.isValid(categoryInput)) {
           foundCategory = await Category.findById(categoryInput).lean();
         }
         if (!foundCategory) {
-          foundCategory = await Category.findOne({ name: categoryInput }).lean();
+          foundCategory = await Category.findOne({
+            name: categoryInput,
+          }).lean();
         }
-        if (!foundCategory) throw new Error(`Category '${categoryInput}' not found`);
+        if (!foundCategory)
+          throw new Error(`Category '${categoryInput}' not found`);
         resolvedCategoryId = foundCategory._id;
       } else if (categoryInput === null) {
         resolvedCategoryId = null; // Allow unsetting if schema permits
@@ -251,12 +261,13 @@ const updateProductService = async (id, productData) => {
       delete updateData.category; // Don't modify category if not provided
     }
 
-
     // 3. Perform the Product update
     const updatedProduct = await Product.findByIdAndUpdate(id, updateData, {
-      new: true,           // Return the updated document
+      new: true, // Return the updated document
       runValidators: true, // Run schema validators
-    }).populate("category", "name").populate("brand", "name"); // Populate refs
+    })
+      .populate("category", "name")
+      .populate("brand", "name"); // Populate refs
 
     if (!updatedProduct) {
       throw new Error("Product not found for update");
@@ -267,7 +278,6 @@ const updateProductService = async (id, productData) => {
 
     // 5. Return updated product (without populated variants)
     return updatedProduct.toObject();
-
   } catch (error) {
     console.error(`Error in updateProductService for ID ${id}:`, error);
     throw new Error(error.message || "Error updating product core details");
@@ -298,8 +308,13 @@ const deleteProductService = async (id) => {
     }
 
     // 2. Delete associated variants
-    const deleteVariantsResult = await Variant.deleteMany({ product: id }, { session });
-    console.log(`Deleted ${deleteVariantsResult.deletedCount} variants for product ${id}`);
+    const deleteVariantsResult = await Variant.deleteMany(
+      { product: id },
+      { session }
+    );
+    console.log(
+      `Deleted ${deleteVariantsResult.deletedCount} variants for product ${id}`
+    );
 
     // 3. Delete from ProductIndex
     await ProductIndex.deleteOne({ product: id }, { session });
@@ -310,10 +325,10 @@ const deleteProductService = async (id) => {
     session.endSession();
 
     return deletedProduct.toObject(); // Return data of the deleted product
-
   } catch (error) {
     // If any error occurred, abort the transaction
-    if (session && session.inTransaction()) { // Check if session exists and transaction is active
+    if (session && session.inTransaction()) {
+      // Check if session exists and transaction is active
       await session.abortTransaction();
     }
     console.error(`Error in deleteProductService for ID ${id}:`, error);
@@ -344,14 +359,18 @@ const addVariantToProductService = async (productId, variantData) => {
     // 2. Create the new Variant document
     const newVariant = new Variant({
       ...variantData, // Should contain types, price, stock
-      product: productId // Link to the parent product
+      product: productId, // Link to the parent product
     });
     await newVariant.save({ session }); // Save within the transaction
 
     // 3. Add the new variant's ID to the product's variants array
-    await Product.findByIdAndUpdate(productId, {
-      $push: { variants: newVariant._id } // Add reference to the array
-    }, { session }); // Perform update within the transaction
+    await Product.findByIdAndUpdate(
+      productId,
+      {
+        $push: { variants: newVariant._id }, // Add reference to the array
+      },
+      { session }
+    ); // Perform update within the transaction
 
     // If all steps succeed, commit the transaction
     await session.commitTransaction();
@@ -359,7 +378,6 @@ const addVariantToProductService = async (productId, variantData) => {
 
     // Return the newly created variant (as plain object)
     return newVariant.toObject();
-
   } catch (error) {
     // If any error occurs, abort the transaction
     await session.abortTransaction();
@@ -371,16 +389,19 @@ const addVariantToProductService = async (productId, variantData) => {
   }
 };
 
-
 // --- GET PRODUCTS BY CATEGORY ---
 // Fetches products matching categories, without populating variant details.
 const getProductsByCategoryService = async (categoryIds) => {
   // ... (Implementation from previous response - unchanged) ...
   try {
-    const validCategoryIds = categoryIds.filter(id => mongoose.Types.ObjectId.isValid(id));
+    const validCategoryIds = categoryIds.filter((id) =>
+      mongoose.Types.ObjectId.isValid(id)
+    );
     if (validCategoryIds.length === 0) return [];
     const products = await Product.find({ category: { $in: validCategoryIds } })
-      .populate("category", "name").populate("brand", "name").lean();
+      .populate("category", "name")
+      .populate("brand", "name")
+      .lean();
     return products;
   } catch (error) {
     console.error("Error in getProductsByCategoryService:", error);
@@ -396,26 +417,39 @@ const searchProductService = async (searchText, categories = []) => {
   try {
     // ... (logic using ProductIndex then Product.find) ...
     let productQuery = {};
-    const validCategoryIds = categories.map(cat => typeof cat === 'string' ? cat.trim() : cat).filter(id => mongoose.Types.ObjectId.isValid(id));
-    if (validCategoryIds.length > 0) productQuery.category = { $in: validCategoryIds };
+    const validCategoryIds = categories
+      .map((cat) => (typeof cat === "string" ? cat.trim() : cat))
+      .filter((id) => mongoose.Types.ObjectId.isValid(id));
+    if (validCategoryIds.length > 0)
+      productQuery.category = { $in: validCategoryIds };
 
     let finalProductIds = []; // Will store ordered ObjectIds if searching text
-    if (searchText && typeof searchText === 'string' && searchText.trim().length > 0) {
+    if (
+      searchText &&
+      typeof searchText === "string" &&
+      searchText.trim().length > 0
+    ) {
       const keywords = searchText.toLowerCase().trim().split(/\s+/);
       const seenIds = new Set();
       for (let groupSize = keywords.length; groupSize >= 1; groupSize--) {
         const combinations = generateCombinations(keywords, groupSize); // Ensure this helper exists
-        const groupConditions = combinations.map(combo => ({
-          $and: combo.map(keyword => ({
+        const groupConditions = combinations.map((combo) => ({
+          $and: combo.map((keyword) => ({
             productIndex: {
-              $regex: `(^|[^a-zA-Z0-9])${keyword.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}([^a-zA-Z0-9]|$)`,
+              $regex: `(^|[^a-zA-Z0-9])${keyword.replace(
+                /[.*+?^${}()|[\]\\]/g,
+                "\\$&"
+              )}([^a-zA-Z0-9]|$)`,
               $options: "i",
-            }
-          }))
+            },
+          })),
         }));
         if (groupConditions.length > 0) {
-          const indexResults = await ProductIndex.find({ $or: groupConditions }, { product: 1 }).lean();
-          indexResults.forEach(result => {
+          const indexResults = await ProductIndex.find(
+            { $or: groupConditions },
+            { product: 1 }
+          ).lean();
+          indexResults.forEach((result) => {
             const idStr = result.product.toString();
             if (!seenIds.has(idStr)) {
               seenIds.add(idStr);
@@ -424,14 +458,19 @@ const searchProductService = async (searchText, categories = []) => {
           });
         }
       }
-      if (finalProductIds.length === 0 && validCategoryIds.length === 0) return [];
-      if (finalProductIds.length > 0) productQuery._id = { $in: finalProductIds };
+      if (finalProductIds.length === 0 && validCategoryIds.length === 0)
+        return [];
+      if (finalProductIds.length > 0)
+        productQuery._id = { $in: finalProductIds };
     }
 
     let products = [];
     // Only query if categories or search results exist
     if (validCategoryIds.length > 0 || finalProductIds.length > 0) {
-      products = await Product.find(productQuery).populate("category", "name").populate("brand", "name").lean();
+      products = await Product.find(productQuery)
+        .populate("category", "name")
+        .populate("brand", "name")
+        .lean();
     } else if (!searchText || searchText.trim().length === 0) {
       // No categories and no search text
       return [];
@@ -440,7 +479,9 @@ const searchProductService = async (searchText, categories = []) => {
     // Sort results according to search relevance if searchText was used
     if (finalProductIds.length > 0 && products.length > 0) {
       const idOrderMap = new Map();
-      finalProductIds.forEach((id, index) => idOrderMap.set(id.toString(), index));
+      finalProductIds.forEach((id, index) =>
+        idOrderMap.set(id.toString(), index)
+      );
       products.sort((a, b) => {
         const aIndex = idOrderMap.get(a._id.toString());
         const bIndex = idOrderMap.get(b._id.toString());
@@ -457,7 +498,6 @@ const searchProductService = async (searchText, categories = []) => {
   }
 };
 
-
 // --- VARIANT-SPECIFIC SERVICES ---
 
 // GET /variants/:variantId
@@ -466,7 +506,9 @@ const getVariantByIdService = async (variantId) => {
     throw new Error("Invalid Variant ID format");
   }
   // Optionally populate product name for context
-  const variant = await Variant.findById(variantId).populate('product', 'name').lean();
+  const variant = await Variant.findById(variantId)
+    .populate("product", "name")
+    .lean();
   if (!variant) {
     throw new Error("Variant not found.");
   }
@@ -482,10 +524,14 @@ const updateVariantService = async (variantId, updateData) => {
   delete updateData.product;
   // Add any other protected fields for variants
 
-  const updatedVariant = await Variant.findByIdAndUpdate(variantId, updateData, {
-    new: true,
-    runValidators: true
-  }).lean(); // Use lean if returning plain object
+  const updatedVariant = await Variant.findByIdAndUpdate(
+    variantId,
+    updateData,
+    {
+      new: true,
+      runValidators: true,
+    }
+  ).lean(); // Use lean if returning plain object
 
   if (!updatedVariant) {
     throw new Error("Variant not found for update.");
@@ -507,9 +553,11 @@ const deleteVariantService = async (variantId) => {
   }
   // Remove the reference from the parent Product's variants array
   await Product.findByIdAndUpdate(variantToDelete.product, {
-    $pull: { variants: variantId } // Remove the specific variant ID from the array
+    $pull: { variants: variantId }, // Remove the specific variant ID from the array
   });
-  console.log(`Removed variant ref ${variantId} from product ${variantToDelete.product}`);
+  console.log(
+    `Removed variant ref ${variantId} from product ${variantToDelete.product}`
+  );
 
   // Potential: Trigger ProductIndex update
   // await updateProductIndex(variantToDelete.product);
@@ -522,7 +570,7 @@ const updateVariantStockService = async (variantId, stockChange) => {
   if (!mongoose.Types.ObjectId.isValid(variantId)) {
     throw new Error("Invalid Variant ID format");
   }
-  if (typeof stockChange !== 'number') {
+  if (typeof stockChange !== "number") {
     throw new Error("Stock change must be a number");
   }
 
@@ -537,99 +585,103 @@ const updateVariantStockService = async (variantId, stockChange) => {
   // Check if stock went negative if your business logic forbids it
   if (updatedVariant.stock < 0) {
     // Optional: Rollback the change if stock cannot be negative
-    await Variant.findByIdAndUpdate(variantId, { $inc: { stock: -stockChange } }); // Revert
+    await Variant.findByIdAndUpdate(variantId, {
+      $inc: { stock: -stockChange },
+    }); // Revert
     throw new Error("Stock cannot be negative. Update reverted.");
     // Or just log a warning / handle differently
   }
   return updatedVariant;
 };
 
-
 const getProductsSortedByPriceService = async (sortOrder = -1, limit = 1) => {
   try {
-    logger.debug(`Sorting products by effective price: order=${sortOrder}, limit=${limit}`); //
+    logger.debug(
+      `Sorting products by effective price: order=${sortOrder}, limit=${limit}`
+    ); //
 
     const aggregationPipeline = [
       // Stage 1: Lấy thông tin các variants liên quan
       {
         $lookup: {
-          from: 'variants', // Tên collection của variants
-          localField: 'variants', // Trường chứa array ObjectId trong Product
-          foreignField: '_id',    // Trường _id trong Variant
-          as: 'variantDetails' // Tên mảng mới chứa thông tin variants
-        }
+          from: "variants", // Tên collection của variants
+          localField: "variants", // Trường chứa array ObjectId trong Product
+          foreignField: "_id", // Trường _id trong Variant
+          as: "variantDetails", // Tên mảng mới chứa thông tin variants
+        },
       },
       // Stage 2: "Mở" mảng variantDetails, giữ lại SP không có variant
       {
         $unwind: {
-          path: '$variantDetails',
-          preserveNullAndEmptyArrays: true // Quan trọng: Giữ lại SP không có variant nào
-        }
+          path: "$variantDetails",
+          preserveNullAndEmptyArrays: true, // Quan trọng: Giữ lại SP không có variant nào
+        },
       },
       // Stage 3: Nhóm theo sản phẩm để tìm giá cao/thấp nhất của variant (hoặc giữ base_price)
       {
         $group: {
-          _id: '$_id', // Nhóm theo Product ID
-          name: { $first: '$name' },
-          category: { $first: '$category' }, // Giữ lại ID để populate sau
-          brand: { $first: '$brand' },       // Giữ lại ID để populate sau
+          _id: "$_id", // Nhóm theo Product ID
+          name: { $first: "$name" },
+          category: { $first: "$category" }, // Giữ lại ID để populate sau
+          brand: { $first: "$brand" }, // Giữ lại ID để populate sau
           // Tìm giá cao nhất/thấp nhất trong các variant của SP này
-          extremeVariantPrice: sortOrder === -1
-            ? { $max: '$variantDetails.price' } // Tìm giá variant cao nhất nếu sort descending
-            : { $min: '$variantDetails.price' }, // Tìm giá variant thấp nhất nếu sort ascending
-          base_price: { $first: '$base_price' } // Giữ lại base_price
+          extremeVariantPrice:
+            sortOrder === -1
+              ? { $max: "$variantDetails.price" } // Tìm giá variant cao nhất nếu sort descending
+              : { $min: "$variantDetails.price" }, // Tìm giá variant thấp nhất nếu sort ascending
+          base_price: { $first: "$base_price" }, // Giữ lại base_price
           // Thêm các trường khác của Product bạn muốn giữ lại với $first
-        }
+        },
       },
       // Stage 4: Xác định giá hiệu dụng để sắp xếp
       // Ưu tiên giá variant nếu nó tồn tại và hợp lệ, nếu không dùng base_price
       {
         $addFields: {
           effectivePrice: {
-            $ifNull: ["$extremeVariantPrice", "$base_price"]
+            $ifNull: ["$extremeVariantPrice", "$base_price"],
             // Logic phức tạp hơn có thể cần:
             // $cond: {
             //    if: { $and: [ { $ne: ["$extremeVariantPrice", null] }, { $gte: ["$extremeVariantPrice", 0] } ] },
             //    then: "$extremeVariantPrice",
             //    else: "$base_price"
             // }
-          }
-        }
+          },
+        },
       },
       // Stage 5: Lọc bỏ những sản phẩm không xác định được giá
       {
         $match: {
-          effectivePrice: { $ne: null, $exists: true }
-        }
+          effectivePrice: { $ne: null, $exists: true },
+        },
       },
       // Stage 6: Sắp xếp theo giá hiệu dụng
       {
         $sort: {
-          effectivePrice: sortOrder // -1 cho cao nhất, 1 cho thấp nhất
-        }
+          effectivePrice: sortOrder, // -1 cho cao nhất, 1 cho thấp nhất
+        },
       },
       // Stage 7: Giới hạn số lượng kết quả
       {
-        $limit: limit
+        $limit: limit,
       },
       // --- TÙY CHỌN: Populate Category/Brand sau khi aggregate ---
       // Stage 8: Lookup Category
       {
         $lookup: {
-          from: 'categories', // Tên collection categories
-          localField: 'category',
-          foreignField: '_id',
-          as: 'categoryInfo'
-        }
+          from: "categories", // Tên collection categories
+          localField: "category",
+          foreignField: "_id",
+          as: "categoryInfo",
+        },
       },
       // Stage 9: Lookup Brand
       {
         $lookup: {
-          from: 'brands', // Tên collection brands
-          localField: 'brand',
-          foreignField: '_id',
-          as: 'brandInfo'
-        }
+          from: "brands", // Tên collection brands
+          localField: "brand",
+          foreignField: "_id",
+          as: "brandInfo",
+        },
       },
       // Stage 10: Định dạng lại output, lấy tên category/brand
       {
@@ -638,28 +690,140 @@ const getProductsSortedByPriceService = async (sortOrder = -1, limit = 1) => {
           name: 1,
           effectivePrice: 1, // Giữ lại giá đã dùng để sort
           base_price: 1, // Có thể giữ hoặc bỏ
-          category: { $arrayElemAt: ['$categoryInfo.name', 0] }, // Lấy tên category
-          brand: { $arrayElemAt: ['$brandInfo.name', 0] }, // Lấy tên brand
+          category: { $arrayElemAt: ["$categoryInfo.name", 0] }, // Lấy tên category
+          brand: { $arrayElemAt: ["$brandInfo.name", 0] }, // Lấy tên brand
           // Thêm các trường khác nếu cần
-        }
-      }
+        },
+      },
     ];
 
     const products = await Product.aggregate(aggregationPipeline);
-    logger.debug(`Aggregation result for extreme products: ${JSON.stringify(products)}`); //
+    logger.debug(
+      `Aggregation result for extreme products: ${JSON.stringify(products)}`
+    ); //
 
     return products; // Trả về mảng sản phẩm đã aggregate và sort
-
   } catch (error) {
-    logger.error(`Error getting products sorted by price (aggregation): ${error.message}`, error); //
+    logger.error(
+      `Error getting products sorted by price (aggregation): ${error.message}`,
+      error
+    ); //
     throw error;
   }
 };
 
+/**
+ * Đếm số lượng sản phẩm thuộc một danh mục dựa trên tên.
+ * @param {string} categoryName - Tên danh mục cần đếm.
+ * @returns {Promise<number>} - Số lượng sản phẩm tìm được.
+ */
+const countProductsByCategoryService = async (categoryName) => {
+  try {
+    if (
+      !categoryName ||
+      typeof categoryName !== "string" ||
+      categoryName.trim() === ""
+    ) {
+      logger.warn(`Invalid categoryName provided for count: ${categoryName}`);
+      return 0; // Trả về 0 nếu tên danh mục không hợp lệ
+    }
+
+    // Tìm ID của danh mục dựa trên tên (không phân biệt hoa/thường)
+    const category = await Category.findOne({
+      name: { $regex: new RegExp(`^${categoryName.trim()}$`, "i") },
+    }).lean();
+
+    if (!category) {
+      // Không tìm thấy danh mục nào khớp với tên
+      logger.info(`Category not found for count by name: "${categoryName}"`);
+      return 0; // Trả về 0 nếu không tìm thấy danh mục
+    }
+
+    // Đếm số lượng sản phẩm thuộc danh mục đó
+    const count = await Product.countDocuments({
+      category: category._id, // Lọc theo ID của category tìm được
+    });
+
+    logger.info(
+      `Counted ${count} products in category "${categoryName}" (ID: ${category._id})`
+    );
+    return count; // Trả về số lượng
+  } catch (error) {
+    logger.error(
+      `Error in countProductsByCategoryService for name "${categoryName}": ${error.message}`,
+      error
+    );
+    throw new Error("Error counting products by category: " + error.message);
+  }
+};
+
+// --- RENAMED/UPDATED: LIST PRODUCTS BY CATEGORY ---
+// Hàm này được sửa đổi từ getProductsByCategoryService trước đó
+/**
+ * Lấy danh sách sản phẩm (có giới hạn) thuộc một danh mục dựa trên tên.
+ * @param {string} categoryName - Tên danh mục cần tìm.
+ * @param {number} [limit=5] - Số lượng sản phẩm tối đa.
+ * @returns {Promise<Array>} - Mảng các sản phẩm tìm được.
+ */
+const listProductsByCategoryService = async (categoryName, limit = 5) => {
+  try {
+    if (
+      !categoryName ||
+      typeof categoryName !== "string" ||
+      categoryName.trim() === ""
+    ) {
+      logger.warn(`Invalid categoryName provided for list: ${categoryName}`);
+      return []; // Trả về mảng rỗng nếu tên danh mục không hợp lệ
+    }
+
+    // Bước 1: Tìm ID của danh mục dựa trên tên
+    const category = await Category.findOne({
+      name: { $regex: new RegExp(`^${categoryName.trim()}$`, "i") },
+    }).lean();
+
+    if (!category) {
+      // Không tìm thấy danh mục nào khớp với tên
+      logger.info(`Category not found for list by name: "${categoryName}"`);
+      return []; // Trả về mảng rỗng nếu không tìm thấy danh mục
+    }
+
+    // Bước 2: Tìm các sản phẩm thuộc danh mục đó
+    const productLimit =
+      limit && Number.isInteger(limit) && limit > 0 ? limit : 5;
+
+    const products = await Product.find({
+      category: category._id, // Lọc theo ID của category tìm được
+    })
+      .limit(productLimit) // Áp dụng giới hạn số lượng
+      .populate("category", "name") // Populate chỉ trường name
+      .populate("brand", "name") // Populate chỉ trường name
+      .lean(); // Sử dụng lean() để chỉ lấy plain JavaScript object
+
+    // Làm sạch dữ liệu trả về giống như trong listAllProducts
+    const summarizedProducts = products.map((p) => ({
+      id: p._id,
+      name: p.name,
+      base_price: p.base_price,
+      category: p.category?.name, // Đảm bảo truy cập an toàn
+      brand: p.brand?.name, // Đảm bảo truy cập an toàn
+      // Thêm các trường khác bạn muốn hiển thị cho Assistant
+    }));
+
+    logger.info(
+      `Found ${summarizedProducts.length} products for category "${categoryName}" (ID: ${category._id}) with limit ${limit}`
+    );
+    return summarizedProducts; // Trả về mảng sản phẩm đã tóm tắt
+  } catch (error) {
+    logger.error(
+      `Error in listProductsByCategoryService for name "${categoryName}": ${error.message}`,
+      error
+    );
+    // Ném lỗi để hàm gọi (handleRequiredActions) có thể bắt và báo lại cho Assistant
+    throw new Error("Error finding products by category: " + error.message);
+  }
+};
+
 // ... (Phần còn lại của file productService.js, đảm bảo export hàm mới)
-
-
-
 
 module.exports = {
   createProductService,
@@ -677,5 +841,7 @@ module.exports = {
   deleteVariantService,
   updateVariantStockService,
   //
-  getProductsSortedByPriceService
+  getProductsSortedByPriceService,
+  listProductsByCategoryService,
+  countProductsByCategoryService,
 };
