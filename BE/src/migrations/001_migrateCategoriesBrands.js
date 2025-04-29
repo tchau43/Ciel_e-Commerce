@@ -1,4 +1,4 @@
-// node .\src\migrations\001_migrateAndCleanCategoriesBrands.js
+// node .\src\migrations\001_migrateCategoriesBrands.js
 require('dotenv').config(); // Load environment variables FIRST
 const mongoose = require('mongoose');
 const { Product } = require('../models/product'); // Adjust path if necessary
