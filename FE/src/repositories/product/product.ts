@@ -1,35 +1,39 @@
-import { ProductData } from "@/types/dataTypes";
+// src/repositories/product/product.ts
+// Import the correct type 'Product'
+import { Product as ProductType } from "@/types/dataTypes"; // Changed from ProductData, renamed import
 import Base from "../base";
 
-type RecommendationsResponse = ProductData[];
+// Use the correct type 'ProductType'
+type RecommendationsResponse = ProductType[];
 
-class Product extends Base {
-  getAllProducts = (url: string) => {
-    return this.http(url, "get");
+class ProductRepository extends Base {
+  // Renamed class for clarity
+  getAllProducts = (url: string): Promise<ProductType[]> => {
+    return this.http<ProductType[]>(url, "get");
   };
 
-  getProductByCategory = (url: string) => {
-    const res = this.http<string>(url, "get");
-    return res;
+  getProductByCategory = (url: string): Promise<ProductType[]> => {
+    // Corrected generic type argument from <string>
+    return this.http<ProductType[]>(url, "get");
   };
 
-  getProductById = (url: string) => {
-    return this.http(url, "get");
+  getProductById = (url: string): Promise<ProductType> => {
+    return this.http<ProductType>(url, "get");
   };
 
-  updateProduct = (url: string, variables: FormData) => {
-    return this.http(url, "put", variables);
+  updateProduct = (url: string, variables: FormData): Promise<any> => {
+    // Adjust <any> if specific response type is known
+    return this.http<any>(url, "put", variables);
   };
 
-  getProductBySearch = (url: string) => {
-    return this.http(url, "get");
+  getProductBySearch = (url: string): Promise<ProductType[]> => {
+    return this.http<ProductType[]>(url, "get");
   };
 
-  getRecommendations = (url: string) => {
-    // Fetches data from GET /recommendations/?userId=...
-    // Expects an array of ProductData objects in response
+  getRecommendations = (url: string): Promise<RecommendationsResponse> => {
     return this.http<RecommendationsResponse>(url, "get");
   };
 }
 
-export default new Product();
+// Export instance with the new class name
+export default new ProductRepository();
