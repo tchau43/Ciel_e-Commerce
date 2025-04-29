@@ -4,30 +4,82 @@ require("dotenv").config();
 const saltRounds = 10;
 const jwt = require("jsonwebtoken");
 const Invoice = require("../models/invoice");
+const { isValidVNPhone } = require('@vn-utils/phone-validate'); // Import the validator
 
-const createUserService = async (name, email, password) => {
+
+const createUserService = async (userData) => {
+  // Destructure fields from userData
+  // Assuming phoneNumber arrives as a string from the request body
+  const { name, email, password, address, phoneNumber } = userData;
+
   try {
-    //check email exist
+    // Check email exist
     const checkEmail = await User.findOne({ email });
     if (checkEmail) {
-      console.log("using another email");
-      return null;
+      console.log("Email already exists:", email);
+      // Throw specific error for controller to handle
+      throw new Error("EMAIL_EXISTS");
     }
-    //hash password
+
+    // --- Password validation ---
+    if (!password || typeof password !== 'string') {
+      console.error("Password is required and must be a string.");
+      throw new Error("INVALID_PASSWORD");
+    }
+
+    // --- Vietnamese Phone Number Validation ---
+    // Check only if phoneNumber is provided and is not an empty string
+    if (phoneNumber && typeof phoneNumber === 'string' && phoneNumber.trim() !== '') {
+      if (!isValidVNPhone(phoneNumber)) {
+        console.log("Invalid Vietnamese phone number format:", phoneNumber);
+        throw new Error("INVALID_PHONE_FORMAT");
+      }
+      // If validation passes, phoneNumber is a valid VN phone string
+    } else if (phoneNumber && typeof phoneNumber !== 'string') {
+      // Handle case where input is not a string unexpectedly
+      console.log("Phone number received is not a string:", phoneNumber);
+      throw new Error("INVALID_PHONE_INPUT_TYPE");
+    }
+    // --- End Phone Number Validation ---
+
+
+    // Hash password
     const hashPassword = await bcrypt.hash(password, saltRounds);
-    //save user
-    let result = await User.create({
+
+    // --- Prepare data for saving ---
+    const userDataToSave = {
       name: name,
       email: email,
       password: hashPassword,
-      role: "CUSTOMER",
-    });
+      role: "CUSTOMER", // Default role
+      address: address, // Save address if provided
+      // **RECOMMENDATION:** Store phoneNumber as STRING in DB
+      phoneNumber: (phoneNumber && phoneNumber.trim() !== '') ? phoneNumber.trim() : undefined,
+      // **IF YOU MUST use Number in DB (Not Recommended - loses leading zeros):**
+      // phoneNumber: (phoneNumber && phoneNumber.trim() !== '') ? Number(phoneNumber.trim()) : undefined, 
+      // (You would also need to handle potential NaN if conversion fails)
+    };
+
+    // Save user
+    let result = await User.create(userDataToSave);
+
+    // Exclude password from the returned result for safety
+    if (result) {
+      result = result.toObject ? result.toObject() : result; // Ensure plain object if using Mongoose
+      delete result.password;
+    }
+
     return result;
+
   } catch (error) {
-    console.log(error);
-    return null;
+    console.error("Error in createUserService:", error.message);
+    // Re-throw the specific error or a generic one for the controller
+    // This allows the controller to set appropriate HTTP status codes
+    throw error;
   }
 };
+
+
 
 const userLoginService = async (email, password) => {
   try {

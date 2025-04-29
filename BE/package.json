@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.0",
+    "@vn-utils/phone-validate": "^0.0.1-rc.7",
     "axios": "^1.8.4",
     "bcrypt": "^5.1.1",
     "be": "file:",
@@ -23,8 +24,9 @@
     "mongoose": "^8.10.1",
     "multer": "^1.4.5-lts.2",
     "nodemailer": "^6.10.0",
-    "openai": "^4.92.1",
+    "openai": "^4.96.0",
     "stripe": "^17.7.0",
+    "uuid": "^11.1.0",
     "winston": "^3.17.0"
   },
   "devDependencies": {

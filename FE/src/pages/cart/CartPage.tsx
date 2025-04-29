@@ -1,59 +1,49 @@
-// pages/CartPage.tsx (Example structure)
-
-import CartItem from "@/features/carts/components/CartItem"; // Assuming you have this
+import CartItemComponent from "@/features/carts/components/CartItem"; // Renamed to avoid conflict with type
 import { useGetCartQuery } from "@/services/cart/getCartQuery";
 import { getAuthCredentials } from "@/utils/authUtil";
 import { useNavigate } from "react-router-dom";
-import { CartItemData } from "@/types/dataTypes"; // Import type
+// Import correct types from dataTypes.ts
+import { Cart, CartItem, Variant } from "@/types/dataTypes"; // Changed CartItemData to CartItem, added Cart, Variant
 
 const CartPage = () => {
   const navigate = useNavigate();
   const { userInfo } = getAuthCredentials();
   const userId = userInfo?._id;
 
+  // Add Cart type hint to useGetCartQuery for better type inference
   const {
     data: cart,
     isLoading,
     isError,
-    error, // Capture error
+    error,
   } = useGetCartQuery(userId!, {
-    // Keep cart enabled only if userId exists
     enabled: !!userId,
-    // Optionally add refetch interval or other react-query options
   });
 
-  console.log("-----------------------------------cart", cart);
-
-  // Calculate total price based on selected variants or base price
+  // --- Corrected Total Calculation ---
+  // Sum the 'subtotal' field directly from each cart item
   const total =
-    cart?.items?.reduce((sum, item) => {
-      const chosenVariant = item.product?.variants?.find(
-        (v) => v._id === item.variant?.toString()
-      );
-      const pricePerItem = chosenVariant
-        ? chosenVariant.price
-        : Number(item.product?.base_price); // Add optional chaining for base_price too
-      const validPrice = isNaN(pricePerItem) ? 0 : pricePerItem;
-      return sum + validPrice * item.quantity;
-    }, 0) ?? 0;
+    cart?.items?.reduce((sum: number, item: CartItem) => {
+      // Ensure item.subtotal is a valid number, default to 0 if not
+      const subtotal = typeof item.subtotal === "number" ? item.subtotal : 0;
+      return sum + subtotal;
+    }, 0) ?? 0; // Default to 0 if cart or items are null/undefined
 
   const handleCheckout = () => {
-    // Ensure items exist before navigating
     if (!cart?.items || cart.items.length === 0) {
       alert("Your cart is empty.");
       return;
     }
+    // Pass the correctly typed items and calculated total
     navigate("/payment", {
       state: {
-        // Pass necessary data to payment page
-        cartItems: cart.items,
+        cartItems: cart.items as CartItem[], // Assert type for safety
         total: total,
       },
     });
   };
 
   if (!userId) {
-    // Handle case where user is not logged in (optional: redirect or show message)
     return (
       <div className="container mx-auto px-4 py-8 text-center">
         <p className="text-xl text-gray-700">
@@ -61,7 +51,8 @@ const CartPage = () => {
         </p>
         <button
           onClick={() => navigate("/login")}
-          className="mt-4 px-6 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+          // Using theme colors
+          className="mt-4 px-6 py-2 bg-ch-blue text-white rounded hover:bg-ch-blue-100 transition duration-200"
         >
           Login
         </button>
@@ -76,13 +67,17 @@ const CartPage = () => {
   if (isError) {
     console.error("Error loading cart:", error);
     return (
-      <p className="text-center text-red-600 py-10">
+      <p className="text-center text-ch-red py-10">
+        {" "}
+        {/* Use theme color */}
         Error loading cart. Please try again.
       </p>
     );
   }
 
-  const isEmpty = !cart?.items || cart.items.length === 0;
+  // Use the cart directly after checks, default items to empty array if needed
+  const cartItems = cart?.items ?? [];
+  const isEmpty = cartItems.length === 0;
 
   return (
     <div className="bg-gray-100 min-h-screen py-8">
@@ -97,27 +92,30 @@ const CartPage = () => {
               Your cart is currently empty.
             </p>
             <button
-              onClick={() => navigate("/product")} // Navigate to products page
-              className="px-6 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition duration-200"
+              onClick={() => navigate("/product")}
+              // Using theme colors
+              className="px-6 py-2 bg-ch-blue text-white rounded hover:bg-ch-blue-100 transition duration-200"
             >
               Continue Shopping
             </button>
           </div>
         ) : (
           <div className="flex flex-col md:flex-row md:gap-8">
-            {/* Cart Items Section */}
             <div className="md:w-2/3 space-y-4">
-              {cart.items.map((item: CartItemData) => (
-                // You need to create/update CartItem component
-                // It should receive item data and potentially handlers for quantity change/removal
-                <CartItem
-                  key={`${item.product._id}-${item.variant || "base"}`} // Create a unique key including variant
-                  item={item}
-                />
-              ))}
+              {/* Map over cartItems which defaults to [] */}
+              {cartItems.map(
+                (
+                  item: CartItem // Use correct CartItem type
+                ) => (
+                  <CartItemComponent
+                    // Ensure key is unique, using variantId if available
+                    key={`${item.productId}-${item.variantId || "no-variant"}`}
+                    item={item}
+                  />
+                )
+              )}
             </div>
 
-            {/* Order Summary Section */}
             <div className="md:w-1/3 mt-8 md:mt-0">
               <div className="bg-white rounded-lg shadow p-6 sticky top-8">
                 <h2 className="text-xl font-semibold text-gray-800 border-b pb-3 mb-4">
@@ -130,9 +128,8 @@ const CartPage = () => {
                   </div>
                   <div className="flex justify-between text-gray-600">
                     <span>Shipping</span>
-                    <span>Calculated at checkout</span> {/* Or Free Shipping */}
+                    <span>Calculated at checkout</span>
                   </div>
-                  {/* Add Taxes if applicable */}
                 </div>
                 <div className="flex justify-between font-semibold text-lg text-gray-800 border-t pt-4">
                   <span>Total</span>
@@ -140,8 +137,9 @@ const CartPage = () => {
                 </div>
                 <button
                   onClick={handleCheckout}
-                  disabled={isEmpty} // Already checked above, but good practice
-                  className="mt-6 w-full px-6 py-3 bg-green-500 text-white font-semibold rounded-md hover:bg-green-600 transition duration-200 disabled:bg-gray-400 disabled:cursor-not-allowed"
+                  disabled={isEmpty}
+                  // Using theme color for checkout button
+                  className="mt-6 w-full px-6 py-3 bg-ch-red text-white font-semibold rounded-md hover:bg-ch-red-100 transition duration-200 disabled:bg-gray-400 disabled:cursor-not-allowed"
                 >
                   Proceed to Checkout
                 </button>
