@@ -9,7 +9,7 @@ import AdminDashBoardPage from "./pages/admin/AdminDashBoardPage.tsx";
 import AdminUserManagementPage from "./pages/admin/AdminUserManagementPage .tsx";
 import AdminLayout from "./features/admin/AdminLayout.tsx";
 import CustomerLayout from "./features/customer/CustomerLayout.tsx";
-import UserHomePage from "./features/customer/pages/CustomerHomePage.tsx";
+import CustomerHomePage from "./features/customer/pages/CustomerHomePage.tsx";
 import ProductsPage from "./pages/product/ProductsPage.tsx";
 import CartPage from "./pages/cart/CartPage.tsx";
 import PaymentPage from "./pages/payment/PaymentPage.tsx";
@@ -70,7 +70,7 @@ function App() {
               </RoleBasedRoute>
             }
           >
-            <Route index element={<UserHomePage />} />
+            <Route index element={<CustomerHomePage />} />
             <Route
               path="product/*"
               element={
