@@ -2,10 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-
-// --- Shadcn/ui Components ---
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   Carousel,
@@ -14,31 +11,22 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "@/components/ui/carousel";
-
-// --- Icons ---
-// Ví dụ: import { Truck, ShieldCheck, MessageSquare } from 'lucide-react';
-
-// --- Hooks & Utilities ---
 import { useGetHomePageQuery } from "@/services/homePage/getHomePageQuery";
 import { useGetRecommendationProductQuery } from "@/services/recommendation/getRecommendationProductQuery";
 import { useGetAllProductsQuery } from "@/services/product/getAllProductsQuery";
 import { useGetAllCategoriesQuery } from "@/services/category/getAllCategoriesQuery";
 import { getAuthCredentials } from "@/utils/authUtil";
-
-// --- Types ---
 import {
   Product,
   Category,
   HomePageItem,
   CategoryReference,
 } from "@/types/dataTypes";
+import ProductCard from "@/features/components/ProductCard";
 
-// --- Component ---
 const CustomerHomePage: React.FC = () => {
   const [userId, setUserId] = useState<string | undefined>(undefined);
-
-  // --- Số lượng sản phẩm tối đa muốn hiển thị ---
-  const MAX_PRODUCTS_TO_SHOW = 8; // Đặt số lượng tiêu chuẩn ở đây
+  const MAX_PRODUCTS_TO_SHOW = 8;
 
   useEffect(() => {
     const credentials = getAuthCredentials();
@@ -47,7 +35,6 @@ const CustomerHomePage: React.FC = () => {
     }
   }, []);
 
-  // --- Data Fetching ---
   const { data: homePageDataResult, isLoading: isLoadingHomePage } =
     useGetHomePageQuery();
   const homePageData = homePageDataResult as
@@ -58,7 +45,6 @@ const CustomerHomePage: React.FC = () => {
       }
     | undefined;
 
-  // Fetch Recommendations
   const {
     data: recommendedProducts,
     isLoading: isLoadingRecommendations,
@@ -66,28 +52,23 @@ const CustomerHomePage: React.FC = () => {
     isSuccess: isSuccessRecommendations,
   } = useGetRecommendationProductQuery(userId);
 
-  // Điều kiện để kích hoạt fetch fallback products
   const enableFallback = !userId || (!!userId && isErrorRecommendations);
 
-  // Fetch Fallback Products
   const {
     data: fallbackProducts,
     isLoading: isLoadingFallback,
     isSuccess: isSuccessFallback,
   } = useGetAllProductsQuery({
-    limit: MAX_PRODUCTS_TO_SHOW, // Cố gắng lấy đúng số lượng từ API
-    // SỬA LỖI TYPESCRIPT: Ép kiểu tường minh sang boolean cho enabled
+    limit: MAX_PRODUCTS_TO_SHOW,
     enabled: Boolean(enableFallback),
   });
 
-  // Fetch Categories
   const { data: categoriesData, isLoading: isLoadingCategories } =
     useGetAllCategoriesQuery({ limit: 6 });
   const categories: Category[] | undefined = Array.isArray(categoriesData)
     ? categoriesData
     : (categoriesData as any)?.data;
 
-  // --- Logic xác định sản phẩm và trạng thái loading ---
   const shouldUseRecommendations =
     !!userId && isSuccessRecommendations && !isErrorRecommendations;
   const shouldUseFallback = enableFallback && isSuccessFallback;
@@ -98,50 +79,13 @@ const CustomerHomePage: React.FC = () => {
     ? fallbackProducts
     : undefined;
 
-  // Xác định trạng thái loading tổng thể chính xác hơn
-  let isLoadingProducts = isLoadingHomePage; // Bắt đầu bằng loading homepage
+  let isLoadingProducts = isLoadingHomePage;
   if (userId) {
-    isLoadingProducts = isLoadingProducts || isLoadingRecommendations; // Nếu có userId, phụ thuộc recommendations
+    isLoadingProducts = isLoadingProducts || isLoadingRecommendations;
   }
   if (enableFallback) {
-    isLoadingProducts = isLoadingProducts || isLoadingFallback; // Nếu fallback được enable, phụ thuộc fallback
+    isLoadingProducts = isLoadingProducts || isLoadingFallback;
   }
-  // Hoặc đơn giản hơn nếu không muốn phụ thuộc isLoadingHomePage:
-  // const isLoadingProducts = (!!userId && isLoadingRecommendations) || (enableFallback && isLoadingFallback);
-
-  // --- Render Helper Functions ---
-  const renderProductCard = (product: Product) => (
-    <Card
-      key={product._id}
-      className="overflow-hidden group border rounded-lg shadow-sm hover:shadow-md transition-shadow duration-300 flex flex-col"
-    >
-      <Link to={`/product/${product._id}`} className="block flex-grow">
-        <div className="relative aspect-square overflow-hidden bg-gray-100">
-          <img
-            src={product.images?.[0] || "/images/placeholder.png"}
-            alt={product.name}
-            className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-            loading="lazy"
-          />
-        </div>
-        <CardContent className="p-3 space-y-1 flex flex-col flex-grow">
-          {product.category && (
-            <p className="text-xs text-gray-500 uppercase tracking-wide">
-              {(product.category as CategoryReference)?.name || "Danh mục"}
-            </p>
-          )}
-          <h3 className="font-medium text-sm truncate group-hover:text-ch-blue transition-colors flex-grow">
-            {product.name}
-          </h3>
-          <div className="flex items-center justify-between mt-auto">
-            <p className="font-semibold text-base text-ch-red">
-              {product.base_price.toLocaleString("vi-VN")}₫
-            </p>
-          </div>
-        </CardContent>
-      </Link>
-    </Card>
-  );
 
   const renderSkeletonCard = (key: number) => (
     <div key={key} className="space-y-2">
@@ -152,10 +96,8 @@ const CustomerHomePage: React.FC = () => {
     </div>
   );
 
-  // --- Main Component Return ---
   return (
     <div className="space-y-10 md:space-y-16 pb-16">
-      {/* --- Hero Section --- */}
       <section className="relative -mt-px">
         {isLoadingHomePage ? (
           <Skeleton className="w-full h-[35vh] md:h-[55vh] lg:h-[70vh]" />
@@ -209,7 +151,6 @@ const CustomerHomePage: React.FC = () => {
         )}
       </section>
 
-      {/* --- Featured Categories --- */}
       <section className="container mx-auto px-4">
         <h2 className="text-xl md:text-2xl font-semibold text-center mb-6 md:mb-8">
           Danh mục Nổi bật
@@ -244,32 +185,28 @@ const CustomerHomePage: React.FC = () => {
         </div>
       </section>
 
-      {/* --- Recommended/Featured Products --- */}
       <section className="container mx-auto px-4">
         <h2 className="text-xl md:text-2xl font-semibold text-center mb-6 md:mb-8">
-          {/* Tiêu đề thay đổi tùy thuộc vào nguồn dữ liệu */}
           {shouldUseRecommendations ? "Dành cho bạn" : "Hàng Mới Về"}
         </h2>
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
           {isLoadingProducts ? (
-            // Hiển thị skeleton khi đang tải, số lượng dựa trên MAX_PRODUCTS_TO_SHOW
             Array.from({ length: MAX_PRODUCTS_TO_SHOW }).map((_, i) =>
               renderSkeletonCard(i)
             )
-          ) : // Kiểm tra nếu có dữ liệu nguồn
-          productsToShowSource && productsToShowSource.length > 0 ? (
-            // **GIỚI HẠN CLIENT-SIDE:** Dùng slice để chỉ lấy số lượng sản phẩm tiêu chuẩn
+          ) : productsToShowSource && productsToShowSource.length > 0 ? (
             productsToShowSource
               .slice(0, MAX_PRODUCTS_TO_SHOW)
-              .map(renderProductCard)
+              // Sử dụng component ProductCard đã import
+              .map((product) => (
+                <ProductCard key={product._id} product={product} />
+              ))
           ) : (
-            // Hiển thị nếu không có sản phẩm nào từ cả hai nguồn
             <p className="col-span-full text-center text-gray-500 py-8">
               Không tìm thấy sản phẩm phù hợp.
             </p>
           )}
         </div>
-        {/* Nút Xem thêm: Chỉ hiển thị khi không loading VÀ có dữ liệu sản phẩm nguồn */}
         {!isLoadingProducts &&
           productsToShowSource &&
           productsToShowSource.length > 0 && (
@@ -281,7 +218,6 @@ const CustomerHomePage: React.FC = () => {
           )}
       </section>
 
-      {/* --- Promotional Section --- */}
       {!isLoadingHomePage &&
         homePageData?.features &&
         homePageData.features.length > 0 && (
@@ -326,7 +262,6 @@ const CustomerHomePage: React.FC = () => {
           </section>
         )}
 
-      {/* --- Why Choose Us Section --- */}
       <section className="bg-gray-50 py-10 md:py-16">
         <div className="container mx-auto px-4">
           <h2 className="text-xl md:text-2xl font-semibold text-center mb-8 md:mb-10">

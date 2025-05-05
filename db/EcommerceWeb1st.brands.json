@@ -1,0 +1,161 @@
+[{
+  "_id": {
+    "$oid": "67f79e3abdfc522b3447823b"
+  },
+  "name": "APPLE",
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "67f79e3abdfc522b3447823d"
+  },
+  "name": "SAMSUNG",
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "67f79e3abdfc522b3447823e"
+  },
+  "name": "OPPO",
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "67f79e3bbdfc522b3447823f"
+  },
+  "name": "XIAOMI",
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "67f79e3dbdfc522b34478240"
+  },
+  "name": "UNKNOWN",
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "67f79e43bdfc522b34478241"
+  },
+  "name": "REALME",
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "67f79e4abdfc522b34478242"
+  },
+  "name": "VIVO",
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "67f8fec954184b9346e05ae3"
+  },
+  "name": "LENOVO",
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "67f8fec954184b9346e05ae9"
+  },
+  "name": "ASUS",
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "67f8fec954184b9346e05aed"
+  },
+  "name": "HP",
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "67f8fec954184b9346e05af1"
+  },
+  "name": "DELL",
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "67f8feca54184b9346e05b11"
+  },
+  "name": "ACER",
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "67f8feca54184b9346e05b1b"
+  },
+  "name": "MSI",
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "67f8fecd54184b9346e05b77"
+  },
+  "name": "ZTE",
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "67f8fece54184b9346e05b8f"
+  },
+  "name": "COROS",
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "67f8fece54184b9346e05b93"
+  },
+  "name": "GARMIN",
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "67f8fece54184b9346e05b9b"
+  },
+  "name": "RIVERSONG",
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "67f8fecf54184b9346e05ba3"
+  },
+  "name": "MIBRO",
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "67fa789c7d4a5173c3eb07e7"
+  },
+  "name": "KIESLECT",
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "67fa789d7d4a5173c3eb07fe"
+  },
+  "name": "KOSPET",
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "67fe8666077b5cd001f88a26"
+  },
+  "name": "MASSTEL",
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "67fe8668077b5cd001f88a61"
+  },
+  "name": "AMAZFIT",
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "680629a95e9eea31e71b027c"
+  },
+  "name": "HUAWEI",
+  "__v": 0
+}]
