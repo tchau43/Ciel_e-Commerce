@@ -140,12 +140,12 @@ const Product = () => {
         {` / `}
         <span className="text-gray-800">{typedProduct.name.toUpperCase()}</span>
       </p>
-      <div className="flex flex-col md:flex-row gap-x-8">
+      <div className="flex flex-col md:flex-row gap-x-8 bg-ch-blue-10 m-4">
         <div
           ref={columnARef}
           className={`w-full md:w-3/5 lg:flex-2 mb-8 md:mb-0`}
         >
-          <div className="flex gap-4 mb-8">
+          <div className="flex gap-4 mb-8 ">
             <div className="h-[404px] 2xl:h-[600px] flex-shrink-0 w-24 flex flex-col gap-y-2 overflow-y-auto pr-2 snap-y snap-mandatory scroll-smooth custom-scrollbar">
               {imageSources.map((imgUrl: string, index: number) => (
                 <img
@@ -182,7 +182,7 @@ const Product = () => {
               />
             </div>
           </div>
-          <div className="mt-8 md:mt-0">
+          <div className="mt-8 md:mt-0 ml-4">
             {typedProduct.description &&
               typedProduct.description.length > 0 && (
                 <div>

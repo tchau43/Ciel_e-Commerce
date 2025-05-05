@@ -1,276 +1,296 @@
 // pages/PaymentPage.tsx
+import React, { useState, ChangeEvent } from "react"; // Import React
+import { useLocation, useNavigate } from "react-router-dom";
 import { useDeleteAllProductInCartMutation } from "@/services/cart/deleteAllProductInCartMutation";
 import { useCreateInvoiceMutation } from "@/services/invoice/createInvoiceMutation";
-import { CartItemData, ShippingAddress } from "@/types/dataTypes"; // Import ShippingAddress
+// SỬA LỖI: Import đúng types từ dataTypes.ts
+import { CartItem, Address } from "@/types/dataTypes";
 import { getAuthCredentials } from "@/utils/authUtil";
-import { useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { Button } from "@/components/ui/button"; // Import Button nếu cần
+import { Input } from "@/components/ui/input"; // Import Input nếu cần
+import { Label } from "@/components/ui/label"; // Import Label nếu cần
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"; // Import Select nếu cần
 
 const PaymentPage = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { userInfo } = getAuthCredentials();
+  const userId = userInfo?._id; // Lấy userId an toàn
+
   const {
     mutate: createInvoice,
-    isError,
-    isPending,
-  } = useCreateInvoiceMutation(); // Renamed for clarity
-  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState("COD"); // e.g., "COD" or "Stripe"
+    isError: isCreateInvoiceError, // Đổi tên để rõ ràng hơn
+    isPending: isCreateInvoicePending, // Đổi tên để rõ ràng hơn
+  } = useCreateInvoiceMutation();
+  const { mutate: deleteCart } = useDeleteAllProductInCartMutation();
 
-  // --- State for Shipping Address ---
-  // Initialize with user's default address or empty strings
-  const [shippingAddress, setShippingAddress] = useState<ShippingAddress>({
-    street: userInfo?.address || "", // Use default street if available
-    city: "", // Add fields for city, state, etc.
-    state: "",
-    country: "",
-    zipCode: "",
+  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState("COD");
+  const [shippingAddress, setShippingAddress] = useState<Address>({
+    // Sử dụng type Address
+    street: userInfo?.address?.street || "", // Lấy thông tin chi tiết hơn nếu có
+    city: userInfo?.address?.city || "",
+    state: userInfo?.address?.state || "",
+    country: userInfo?.address?.country || "",
+    zipCode: userInfo?.address?.zipCode || "",
   });
-  // ---
 
+  // Giả định state truyền từ CartPage chứa cartItems và total
   const { cartItems, total } = (location.state || {}) as {
-    cartItems: CartItemData[];
+    cartItems: CartItem[]; // Sử dụng type CartItem
     total: number;
   };
-  const { mutate: deleteCart } = useDeleteAllProductInCartMutation(); // Renamed for clarity
 
-  const handlePaymentMethodChange = (
-    e: React.ChangeEvent<HTMLSelectElement>
-  ) => {
-    setSelectedPaymentMethod(e.target.value);
+  const handlePaymentMethodChange = (value: string) => {
+    // Handler cho Shadcn Select
+    setSelectedPaymentMethod(value);
   };
 
-  // --- Handler for address input changes ---
-  const handleAddressChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleAddressChange = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setShippingAddress((prev) => ({ ...prev, [name]: value }));
+    // SỬA LỖI: Thêm kiểu Address cho prev
+    setShippingAddress((prev: Address) => ({ ...prev, [name]: value }));
   };
-  // ---
 
+  // Kiểm tra dữ liệu đầu vào trước khi render
   if (!location.state || !cartItems || cartItems.length === 0) {
-    // Added checks
     return (
-      <div className="p-4 text-center">
+      <div className="container mx-auto p-4 text-center">
         <p className="text-red-500 mb-4">
-          No items found for payment or invalid state.
+          Không tìm thấy sản phẩm để thanh toán hoặc dữ liệu không hợp lệ.
         </p>
-        <button
-          onClick={() => navigate("/cart")}
-          className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-        >
-          Return to Cart
-        </button>
+        <Button onClick={() => navigate("/cart")}>Quay lại giỏ hàng</Button>
       </div>
     );
   }
 
   const handleCheckout = () => {
-    // Basic address validation (improve as needed)
+    // SỬA LỖI: Kiểm tra userId trước khi thực hiện
+    if (!userId) {
+      alert("Không tìm thấy thông tin người dùng. Vui lòng đăng nhập lại.");
+      navigate("/login");
+      return;
+    }
+
+    // Kiểm tra địa chỉ giao hàng
     if (
       !shippingAddress.street ||
       !shippingAddress.city ||
       !shippingAddress.country ||
       !shippingAddress.zipCode
+      // Có thể thêm kiểm tra state nếu cần
     ) {
-      alert("Please fill in all required shipping address fields.");
+      alert("Vui lòng điền đầy đủ thông tin địa chỉ giao hàng.");
       return;
     }
 
+    // Xử lý thanh toán Stripe (nếu chọn)
     if (selectedPaymentMethod === "Stripe") {
-      // Use a clear identifier like "Stripe"
-      // Pass necessary data including the *intended* structured address
       navigate("/payment/stripe", {
-        state: { cartItems, total, shippingAddress }, // Pass address too
+        state: { cartItems, total, shippingAddress }, // Truyền cả địa chỉ
       });
       return;
     }
 
-    // --- Logic for COD or other non-redirect methods ---
+    // Xử lý thanh toán COD
     createInvoice(
       {
         variables: {
-          // This is the object sent as the request body
-          userId: userInfo._id,
-          shippingAddress: shippingAddress, // The state object
-          productsList: cartItems.map((c: CartItemData) => ({
-            // Array from cart
-            productId: c.product._id,
-            quantity: c.quantity,
-            variantId: c.variant || null,
+          userId: userId, // Đảm bảo userId đã được kiểm tra
+          shippingAddress: shippingAddress,
+          // SỬA LỖI: Map dữ liệu từ CartItem sang InvoiceItemInput
+          productsList: cartItems.map((item: CartItem) => ({
+            productId: item.productId,
+            quantity: item.quantity,
+            variantId: item.variantId || null, // Lấy variantId trực tiếp
           })),
-          paymentMethod: selectedPaymentMethod, // "COD"
+          paymentMethod: selectedPaymentMethod as "COD", // Ép kiểu nếu chắc chắn
         },
       },
       {
         onSuccess: (data) => {
-          // Access the created invoice data
-          console.log("Invoice created (COD):", data);
-          // Clear cart after successful invoice creation
-          deleteCart(userInfo._id, {
+          console.log("Hóa đơn đã tạo (COD):", data);
+          // Xóa giỏ hàng sau khi tạo hóa đơn thành công
+          deleteCart(userId, {
+            // Đảm bảo userId đã được kiểm tra
             onSuccess: () => {
-              console.log("Cart cleared.");
-              // Navigate to an order confirmation/success page, passing invoice ID
-              navigate(`/order-success/${data.invoice._id}`); // Example route
+              console.log("Đã xóa giỏ hàng.");
+              // Chuyển hướng đến trang thành công với ID hóa đơn
+              navigate(`/order-success/${data.invoice._id}`);
             },
             onError: (cartError) => {
-              console.error("Failed to clear cart:", cartError);
-              // Still navigate, but maybe show a message?
+              console.error("Lỗi xóa giỏ hàng:", cartError);
+              // Vẫn chuyển hướng nhưng có thể kèm thông báo lỗi?
               navigate(`/order-success/${data.invoice._id}`);
             },
           });
         },
         onError: (error) => {
-          console.error("Invoice creation failed:", error);
-          alert(
-            `Failed to create invoice: ${error.message || "Unknown error"}`
-          );
+          console.error("Lỗi tạo hóa đơn:", error);
+          alert(`Lỗi tạo hóa đơn: ${error.message || "Lỗi không xác định"}`);
         },
       }
     );
   };
 
   return (
-    <div className="container mx-auto p-4 md:p-8 max-w-2xl">
-      <h1 className="text-2xl font-semibold mb-6 text-center">Checkout</h1>
-      <div className="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
-        {/* Shipping Address Form */}
-        <h2 className="text-xl mb-4 border-b pb-2">Shipping Address</h2>
-        <div className="mb-4">
-          <label
-            className="block text-gray-700 text-sm font-bold mb-2"
-            htmlFor="street"
-          >
-            Street Address
-          </label>
-          <input
-            className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-            id="street"
-            name="street"
-            type="text"
-            placeholder="123 Main St"
-            value={shippingAddress.street}
-            onChange={handleAddressChange}
-            required
-          />
-        </div>
-        <div className="mb-4">
-          <label
-            className="block text-gray-700 text-sm font-bold mb-2"
-            htmlFor="city"
-          >
-            City
-          </label>
-          <input
-            className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-            id="city"
-            name="city"
-            type="text"
-            placeholder="Hanoi"
-            value={shippingAddress.city}
-            onChange={handleAddressChange}
-            required
-          />
-        </div>
-        {/* Add similar inputs for state, country, zipCode using handleAddressChange */}
-        <div className="mb-4">
-          <label
-            className="block text-gray-700 text-sm font-bold mb-2"
-            htmlFor="zipCode"
-          >
-            Zip Code
-          </label>
-          <input
-            className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-            id="zipCode"
-            name="zipCode"
-            type="text"
-            placeholder="100000"
-            value={shippingAddress.zipCode}
-            onChange={handleAddressChange}
-            required
-          />
-        </div>
-        <div className="mb-6">
-          <label
-            className="block text-gray-700 text-sm font-bold mb-2"
-            htmlFor="country"
-          >
-            Country
-          </label>
-          <input
-            className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-            id="country"
-            name="country"
-            type="text"
-            placeholder="Vietnam"
-            value={shippingAddress.country}
-            onChange={handleAddressChange}
-            required
-          />
+    <div className="container mx-auto p-4 md:p-8 max-w-3xl">
+      {" "}
+      {/* Tăng max-w */}
+      <h1 className="text-2xl font-semibold mb-6 text-center text-gray-800">
+        Thanh Toán
+      </h1>
+      <div className="bg-white shadow-md rounded-lg px-6 sm:px-8 pt-6 pb-8 mb-4">
+        <h2 className="text-xl font-semibold mb-4 border-b pb-3 text-gray-700">
+          Địa Chỉ Giao Hàng
+        </h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+          <div>
+            <Label
+              htmlFor="street"
+              className="block text-gray-700 text-sm font-bold mb-2"
+            >
+              Địa chỉ
+            </Label>
+            <Input
+              id="street"
+              name="street"
+              type="text"
+              placeholder="Ví dụ: Số 10, ngõ 5..."
+              value={shippingAddress.street}
+              onChange={handleAddressChange}
+              required
+              className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+          <div>
+            <Label
+              htmlFor="city"
+              className="block text-gray-700 text-sm font-bold mb-2"
+            >
+              Thành phố / Tỉnh
+            </Label>
+            <Input
+              id="city"
+              name="city"
+              type="text"
+              placeholder="Ví dụ: Hà Nội"
+              value={shippingAddress.city}
+              onChange={handleAddressChange}
+              required
+              className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+          {/* Thêm input cho state/district nếu cần */}
+          {/* <div>
+            <Label htmlFor="state" className="block text-gray-700 text-sm font-bold mb-2">Quận / Huyện</Label>
+            <Input id="state" name="state" type="text" placeholder="Ví dụ: Ba Đình" value={shippingAddress.state} onChange={handleAddressChange} className="..."/>
+          </div> */}
+          <div>
+            <Label
+              htmlFor="zipCode"
+              className="block text-gray-700 text-sm font-bold mb-2"
+            >
+              Mã bưu chính (Zip Code)
+            </Label>
+            <Input
+              id="zipCode"
+              name="zipCode"
+              type="text"
+              placeholder="Ví dụ: 100000"
+              value={shippingAddress.zipCode}
+              onChange={handleAddressChange}
+              required
+              className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+          <div>
+            <Label
+              htmlFor="country"
+              className="block text-gray-700 text-sm font-bold mb-2"
+            >
+              Quốc gia
+            </Label>
+            <Input
+              id="country"
+              name="country"
+              type="text"
+              placeholder="Ví dụ: Việt Nam"
+              value={shippingAddress.country}
+              onChange={handleAddressChange}
+              required
+              className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
         </div>
 
-        {/* Order Summary & Payment Method */}
-        <h2 className="text-xl mb-4 border-b pb-2 pt-4">
-          Order Summary & Payment
+        <h2 className="text-xl font-semibold mb-4 border-b pb-3 pt-4 text-gray-700">
+          Tóm Tắt Đơn Hàng & Thanh Toán
         </h2>
         <div className="mb-4">
-          <p>
-            <strong>Items:</strong>
-          </p>
-          <ul className="list-disc ml-5 text-sm">
+          <p className="font-semibold text-gray-700 mb-2">Sản phẩm:</p>
+          <ul className="list-disc ml-5 text-sm text-gray-600 space-y-1">
+            {/* SỬA LỖI: Hiển thị thông tin từ CartItem */}
             {cartItems.map((item) => (
-              <li key={`${item.product._id}-${item.variant || "base"}`}>
-                {item.product.name}{" "}
-                {item.variant
-                  ? `(${
-                      item.product.variants.find((v) => v._id === item.variant)
-                        ?.types || "Variant"
-                    })`
-                  : ""}{" "}
-                x {item.quantity}
+              <li key={`${item.productId}-${item.variantId || "base"}`}>
+                {item.name} {/* Hiển thị tên sản phẩm từ CartItem */}
+                {item.variantTypes ? ` (${item.variantTypes})` : ""}{" "}
+                {/* Hiển thị loại biến thể nếu có */} x {item.quantity}
               </li>
             ))}
           </ul>
         </div>
-        <div className="mb-4 flex justify-between">
-          <span className="font-bold">Total:</span>
+        <div className="mb-4 flex justify-between font-medium text-gray-800">
+          <span>Tổng cộng:</span>
           <span>{total?.toLocaleString("vi-VN")} VND</span>
         </div>
         <div className="mb-6">
-          <label
+          <Label
             htmlFor="payment"
             className="block text-gray-700 text-sm font-bold mb-2"
           >
-            Payment Method:
-          </label>
-          <select
-            id="payment"
+            Phương thức thanh toán:
+          </Label>
+          <Select
             value={selectedPaymentMethod}
-            onChange={handlePaymentMethodChange}
-            className="shadow border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+            onValueChange={handlePaymentMethodChange}
           >
-            <option value="COD">Cash on Delivery</option>
-            <option value="Stripe">Pay with Card (Stripe)</option>
-          </select>
+            <SelectTrigger className="w-full shadow border rounded py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500">
+              <SelectValue placeholder="Chọn phương thức thanh toán" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="COD">
+                Thanh toán khi nhận hàng (COD)
+              </SelectItem>
+              <SelectItem value="Stripe">
+                Thanh toán bằng thẻ (Stripe)
+              </SelectItem>
+            </SelectContent>
+          </Select>
         </div>
 
-        {/* Checkout Button */}
-        <div className="flex items-center justify-between">
-          <button
-            className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline w-full disabled:opacity-50"
+        <div className="flex items-center justify-center">
+          <Button
+            size="lg" // Tăng kích thước nút
+            className="bg-green-600 hover:bg-green-700 text-white font-bold w-full md:w-auto disabled:opacity-50"
             onClick={handleCheckout}
-            disabled={isPending} // Disable while mutation is in progress
+            disabled={isCreateInvoicePending}
           >
-            {isPending
-              ? "Processing..."
+            {isCreateInvoicePending
+              ? "Đang xử lý..."
               : selectedPaymentMethod === "Stripe"
-              ? "Proceed to Card Payment"
-              : "Place Order (COD)"}
-          </button>
+              ? "Tiếp tục thanh toán thẻ"
+              : "Đặt hàng (COD)"}
+          </Button>
         </div>
-        {isError && (
-          <p className="text-red-500 text-xs italic mt-4">
-            Failed to create invoice. Please try again.
+        {isCreateInvoiceError && (
+          <p className="text-red-500 text-xs italic mt-4 text-center">
+            Không thể tạo đơn hàng. Vui lòng thử lại.
           </p>
         )}
       </div>

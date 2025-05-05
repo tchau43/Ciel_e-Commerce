@@ -21,6 +21,7 @@ import EditProduct from "./features/admin/components/EditProduct.tsx";
 import TestPage from "./pages/TestPage.tsx";
 import Product from "./features/products/components/Product.tsx";
 import RecommendedProductsPage from "./pages/recommendations/RecommendedProductsPage.tsx";
+import AdminInvoicesManagementPage from "./features/admin/pages/AdminInvoicesManagementPage.tsx";
 
 function LoadingSpinner() {
   return (
@@ -56,6 +57,8 @@ function App() {
             <Route path="editUser/:id/" element={<EditUser />} />
             <Route path="products/" element={<AdminProductsManagementPage />} />
             <Route path="editProduct/:id/" element={<EditProduct />} />
+            <Route path="invoices/" element={<AdminInvoicesManagementPage />} />
+            {/* ADD THIS ROUTE */}
           </Route>
 
           {/* Route for user */}
@@ -72,7 +75,7 @@ function App() {
           >
             <Route index element={<CustomerHomePage />} />
             <Route
-              path="product/*"
+              path="products/*"
               element={
                 // <Suspense fallback={<LoadingSpinner />}>
                 <ProductsPage />
@@ -90,7 +93,7 @@ function App() {
             <Route
               path="recommendations/"
               element={<RecommendedProductsPage />}
-            />{" "}
+            />
             {/* <-- ADD ROUTE */}
           </Route>
           <Route path="test/" element={<TestPage />}></Route>
