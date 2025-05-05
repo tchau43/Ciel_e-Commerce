@@ -103,7 +103,7 @@ const ProductsPage = () => {
   }
 
   return (
-    <div className="flex flex-col md:flex-row">
+    <div className="flex flex-col md:flex-row bg-ch-red-10">
       <button
         onClick={() => setIsSidebarOpen(true)}
         className="md:hidden fixed bottom-4 right-4 z-50 p-3 bg-ch-blue text-white rounded-full shadow-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-ch-blue"
@@ -122,11 +122,11 @@ const ProductsPage = () => {
 
       <div
         className={cn(
-          "bg-white",
+          "bg-white h-44",
           "fixed inset-y-0 left-0 z-50 w-64 sm:w-72 transform transition-transform duration-300 ease-in-out",
           isSidebarOpen ? "translate-x-0" : "-translate-x-full",
           "md:static md:translate-x-0 md:w-64 lg:w-72 md:flex-shrink-0 md:flex md:flex-col",
-          "border-r border-gray-200"
+          "border-r border-gray-200 "
         )}
       >
         <div className="p-4 flex-grow overflow-y-auto">
@@ -142,7 +142,7 @@ const ProductsPage = () => {
         </div>
       </div>
 
-      <main className="flex-1 p-4 sm:p-6 lg:p-8 bg-gray-50 min-h-screen">
+      <main className="flex-1 p-4 sm:p-6 lg:p-8 bg-ch-red-10 min-h-screen">
         {productsLoading && (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {[...Array(8)].map((_, i) => (

@@ -1,0 +1,316 @@
+[{
+  "_id": {
+    "$oid": "67c1becd91d011061556b41f"
+  },
+  "name": "chauuuuuu123",
+  "email": "tchau28021@gmail.com",
+  "password": "$2b$10$olP3bh/i1fQwj65QHp1qbO5rJ/Q12r9cVsnBVoERTXF0tqAJJ5qAe",
+  "role": "CUSTOMER",
+  "__v": 0,
+  "image": "",
+  "status": true,
+  "updatedAt": {
+    "$date": "2025-03-11T05:53:40.097Z"
+  },
+  "address": "chauuuuuu123 address"
+},
+{
+  "_id": {
+    "$oid": "67c1c03091d011061556b422"
+  },
+  "name": "hello",
+  "email": "xacawsc@gmail.com",
+  "password": "$2b$10$PL6W2Scnx0L7ZwQPWeHVKOS6g6rgMbJI1OXNdLjETpsuunzhi8Bi6",
+  "role": "CUSTOMER",
+  "__v": 0,
+  "image": "",
+  "status": true,
+  "updatedAt": {
+    "$date": "2025-03-11T05:53:40.133Z"
+  },
+  "address": "hello address"
+},
+{
+  "_id": {
+    "$oid": "67c2d217d735a3e01c1fd3da"
+  },
+  "name": "Chau",
+  "email": "tchau2802@gmail.com",
+  "password": "$2b$10$yPYqXeKTfO.2HEztLKoC1.u57kuExEG8gWpJjSkwtZTTLXvnGpGdq",
+  "role": "ADMIN",
+  "__v": 0,
+  "image": "",
+  "status": true,
+  "updatedAt": {
+    "$date": "2025-03-11T05:53:40.176Z"
+  },
+  "address": "Chau address"
+},
+{
+  "_id": {
+    "$oid": "67c481abc42c71c9c949fbe3"
+  },
+  "name": "hello",
+  "email": "hello1@gmail.com",
+  "password": "$2b$10$xLO2L/VcTw/h8c8yZC6w3O6liBZBsOjGxNgrtdaXUvMtWi2ya8vF.",
+  "role": "CUSTOMER",
+  "status": true,
+  "createdAt": {
+    "$date": "2025-03-02T16:04:59.771Z"
+  },
+  "updatedAt": {
+    "$date": "2025-03-11T05:53:40.221Z"
+  },
+  "__v": 0,
+  "address": "hello address"
+},
+{
+  "_id": {
+    "$oid": "67c481b3c42c71c9c949fbe6"
+  },
+  "name": "hello",
+  "email": "hello2@gmail.com",
+  "password": "$2b$10$CJWrpSu7TMQAkuvPjl9h6uooeiDBrFhtJC/qAaC0O1rnGG/o//w6u",
+  "role": "CUSTOMER",
+  "status": true,
+  "createdAt": {
+    "$date": "2025-03-02T16:05:07.609Z"
+  },
+  "updatedAt": {
+    "$date": "2025-03-11T05:53:40.264Z"
+  },
+  "__v": 0,
+  "address": "hello address"
+},
+{
+  "_id": {
+    "$oid": "67c481b7c42c71c9c949fbe9"
+  },
+  "name": "hello",
+  "email": "hello3@gmail.com",
+  "password": "$2b$10$5Rij7O8n8fAy9UJYdGoLE.6hk3lbZ7feYB43HygtVh4sWckoCPGGy",
+  "role": "CUSTOMER",
+  "status": true,
+  "createdAt": {
+    "$date": "2025-03-02T16:05:11.271Z"
+  },
+  "updatedAt": {
+    "$date": "2025-03-11T05:53:40.298Z"
+  },
+  "__v": 0,
+  "address": "hello address"
+},
+{
+  "_id": {
+    "$oid": "67c481bcc42c71c9c949fbec"
+  },
+  "name": "hello",
+  "email": "hello4@gmail.com",
+  "password": "$2b$10$plW8zlVpDpasbwpbK.0xb.J6JBiu/bQb09aYr8pldMgLDyRWw7DcG",
+  "role": "CUSTOMER",
+  "status": true,
+  "createdAt": {
+    "$date": "2025-03-02T16:05:16.230Z"
+  },
+  "updatedAt": {
+    "$date": "2025-03-11T05:53:40.336Z"
+  },
+  "__v": 0,
+  "address": "hello address"
+},
+{
+  "_id": {
+    "$oid": "67c481c1c42c71c9c949fbef"
+  },
+  "name": "hello",
+  "email": "hello5@gmail.com",
+  "password": "$2b$10$F1DPwFMsxTEzKvEZVsbxFOp.58fZVcsoav6SUfJPiLsCj63Ewb0Dy",
+  "role": "CUSTOMER",
+  "status": true,
+  "createdAt": {
+    "$date": "2025-03-02T16:05:21.056Z"
+  },
+  "updatedAt": {
+    "$date": "2025-03-11T05:53:40.377Z"
+  },
+  "__v": 0,
+  "address": "hello address"
+},
+{
+  "_id": {
+    "$oid": "67c481c4c42c71c9c949fbf2"
+  },
+  "name": "hello",
+  "email": "hello6@gmail.com",
+  "password": "$2b$10$cjFXl2w/0CUnUN9JBujhKOes7HabSwqcBrcW/7vZQC.Rt0fr07uvm",
+  "role": "CUSTOMER",
+  "status": true,
+  "createdAt": {
+    "$date": "2025-03-02T16:05:24.250Z"
+  },
+  "updatedAt": {
+    "$date": "2025-03-11T05:53:40.423Z"
+  },
+  "__v": 0,
+  "address": "hello address"
+},
+{
+  "_id": {
+    "$oid": "67c481c8c42c71c9c949fbf5"
+  },
+  "name": "hello",
+  "email": "hello7@gmail.com",
+  "password": "$2b$10$Q2dL24aRj/uP4tFjHrSme.EQYc0DmlXqkxnaQcpHB9H/IUW1FJcye",
+  "role": "CUSTOMER",
+  "status": true,
+  "createdAt": {
+    "$date": "2025-03-02T16:05:28.363Z"
+  },
+  "updatedAt": {
+    "$date": "2025-03-11T05:53:40.463Z"
+  },
+  "__v": 0,
+  "address": "hello address"
+},
+{
+  "_id": {
+    "$oid": "6800d818967c6ed10ea3203f"
+  },
+  "name": "Chau1",
+  "email": "tchau28022@gmail.com",
+  "password": "$2b$10$mz8cz3mYdjBqzgn1f0tLaOFjujhq1hopK3FIM2wdEnsMRWjdflI.C",
+  "role": "CUSTOMER",
+  "status": true,
+  "createdAt": {
+    "$date": "2025-04-17T10:29:44.735Z"
+  },
+  "updatedAt": {
+    "$date": "2025-04-17T10:29:44.735Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "6808fc4b7261b94d07535541"
+  },
+  "name": "Ch",
+  "email": "chaupt2823@gmail.com",
+  "password": "$2b$10$ygMMbxO/NDHLxyDE6Ckye.HHbiUUTUPtD6ADQzNIkUw4d4vwlGMuC",
+  "role": "CUSTOMER",
+  "status": true,
+  "address": {
+    "street": "123 Đường ABC",
+    "city": "Hanoi",
+    "state": "Hoàn Kiếm",
+    "country": "Vietnam",
+    "zipCode": "100000"
+  },
+  "phoneNumber": 392031915,
+  "createdAt": {
+    "$date": "2025-04-23T14:42:19.849Z"
+  },
+  "updatedAt": {
+    "$date": "2025-04-23T14:42:19.849Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "6808fcbd7261b94d07535544"
+  },
+  "name": "chau",
+  "email": "chauchau@gmail.com",
+  "password": "$2b$10$DKE/4JOEF2toQYnoHGEeLO3/l5No8yBlHY.j2Zj4OxZcnWKIRkW8.",
+  "role": "CUSTOMER",
+  "status": true,
+  "address": {
+    "street": "asd",
+    "city": "qwe",
+    "state": "axdc",
+    "country": "qwe",
+    "zipCode": "axc"
+  },
+  "phoneNumber": 123,
+  "createdAt": {
+    "$date": "2025-04-23T14:44:13.576Z"
+  },
+  "updatedAt": {
+    "$date": "2025-04-23T14:44:13.576Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "6808fedb3a7aadcc351d0c14"
+  },
+  "name": "Ch",
+  "email": "chaupt28231@gmail.com",
+  "password": "$2b$10$EUknqQFB2Kpp7Ca6DZyf6.SjBxCd8w18gerssJUvBU6xQ1unVWuZi",
+  "role": "CUSTOMER",
+  "status": true,
+  "address": {
+    "street": "123 Đường ABC",
+    "city": "Hanoi",
+    "state": "Hoàn Kiếm",
+    "country": "Vietnam",
+    "zipCode": "100000"
+  },
+  "phoneNumber": "0392031111",
+  "createdAt": {
+    "$date": "2025-04-23T14:53:15.660Z"
+  },
+  "updatedAt": {
+    "$date": "2025-04-23T14:53:15.660Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "68090ad83a7aadcc351d0c37"
+  },
+  "name": "chau",
+  "email": "hello11@gmail.com",
+  "password": "$2b$10$nq6h9pUAId0r1Y8uRyqChu48p7T4tNAwOCR5K9kj8rqn1z7LmtLKe",
+  "role": "CUSTOMER",
+  "status": true,
+  "address": {
+    "street": "123",
+    "city": "efg",
+    "state": "345",
+    "country": "fdgdgd",
+    "zipCode": "treg"
+  },
+  "phoneNumber": "0393246544",
+  "createdAt": {
+    "$date": "2025-04-23T15:44:24.121Z"
+  },
+  "updatedAt": {
+    "$date": "2025-04-23T15:44:24.121Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "680b0b0dbe7a427ce88d336a"
+  },
+  "name": "châu",
+  "email": "chaupt282312@gmail.com",
+  "password": "$2b$10$KrTm4ffldEwEY0hljPA8BOli53aSvq7kg5DxJMpHPL3gA4o7JuDaS",
+  "role": "CUSTOMER",
+  "status": true,
+  "address": {
+    "street": "1231",
+    "city": "efg",
+    "state": "345",
+    "country": "fdgdgd",
+    "zipCode": "treg"
+  },
+  "phoneNumber": "0398888888",
+  "createdAt": {
+    "$date": "2025-04-25T04:09:49.320Z"
+  },
+  "updatedAt": {
+    "$date": "2025-04-25T04:09:49.320Z"
+  },
+  "__v": 0
+}]
