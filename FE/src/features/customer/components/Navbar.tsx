@@ -1,7 +1,7 @@
 // src/features/customer/layout/components/Navbar.tsx
 
 import React from "react";
-import { NavLink, Link } from "react-router-dom"; // Thêm Link
+import { NavLink, Link, useLocation } from "react-router-dom"; // Thêm useLocation
 import { cn } from "@/lib/utils";
 import { useGetAllCategoriesQuery } from "@/services/category/getAllCategoriesQuery";
 import { Category } from "@/types/dataTypes";
@@ -17,6 +17,7 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 
 const Navbar: React.FC = () => {
+  const location = useLocation(); // Lấy thông tin location hiện tại
   const { data: categoriesData, isLoading: isLoadingCategories } =
     useGetAllCategoriesQuery();
   const categories: Category[] | undefined = Array.isArray(categoriesData)
@@ -27,6 +28,13 @@ const Navbar: React.FC = () => {
   const linkHoverClasses = "hover:text-ch-red";
   const lightModeText = "text-gray-700 dark:text-gray-300";
   const activeClass = "!text-ch-red font-semibold";
+
+  // Xác định xem link "SẢN PHẨM" có nên active không
+  const isProductsActive = location.pathname.startsWith("/product");
+  // Lưu ý: URL trong code cũ và mới của bạn có sự khác biệt (/product vs /products).
+  // Tôi đang dùng /products vì nó nhất quán với link category.
+  // Nếu trang sản phẩm chính của bạn là /product (số ít), hãy đổi thành:
+  // const isProductsActive = location.pathname.startsWith("/product");
 
   return (
     <nav
@@ -57,29 +65,26 @@ const Navbar: React.FC = () => {
 
             <NavigationMenuItem>
               <NavigationMenuTrigger
-                // Không cần className phức tạp ở đây nữa vì Link bên trong sẽ xử lý style chữ
-                // Trigger chỉ cần style cơ bản để nhận hover
                 className={cn(
                   navigationMenuTriggerStyle(),
+                  linkBaseClasses, // Thêm lại base class để đảm bảo style chữ
                   lightModeText,
-                  "relative"
-                )} // Thêm relative nếu cần cho active state indicator sau này
+                  linkHoverClasses, // Thêm lại hover class cho trigger
+                  "relative",
+                  isProductsActive ? activeClass : "" // Áp dụng activeClass cho Trigger
+                )}
               >
-                {/* Bọc nội dung chữ bằng Link */}
                 <Link
-                  to="/product" // Link đến trang sản phẩm chung khi click
+                  to="/products" // Đảm bảo link này đúng với trang sản phẩm của bạn
                   className={cn(
-                    linkBaseClasses,
-                    linkHoverClasses
-                    // Không cần activeClass ở đây vì NavLink bên ngoài (cho mục khác) xử lý active
+                    // Class cho Link bên trong không cần active, để Trigger xử lý
+                    // Tuy nhiên cần đảm bảo nó không override style của Trigger
+                    "focus:outline-none" // Tránh viền focus mặc định của Link
                   )}
-                  // Ngăn không cho sự kiện click của Link lan tỏa lên Trigger (tránh hành vi không mong muốn)
                   onClick={(e) => e.stopPropagation()}
                 >
                   SẢN PHẨM
                 </Link>
-                {/* Icon mũi tên vẫn nằm trong Trigger */}
-                {/* Icon đã có sẵn trong NavigationMenuTrigger của Shadcn rồi, không cần thêm */}
               </NavigationMenuTrigger>
               <NavigationMenuContent>
                 <ul className="grid w-[400px] gap-3 p-4 md:w-[500px] md:grid-cols-2 lg:w-[600px]">
@@ -95,8 +100,7 @@ const Navbar: React.FC = () => {
                       <ListItem
                         key={category._id}
                         title={category.name}
-                        // Giữ nguyên link đến trang lọc sản phẩm theo category
-                        to={`/product?category=${category._id}`}
+                        to={`/product?category=${category._id}`} // Đảm bảo URL đúng
                       >
                         {category.description}
                       </ListItem>
@@ -110,7 +114,7 @@ const Navbar: React.FC = () => {
                     <li className="md:col-span-2 mt-2">
                       <ListItem
                         title="Xem tất cả sản phẩm"
-                        to="/product"
+                        to="/product" // Đảm bảo URL đúng
                         className="font-semibold text-ch-blue hover:bg-accent/80"
                       >
                         Duyệt qua bộ sưu tập đầy đủ của chúng tôi.

@@ -1,53 +1,62 @@
-// src/repositories/invoice/invoice.ts  (or wherever this file is located)
+// src/repositories/invoice/invoice.ts
 
 import {
-  InvoiceRequest,
-  ShippingAddress, // <-- Import ShippingAddress
-  InvoiceProductInputData, // <-- Import InvoiceProductInputData
-} from "@/types/dataTypes"; // Make sure path to types is correct
+  // Corrected Imports based on dataTypes.ts provided earlier
+  CreateInvoiceInput, // Was InvoiceRequest
+  Address as ShippingAddress, // Was ShippingAddress, using Address type
+  InvoiceItemInput, // Was InvoiceProductInputData
+  UpdateInvoiceStatusInput,
+  Invoice,
+} from "@/types/dataTypes";
 import Base from "../base";
 
-// --- Define the specific types needed for the new method ---
-// Type for the variables the new method expects as input
 type InitiatePaymentVariables = {
   userId: string;
-  productsList: InvoiceProductInputData[];
-  shippingAddress: ShippingAddress;
+  productsList: InvoiceItemInput[]; // Use corrected type
+  shippingAddress: ShippingAddress; // Use corrected type
 };
 
-// Type for the expected successful response from the new backend endpoint
 type InitiatePaymentResponse = {
   clientSecret: string;
   invoiceId: string;
-  totalAmount: number; // Backend confirms the total
+  totalAmount: number;
 };
-// --- End type definitions ---
 
-class Invoice extends Base {
+class InvoiceRepository extends Base {
   // Existing method for COD/Manual invoice creation
-  createInvoice = (url: string, variables: InvoiceRequest) => {
-    // Expects { message: string, invoice: InvoiceResponse } based on previous hook typing
-    // Adjust <any> to the actual expected response type for better type safety
-    return this.http(url, "post", variables);
+  createInvoice = (url: string, variables: CreateInvoiceInput) => {
+    // Use corrected type
+    // Adjust <any> to the actual expected response type
+    return this.http<any>(url, "post", variables);
   };
 
-  // Existing method to get invoices
-  getInvoice = (url: string) => {
-    // Expects an array of InvoiceResponse objects
-    // Adjust <any[]> to the actual expected response type (e.g., InvoiceResponse[])
-    return this.http<any[]>(url, "get");
+  // Existing method to get invoices for a SPECIFIC user
+  getInvoicesForUser = (url: string) => {
+    return this.http<Invoice[]>(url, "get");
   };
 
-  // --- ADD THIS METHOD for Stripe Initiation ---
+  // Method for getting ALL invoices (Admin)
+  getAllInvoices = (url: string) => {
+    return this.http<Invoice[]>(url, "get");
+  };
+
+  // Existing method for Stripe Initiation
   initiateStripePayment = (
     url: string,
     variables: InitiatePaymentVariables
   ) => {
-    // Calls the new POST /invoice/initiate-stripe endpoint
-    // Expects InitiatePaymentResponse back from the backend
+    // Corrected: Removed the incorrect generic here.
+    // The http method's generic defines the type of 'variables',
+    // the return type is inferred from the underlying axios call.
+    // We expect the backend to return InitiatePaymentResponse for this endpoint.
     return this.http(url, "post", variables);
   };
-  // --- END ADD ---
+
+  // Method for updating invoice status (Admin)
+  updateInvoiceStatus = (url: string, variables: UpdateInvoiceStatusInput) => {
+    // Adjust <any> if a specific response type is known for status updates
+    return this.http<any>(url, "patch", variables);
+  };
 }
 
-export default new Invoice();
+export default new InvoiceRepository();
