@@ -1,8 +1,7 @@
 // src/features/admin/components/InvoicesManagementTable.tsx
 
-// Removed unused 'React' import
-import { useState, useMemo } from "react";
-import { Card, CardContent, CardFooter } from "@/components/ui/card";
+import { useMemo, useState } from "react";
+import { Card, CardContent } from "@/components/ui/card";
 import {
   Table,
   TableBody,
@@ -11,35 +10,34 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-// Removed unused 'Badge' import (using Select for status)
-import { Button } from "@/components/ui/button";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue,
+  // SelectValue, // <-- Xóa import này
 } from "@/components/ui/select";
-import { Invoice, OrderStatus, PaymentStatus } from "@/types/dataTypes";
-import { useUpdateInvoiceStatusMutation } from "@/services/invoice/updateInvoiceStatusMutation";
-import { format } from "date-fns"; // Ensure date-fns is installed
-import { vi } from "date-fns/locale"; // Ensure date-fns is installed
 import {
-  ArrowUpDown,
-  ArrowUp,
-  ArrowDown,
-  ChevronLeft,
-  ChevronRight,
-} from "lucide-react";
-// Removed unused 'toast' import (handled in mutation hook)
+  Invoice,
+  OrderStatus,
+  PaymentStatus,
+  UpdateInvoiceStatusInput,
+} from "@/types/dataTypes";
+import { format } from "date-fns";
+import { vi } from "date-fns/locale"; // Đảm bảo đã cài: npm install date-fns
+import { ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react";
 
+// --- Interface Props ---
 interface InvoicesManagementTableProps {
   data: Invoice[];
-  // Removed unused 'title' prop from interface if not needed elsewhere
-  // title?: string;
+  onUpdateStatus: (
+    invoiceId: string,
+    newStatus: UpdateInvoiceStatusInput
+  ) => void;
+  isUpdatingStatus: boolean;
 }
 
-// Helper function to format currency
+// --- Helper Functions (Giữ nguyên) ---
 const formatCurrency = (amount: number) => {
   return new Intl.NumberFormat("vi-VN", {
     style: "currency",
@@ -47,13 +45,10 @@ const formatCurrency = (amount: number) => {
   }).format(amount);
 };
 
-// Helper function to get badge variant based on OrderStatus
 const getOrderStatusVariant = (
   status: OrderStatus
 ): "default" | "secondary" | "outline" | "destructive" => {
   switch (status) {
-    case OrderStatus.PENDING:
-      return "outline";
     case OrderStatus.PROCESSING:
       return "secondary";
     case OrderStatus.SHIPPED:
@@ -64,20 +59,20 @@ const getOrderStatusVariant = (
       return "destructive";
     case OrderStatus.RETURNED:
       return "destructive";
+    case OrderStatus.PENDING:
     default:
       return "outline";
   }
 };
 
-// Helper function to get badge variant based on PaymentStatus
 const getPaymentStatusVariant = (
   status: PaymentStatus
 ): "default" | "secondary" | "outline" | "destructive" => {
   switch (status) {
-    case PaymentStatus.PENDING:
-      return "outline";
     case PaymentStatus.PAID:
       return "default";
+    case PaymentStatus.PENDING:
+      return "outline";
     case PaymentStatus.FAILED:
       return "destructive";
     case PaymentStatus.REFUNDED:
@@ -89,7 +84,6 @@ const getPaymentStatusVariant = (
   }
 };
 
-// Function to translate OrderStatus to Vietnamese
 const translateOrderStatus = (status: OrderStatus): string => {
   switch (status) {
     case OrderStatus.PENDING:
@@ -109,7 +103,6 @@ const translateOrderStatus = (status: OrderStatus): string => {
   }
 };
 
-// Function to translate PaymentStatus to Vietnamese
 const translatePaymentStatus = (status: PaymentStatus): string => {
   switch (status) {
     case PaymentStatus.PENDING:
@@ -127,44 +120,55 @@ const translatePaymentStatus = (status: PaymentStatus): string => {
   }
 };
 
-// Removed unused 'title' prop from destructuring
-const InvoicesManagementTable = ({ data }: InvoicesManagementTableProps) => {
-  const [currentPage, setCurrentPage] = useState(1);
+// --- Component ---
+const InvoicesManagementTable = ({
+  data,
+  onUpdateStatus,
+  isUpdatingStatus,
+}: InvoicesManagementTableProps) => {
   const [sortConfig, setSortConfig] = useState<{
     key: keyof Invoice | "user.name" | null;
     direction: "asc" | "desc";
-  }>({ key: null, direction: "asc" });
-  const itemsPerPage = 10;
+  }>({ key: "createdAt", direction: "desc" });
 
-  const { mutate: updateStatus, isPending: isUpdatingStatus } =
-    useUpdateInvoiceStatusMutation();
-
-  // --- Sorting Logic ---
   const sortedData = useMemo(() => {
     const sortableData = [...data];
     if (sortConfig.key) {
+      // Kiểm tra key khác null ở đây
       sortableData.sort((a, b) => {
         let aVal: any;
         let bVal: any;
+        const key = sortConfig.key!; // <-- Khẳng định key không null ở đây cho tiện
 
-        if (sortConfig.key === "user.name") {
+        if (key === "user.name") {
           aVal = a.user?.name?.toLowerCase() || "";
           bVal = b.user?.name?.toLowerCase() || "";
-        } else if (sortConfig.key === "totalAmount") {
+        } else if (key === "totalAmount") {
           aVal = a.totalAmount;
           bVal = b.totalAmount;
-        } else if (sortConfig.key === "createdAt") {
+        } else if (key === "createdAt") {
           aVal = new Date(a.createdAt).getTime();
           bVal = new Date(b.createdAt).getTime();
-        } else if (sortConfig.key === "orderStatus") {
+        } else if (key === "orderStatus") {
           aVal = a.orderStatus.toLowerCase();
           bVal = b.orderStatus.toLowerCase();
-        } else if (sortConfig.key === "paymentStatus") {
+        } else if (key === "paymentStatus") {
           aVal = a.paymentStatus.toLowerCase();
           bVal = b.paymentStatus.toLowerCase();
         } else {
-          aVal = a[sortConfig.key as keyof Invoice];
-          bVal = b[sortConfig.key as keyof Invoice];
+          // Sử dụng key đã khẳng định không null
+          aVal = (a as any)[key] ?? "";
+          bVal = (b as any)[key] ?? "";
+        }
+
+        const aNum = Number(aVal);
+        const bNum = Number(bVal);
+        if (!isNaN(aNum) && !isNaN(bNum)) {
+          aVal = aNum;
+          bVal = bNum;
+        } else if (typeof aVal === "string" && typeof bVal === "string") {
+          aVal = aVal.toLowerCase();
+          bVal = bVal.toLowerCase();
         }
 
         if (aVal < bVal) return sortConfig.direction === "asc" ? -1 : 1;
@@ -180,28 +184,14 @@ const InvoicesManagementTable = ({ data }: InvoicesManagementTableProps) => {
       key,
       direction: prev.key === key && prev.direction === "asc" ? "desc" : "asc",
     }));
-    setCurrentPage(1);
   };
 
-  // --- Pagination Logic ---
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const paginatedData = sortedData.slice(startIndex, startIndex + itemsPerPage);
-  const totalPages = Math.ceil(sortedData.length / itemsPerPage);
-
-  const handlePageChange = (page: number) => {
-    if (page >= 1 && page <= totalPages) {
-      setCurrentPage(page);
-    }
-  };
-
-  // --- Status Update Logic ---
   const handleStatusChange = (
     invoiceId: string,
     type: "orderStatus" | "paymentStatus",
     value: string
   ) => {
     if (!value) return;
-
     if (
       !window.confirm(
         `Bạn có chắc muốn cập nhật ${
@@ -213,21 +203,15 @@ const InvoicesManagementTable = ({ data }: InvoicesManagementTableProps) => {
     ) {
       return;
     }
-
-    const variables: {
-      orderStatus?: OrderStatus;
-      paymentStatus?: PaymentStatus;
-    } = {};
+    const variables: UpdateInvoiceStatusInput = {};
     if (type === "orderStatus") {
       variables.orderStatus = value as OrderStatus;
     } else {
       variables.paymentStatus = value as PaymentStatus;
     }
-
-    updateStatus({ invoiceId, variables });
+    onUpdateStatus(invoiceId, variables);
   };
 
-  // Helper for sort icons
   const SortIcon = ({
     columnKey,
   }: {
@@ -244,66 +228,78 @@ const InvoicesManagementTable = ({ data }: InvoicesManagementTableProps) => {
   };
 
   return (
-    <Card className="border bg-card rounded-lg overflow-hidden">
+    <Card className="border bg-card rounded-lg overflow-hidden shadow-sm">
       <CardContent className="p-0">
         <Table>
-          <TableHeader className="border-b bg-muted/30">
+          <TableHeader className="border-b bg-muted/40 dark:bg-muted/20">
             <TableRow>
-              <TableHead className="pl-6 text-muted-foreground w-[150px]">
-                Mã HĐ
+              <TableHead className="pl-6 py-3 text-muted-foreground w-[150px] text-xs font-semibold uppercase tracking-wider">
+                {" "}
+                Mã HĐ{" "}
               </TableHead>
               <TableHead
-                className="cursor-pointer text-muted-foreground hover:text-foreground transition-colors"
+                className="py-3 cursor-pointer text-muted-foreground hover:text-foreground transition-colors text-xs font-semibold uppercase tracking-wider"
                 onClick={() => handleSort("createdAt")}
               >
                 <div className="flex items-center">
-                  Ngày tạo <SortIcon columnKey="createdAt" />
+                  {" "}
+                  Ngày tạo <SortIcon columnKey="createdAt" />{" "}
                 </div>
               </TableHead>
               <TableHead
-                className="cursor-pointer text-muted-foreground hover:text-foreground transition-colors"
+                className="py-3 cursor-pointer text-muted-foreground hover:text-foreground transition-colors text-xs font-semibold uppercase tracking-wider"
                 onClick={() => handleSort("user.name")}
               >
                 <div className="flex items-center">
-                  Người dùng <SortIcon columnKey="user.name" />
+                  {" "}
+                  Người dùng <SortIcon columnKey="user.name" />{" "}
                 </div>
               </TableHead>
               <TableHead
-                className="cursor-pointer text-muted-foreground hover:text-foreground transition-colors text-right"
+                className="py-3 cursor-pointer text-muted-foreground hover:text-foreground transition-colors text-right text-xs font-semibold uppercase tracking-wider"
                 onClick={() => handleSort("totalAmount")}
               >
                 <div className="flex items-center justify-end">
-                  Tổng tiền <SortIcon columnKey="totalAmount" />
+                  {" "}
+                  Tổng tiền <SortIcon columnKey="totalAmount" />{" "}
                 </div>
               </TableHead>
-              <TableHead className="text-center text-muted-foreground w-[180px]">
-                TT Thanh toán
+              <TableHead className="py-3 text-center text-muted-foreground w-[180px] text-xs font-semibold uppercase tracking-wider">
+                {" "}
+                TT Thanh toán{" "}
               </TableHead>
-              <TableHead className="text-center text-muted-foreground w-[180px]">
-                TT Đơn hàng
+              <TableHead className="py-3 text-center text-muted-foreground w-[180px] text-xs font-semibold uppercase tracking-wider">
+                {" "}
+                TT Đơn hàng{" "}
               </TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {paginatedData.length > 0 ? (
-              paginatedData.map((invoice) => (
+            {sortedData.length > 0 ? (
+              sortedData.map((invoice) => (
                 <TableRow
                   key={invoice._id}
                   className="hover:bg-muted/50 dark:hover:bg-muted/40 transition-colors border-b last:border-b-0"
                 >
                   <TableCell className="pl-6 py-3 font-mono text-xs text-muted-foreground">
-                    {invoice._id}
+                    {" "}
+                    {invoice._id}{" "}
                   </TableCell>
                   <TableCell className="py-3 text-sm text-muted-foreground">
+                    {" "}
                     {format(new Date(invoice.createdAt), "dd/MM/yyyy HH:mm", {
                       locale: vi,
-                    })}
+                    })}{" "}
                   </TableCell>
                   <TableCell className="py-3 font-medium text-foreground/90 dark:text-foreground/80">
                     {invoice.user?.name || "N/A"}
+                    <span className="block text-xs text-muted-foreground">
+                      {invoice.user?.email}
+                    </span>
                   </TableCell>
                   <TableCell className="py-3 text-right font-medium text-foreground/90 dark:text-foreground/80">
-                    {formatCurrency(invoice.totalAmount)}
+                    {" "}
+                    {formatCurrency(invoice.totalAmount)}{" "}
                   </TableCell>
                   <TableCell className="text-center py-3">
                     <Select
@@ -314,17 +310,25 @@ const InvoicesManagementTable = ({ data }: InvoicesManagementTableProps) => {
                       disabled={isUpdatingStatus}
                     >
                       <SelectTrigger
-                        className={`h-8 text-xs w-[150px] focus:ring-0 focus:ring-offset-0 ${
-                          getPaymentStatusVariant(invoice.paymentStatus) ===
-                          "default"
-                            ? "border-green-500 text-green-700 dark:border-green-600 dark:text-green-400"
-                            : getPaymentStatusVariant(invoice.paymentStatus) ===
-                              "destructive"
-                            ? "border-red-500 text-red-700 dark:border-red-600 dark:text-red-400"
-                            : ""
-                        }`}
+                        className={`h-8 text-xs w-[150px] focus:ring-0 focus:ring-offset-0 border ${getPaymentStatusVariant(
+                          invoice.paymentStatus
+                        )}`}
                       >
-                        <SelectValue placeholder="Chọn trạng thái" />
+                        <span
+                          className={`font-medium ${
+                            getPaymentStatusVariant(invoice.paymentStatus) ===
+                            "default"
+                              ? "text-green-700 dark:text-green-400"
+                              : getPaymentStatusVariant(
+                                  invoice.paymentStatus
+                                ) === "destructive"
+                              ? "text-red-700 dark:text-red-400"
+                              : "text-foreground/80"
+                          }`}
+                        >
+                          {" "}
+                          {translatePaymentStatus(invoice.paymentStatus)}{" "}
+                        </span>
                       </SelectTrigger>
                       <SelectContent>
                         {Object.values(PaymentStatus).map((status) => (
@@ -333,7 +337,8 @@ const InvoicesManagementTable = ({ data }: InvoicesManagementTableProps) => {
                             value={status}
                             className="text-xs"
                           >
-                            {translatePaymentStatus(status)}
+                            {" "}
+                            {translatePaymentStatus(status)}{" "}
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -348,20 +353,27 @@ const InvoicesManagementTable = ({ data }: InvoicesManagementTableProps) => {
                       disabled={isUpdatingStatus}
                     >
                       <SelectTrigger
-                        className={`h-8 text-xs w-[150px] focus:ring-0 focus:ring-offset-0 ${
-                          getOrderStatusVariant(invoice.orderStatus) ===
-                          "default"
-                            ? "border-green-500 text-green-700 dark:border-green-600 dark:text-green-400"
-                            : getOrderStatusVariant(invoice.orderStatus) ===
-                              "destructive"
-                            ? "border-red-500 text-red-700 dark:border-red-600 dark:text-red-400"
-                            : getOrderStatusVariant(invoice.orderStatus) ===
-                              "secondary"
-                            ? "border-blue-500 text-blue-700 dark:border-blue-600 dark:text-blue-400"
-                            : ""
-                        }`}
+                        className={`h-8 text-xs w-[150px] focus:ring-0 focus:ring-offset-0 border ${getOrderStatusVariant(
+                          invoice.orderStatus
+                        )}`}
                       >
-                        <SelectValue placeholder="Chọn trạng thái" />
+                        <span
+                          className={`font-medium ${
+                            getOrderStatusVariant(invoice.orderStatus) ===
+                            "default"
+                              ? "text-green-700 dark:text-green-400"
+                              : getOrderStatusVariant(invoice.orderStatus) ===
+                                "destructive"
+                              ? "text-red-700 dark:text-red-400"
+                              : getOrderStatusVariant(invoice.orderStatus) ===
+                                "secondary"
+                              ? "text-blue-700 dark:text-blue-400"
+                              : "text-foreground/80"
+                          }`}
+                        >
+                          {" "}
+                          {translateOrderStatus(invoice.orderStatus)}{" "}
+                        </span>
                       </SelectTrigger>
                       <SelectContent>
                         {Object.values(OrderStatus).map((status) => (
@@ -370,7 +382,8 @@ const InvoicesManagementTable = ({ data }: InvoicesManagementTableProps) => {
                             value={status}
                             className="text-xs"
                           >
-                            {translateOrderStatus(status)}
+                            {" "}
+                            {translateOrderStatus(status)}{" "}
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -384,43 +397,14 @@ const InvoicesManagementTable = ({ data }: InvoicesManagementTableProps) => {
                   colSpan={6}
                   className="h-24 text-center text-muted-foreground"
                 >
-                  Không tìm thấy hóa đơn nào.
+                  {" "}
+                  Không tìm thấy hóa đơn nào.{" "}
                 </TableCell>
               </TableRow>
             )}
           </TableBody>
         </Table>
       </CardContent>
-      {totalPages > 1 && (
-        <CardFooter className="flex items-center justify-between border-t pt-4 pb-4">
-          <div className="text-xs text-muted-foreground">
-            Trang {currentPage} / {totalPages} (Tổng: {sortedData.length} hóa
-            đơn)
-          </div>
-          <div className="flex items-center space-x-1">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => handlePageChange(currentPage - 1)}
-              disabled={currentPage === 1 || isUpdatingStatus}
-              className="h-8 w-8 p-0"
-            >
-              <span className="sr-only">Trang trước</span>
-              <ChevronLeft className="h-4 w-4" />
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => handlePageChange(currentPage + 1)}
-              disabled={currentPage === totalPages || isUpdatingStatus}
-              className="h-8 w-8 p-0"
-            >
-              <span className="sr-only">Trang sau</span>
-              <ChevronRight className="h-4 w-4" />
-            </Button>
-          </div>
-        </CardFooter>
-      )}
     </Card>
   );
 };
