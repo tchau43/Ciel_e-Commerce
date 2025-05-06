@@ -51,11 +51,12 @@ const {
   createInvoice,
   getInvoice,
   updateInvoiceStatus,
+  getAllInvoicesAdmin,
 } = require("../controllers/invoiceController");
 
 const {
   createReview,
-  getReviewsForProduct
+  getReviewsForProduct,
 } = require("../controllers/reviewController");
 
 const {
@@ -69,19 +70,29 @@ const {
   updateFeature,
 } = require("../controllers/customerHomePageController"); // Assuming admin protected?
 
-const { sendPaymentConfirmationEmail } = require("../controllers/emailController");
+const {
+  sendPaymentConfirmationEmail,
+} = require("../controllers/emailController");
 const { initiateStripePayment } = require("../controllers/stripeController");
 
 // Import models only if directly used (like in /products/batch)
 const { Product } = require("../models/product");
-const { validateCouponForUser, createCoupon, getAllCoupons, getCouponById, updateCoupon, deleteCoupon } = require("../controllers/couponController");
-const { handleChatbotQuery, handleChat } = require("../controllers/chatbotController");
+const {
+  validateCouponForUser,
+  createCoupon,
+  getAllCoupons,
+  getCouponById,
+  updateCoupon,
+  deleteCoupon,
+} = require("../controllers/couponController");
+const {
+  handleChatbotQuery,
+  handleChat,
+} = require("../controllers/chatbotController");
 const { handleOpenAIChat } = require("../controllers/openaiChatController");
-
 
 // --- Router Definition ---
 const routerAPI = express.Router();
-
 
 // === PUBLIC ROUTES (No Token Required) ===
 routerAPI.post("/register", createUser);
@@ -97,15 +108,13 @@ routerAPI.get("/categories", getAllCategories);
 routerAPI.get("/products/:productId/reviews", getReviewsForProduct); // Get reviews for a product
 routerAPI.get("/homepage", getHomePage); // Get public homepage config
 
-
 // === AUTHENTICATED ROUTES (Token Required for all routes below) ===
 routerAPI.use(verifyToken);
 
 // ... AUTHENTICATED ROUTES ...
 // routerAPI.post("/chatbot/query", handleChatbotQuery);
-routerAPI.post('/chatbot', handleChat); // Hoặc router.post('/chatbot', chatbotController.handleChat);
-routerAPI.post('/openai-chat', handleOpenAIChat);
-
+routerAPI.post("/chatbot", handleChat); // Hoặc router.post('/chatbot', chatbotController.handleChat);
+routerAPI.post("/openai-chat", handleOpenAIChat);
 
 // --- User Routes (Authenticated) ---
 routerAPI.get("/user/:id", getUserById); // Get own or other user's public profile? Check service logic
@@ -116,8 +125,8 @@ routerAPI.post("/invoice/initiate-stripe", initiateStripePayment); // User initi
 routerAPI.post("/reviews", createReview); // User creates a review
 
 // --- Cart Routes (Authenticated) ---
-routerAPI.post("/cart/item", addOrUpdateCartItem);   // Single endpoint for add/update/remove
-routerAPI.get("/cart/:userId", getCartInfo);        // User gets their own cart
+routerAPI.post("/cart/item", addOrUpdateCartItem); // Single endpoint for add/update/remove
+routerAPI.get("/cart/:userId", getCartInfo); // User gets their own cart
 routerAPI.delete("/cart/:userId", removeAllProductsFromCart);
 
 // --- Recommendation Route (Authenticated) ---
@@ -135,13 +144,17 @@ routerAPI.post("/products/batch", async (req, res) => {
   try {
     const productIds = req.body.ids;
     if (!Array.isArray(productIds) || productIds.length === 0) {
-      return res.status(400).json({ message: "Request body must contain an array of product IDs." });
+      return res.status(400).json({
+        message: "Request body must contain an array of product IDs.",
+      });
     }
     // Validate IDs?
-    const validIds = productIds.filter(id => mongoose.Types.ObjectId.isValid(id));
+    const validIds = productIds.filter((id) =>
+      mongoose.Types.ObjectId.isValid(id)
+    );
     const products = await Product.find({ _id: { $in: validIds } })
-      .populate('category', 'name')
-      .populate('brand', 'name')
+      .populate("category", "name")
+      .populate("brand", "name")
       .lean(); // Fetch necessary fields
 
     res.status(200).json(products || []); // Return empty array if no matches
@@ -150,7 +163,6 @@ routerAPI.post("/products/batch", async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 });
-
 
 // === ADMIN ROUTES (Token and Admin Role Required) ===
 routerAPI.use(verifyAdmin); // Apply Admin check for all routes below
@@ -174,6 +186,7 @@ routerAPI.post("/category", createCategory); // Was public, should likely be adm
 
 // --- Admin: Invoice Management ---
 routerAPI.patch("/admin/invoices/:invoiceId/status", updateInvoiceStatus); // Corrected Path
+routerAPI.get("/admin/invoices", getAllInvoicesAdmin); // <-- Route mới
 // Could add routes for admin to view all invoices etc.
 
 // --- Admin: Homepage Management ---
@@ -189,6 +202,5 @@ routerAPI.get("/admin/coupons/:id", getCouponById);
 routerAPI.patch("/admin/coupons/:id", updateCoupon); // Use PATCH for partial updates
 routerAPI.delete("/admin/coupons/:id", deleteCoupon);
 // --- END ADMIN ROUTES ---
-
 
 module.exports = routerAPI;
