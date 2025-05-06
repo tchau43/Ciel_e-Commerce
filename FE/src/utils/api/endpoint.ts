@@ -86,10 +86,11 @@ export const API_ENDPOINTS = {
   // --- Admin: Invoice Management ---
   ADMIN_UPDATE_INVOICE_STATUS: (invoiceId: string) =>
     `${VITE_API_VERSION}/admin/invoices/${invoiceId}/status`, // PATCH (Admin required)
+  ADMIN_GET_ALL_INVOICES: `${VITE_API_VERSION}/admin/invoices`, // GET (Admin required, hỗ trợ query params: searchTerm, page, limit, sortBy, sortOrder) // <-- Endpoint mới
 
   // --- Admin: Homepage Management ---
   ADMIN_UPDATE_BANNER: `${VITE_API_VERSION}/homepage/banner`, // PUT (Admin required)
-  ADMIN_UPDATE_VIDEO: `${VITE_API_VERSION}/homepage/video`, // PUT (Admin required)
+  ADMIN_UPDATE_VIDEO: `${VITE_API_VERSION}/homepaginvoicee/video`, // PUT (Admin required)
   ADMIN_UPDATE_FEATURE: `${VITE_API_VERSION}/homepage/feature`, // PUT (Admin required)
 
   // --- Admin: Coupon Management ---

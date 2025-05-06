@@ -35,9 +35,11 @@ class InvoiceRepository extends Base {
     return this.http<Invoice[]>(url, "get");
   };
 
-  // Method for getting ALL invoices (Admin)
-  getAllInvoices = (url: string) => {
-    return this.http<Invoice[]>(url, "get");
+  // Method for getting ALL invoices (Admin) - ĐÃ CÓ SẴN
+  getAllInvoices = (url: string, params?: Record<string, any>) => {
+    // Thêm params tùy chọn
+    // params sẽ chứa các query như searchTerm, page, limit...
+    return this.http<Invoice[]>(url, "get", undefined, { params }); // Truyền params vào config axios
   };
 
   // Existing method for Stripe Initiation

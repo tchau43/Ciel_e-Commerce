@@ -240,4 +240,91 @@ const updateInvoiceStatusService = async (invoiceId, statusUpdates) => {
     return updatedInvoice;
 };
 
-module.exports = { createInvoiceService, getInvoiceService, updateInvoiceStatusService, getInvoiceByIdService };
+// --- GET ALL INVOICES & SEARCH (Admin) ---
+const getAllInvoicesAdminService = async (queryParams) => {
+    try {
+        const { searchTerm, page = 1, limit = 10, sortBy = 'createdAt', sortOrder = 'desc' } = queryParams;
+
+        let query = {};
+        const userQuery = {}; // Query riêng cho User
+
+        // Xây dựng query tìm kiếm nếu có searchTerm
+        if (searchTerm) {
+            const searchRegex = new RegExp(searchTerm, 'i'); // Tìm kiếm không phân biệt hoa thường
+
+            // Tìm user khớp với searchTerm (tên hoặc email)
+            const usersFound = await User.find({
+                $or: [
+                    { name: searchRegex },
+                    { email: searchRegex }
+                ]
+            }).select('_id').lean(); // Chỉ lấy ID
+
+            const userIds = usersFound.map(user => user._id);
+
+            // Nếu tìm thấy user, lọc invoice theo userIds
+            // Nếu không tìm thấy user nào khớp, nhưng vẫn có searchTerm -> có thể tìm theo Invoice ID hoặc coupon
+            if (userIds.length > 0) {
+                 // Thêm điều kiện tìm theo user ID VÀ các trường khác của invoice
+                 query = {
+                     $or: [
+                         { user: { $in: userIds } },
+                         { couponCode: searchRegex }, // Tìm theo coupon code
+                         // Tìm theo Invoice ID (nếu searchTerm là ObjectId hợp lệ)
+                         ...(mongoose.Types.ObjectId.isValid(searchTerm) ? [{ _id: searchTerm }] : [])
+                     ]
+                 };
+            } else {
+                 // Nếu không tìm thấy user nào, chỉ tìm theo coupon hoặc ID hóa đơn
+                 query = {
+                     $or: [
+                         { couponCode: searchRegex },
+                         ...(mongoose.Types.ObjectId.isValid(searchTerm) ? [{ _id: searchTerm }] : [])
+                     ]
+                 };
+                 // Để tránh trả về tất cả invoice khi searchTerm không khớp user/coupon/ID,
+                 // nếu không khớp gì cả, có thể set query thành điều kiện không thể xảy ra
+                 if (!mongoose.Types.ObjectId.isValid(searchTerm) && query.$or.length === 1) {
+                    // Gần như không thể có invoice nào khớp điều kiện này
+                    query = { _id: new mongoose.Types.ObjectId() };
+                 }
+            }
+        }
+
+        // Tính toán skip và sortOptions
+        const skip = (page - 1) * limit;
+        const sortOptions = { [sortBy]: sortOrder === 'asc' ? 1 : -1 };
+
+        // Query lấy tổng số lượng documents khớp điều kiện (không phân trang)
+        const totalInvoices = await Invoice.countDocuments(query);
+
+        // Query lấy danh sách invoices với populate, sort và phân trang
+        const invoices = await Invoice.find(query)
+            .populate({ path: "user", select: "name email" }) // Populate thông tin user
+            .populate({
+                path: "items.product",
+                select: "name images", // Lấy tên và ảnh sản phẩm
+                // Nếu cần thêm category/brand thì populate tiếp
+                // populate: { path: "category brand", select: "name" },
+            })
+            .populate({ path: "items.variant", select: "types price" }) // Populate variant
+            .sort(sortOptions)
+            .skip(skip)
+            .limit(limit)
+            .lean(); // Sử dụng lean() để tăng tốc độ query
+
+        return {
+            invoices,
+            currentPage: page,
+            totalPages: Math.ceil(totalInvoices / limit),
+            totalInvoices,
+        };
+    } catch (error) {
+        console.error("Error getting all invoices (Admin):", error);
+        // Ném lỗi để controller xử lý
+        throw new Error("Error getting invoices: " + error.message);
+    }
+};
+
+
+module.exports = { createInvoiceService, getInvoiceService, updateInvoiceStatusService, getInvoiceByIdService, getAllInvoicesAdminService };

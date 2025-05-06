@@ -18,7 +18,7 @@ export enum PaymentStatus { // Dùng cho Invoice
 }
 
 export enum OrderStatus { // Dùng cho Invoice
-  PENDING = "pending",
+  PENDING = "pending", // Lưu ý: Có vẻ OrderStatus không nên có PENDING, BE model chỉ có processing, shipped, delivered, cancelled, returned. Xem xét lại enum này.
   PROCESSING = "processing",
   SHIPPED = "shipped",
   DELIVERED = "delivered",
@@ -60,7 +60,7 @@ export type Address = {
 // Kiểu tham chiếu cơ bản (chỉ ID và name)
 export type BaseReference = Pick<BaseDoc, "_id"> & { name: string };
 
-// Kiểu dữ liệu cho API trả về có phân trang
+// Kiểu dữ liệu cho API trả về có phân trang (Chung)
 export type Paginated<T> = {
   data: T[];
   totalDocs: number;
@@ -71,6 +71,17 @@ export type Paginated<T> = {
   hasNextPage: boolean;
   // Có thể thêm các trường phân trang khác nếu BE trả về
 };
+
+// Kiểu dữ liệu chung cho các tham số query admin (tìm kiếm, phân trang, sắp xếp)
+// *** START: Added Type ***
+export type BaseAdminQueryParams = {
+  searchTerm?: string;
+  page?: number;
+  limit?: number;
+  sortBy?: string;
+  sortOrder?: 'asc' | 'desc';
+};
+// *** END: Added Type ***
 
 // =============================
 // ENTITY TYPES (Kiểu cho các thực thể chính)
@@ -84,7 +95,7 @@ export type User = BaseDoc & {
   status: boolean;
   image?: string;
   address?: Address; // Sử dụng lại Address type
-  phoneNumber?: number;
+  phoneNumber?: number; // Cân nhắc đổi thành string nếu có thể chứa ký tự đặc biệt (+, -, space)
 };
 
 export type UserReference = Pick<User, "_id" | "name" | "email"> & {
@@ -139,7 +150,7 @@ export type ProductSummary = Omit<Product, "variants" | "description"> & {
 
 export type ProductReference = Pick<
   Product,
-  "_id" | "name" | "images" | "category" | "brand"
+  "_id" | "name" | "images" | "category" | "brand" | "base_price" // Thêm base_price có thể hữu ích
 >; // Dùng khi product nhúng vào entity khác (InvoiceItem)
 
 // --- Cart ---
@@ -167,21 +178,24 @@ export type Cart = BaseDoc & {
 // --- Invoice ---
 export type InvoiceItem = {
   product: ProductReference; // Dùng reference
-  variant?: VariantReference; // Dùng reference, optional
+  variant: VariantReference; // Dùng reference variant đầy đủ hơn
   quantity: number;
-  priceAtPurchase: number;
+  priceAtPurchase: number; // Giá tại thời điểm mua (có thể khác giá hiện tại)
 };
 
 export type Invoice = BaseDoc & {
-  user: UserReference; // Dùng reference
+  user: UserReference; // Dùng reference user đầy đủ hơn
   items: InvoiceItem[];
+  subtotal: number; // Thêm subtotal để rõ ràng
+  couponCode?: string;
+  discountAmount?: number;
+  deliveryFee?: number; // Thêm deliveryFee
   totalAmount: number;
   shippingAddress: Address; // Dùng lại Address type
   paymentMethod: PaymentMethod;
   paymentStatus: PaymentStatus;
   orderStatus: OrderStatus;
-  couponCode?: string;
-  discountAmount?: number;
+  paymentIntentId?: string; // ID từ Stripe (nếu có)
 };
 
 // --- Review ---
@@ -272,7 +286,7 @@ export type ProductBatchInput = { ids: string[] }; // Lấy product theo danh s�
 // --- Cart ---
 export type CartItemInput = {
   productId: string;
-  variantId?: string | null;
+  variantId?: string | null; // variantId có thể là null nếu mua base product? Hoặc luôn yêu cầu?
   quantity: number; // = 0 để xóa
 };
 
@@ -296,7 +310,7 @@ export type UpdateInvoiceStatusInput = Partial<
 // --- Review ---
 export type CreateReviewInput = {
   productId: string;
-  variantId?: string;
+  variantId?: string; // Review có thể cho cả product hoặc variant cụ thể
   rating: number;
   comment?: string;
 };
@@ -318,7 +332,7 @@ export type UpdateHomePageItemInput = Partial<
 // --- Auth ---
 export type LoginResponse = {
   message: string;
-  EC: number;
+  EC: number; // Error Code?
   accessToken: string;
   user: Pick<User, "_id" | "name" | "email" | "role"> & {
     address?: Address;
@@ -328,7 +342,7 @@ export type LoginResponse = {
 
 // --- Stripe ---
 export type StripeInitiateResponse = {
-  clientSecret: string | null;
+  clientSecret: string | null; // Có thể null nếu lỗi
   invoiceId: string;
   totalAmount: number;
 };
@@ -339,9 +353,9 @@ export type ValidateCouponResponse = {
   reason?: string;
   coupon?: Pick<
     Coupon,
-    "code" | "description" | "discountType" | "discountValue"
+    "code" | "description" | "discountType" | "discountValue" | "minPurchaseAmount"
   > & {
-    calculatedDiscount?: number;
+    calculatedDiscount?: number; // Frontend tự tính hay BE trả về?
   };
 };
 
@@ -353,8 +367,19 @@ export type ChatbotResponse = { reply: string };
 // Kiểu này phụ thuộc vào response thực tế từ service recommendations
 export type RecommendationResponse = {
   recommendedProductIds?: string[];
-  // ...
+  // Hoặc trả về danh sách ProductSummary?
+  // recommendedProducts?: ProductSummary[];
 };
 
 // --- Email Notification ---
 export type NotifyPaymentSuccessInput = { invoiceId: string }; // Chỉ cần ID hóa đơn
+
+// --- Admin Invoice List Response ---
+// *** START: Added Type ***
+export type AdminInvoicePaginatedResponse = {
+  invoices: Invoice[]; // Mảng các hóa đơn (đã populate user)
+  currentPage: number; // Trang hiện tại
+  totalPages: number; // Tổng số trang
+  totalInvoices: number; // Tổng số hóa đơn khớp query
+};
+// *** END: Added Type ***
