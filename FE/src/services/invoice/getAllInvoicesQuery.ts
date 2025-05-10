@@ -10,10 +10,33 @@ import {
   BaseAdminQueryParams,
 } from "@/types/dataTypes";
 
+export interface AdminInvoiceFilterParams {
+  searchTerm?: string;
+  orderStatus?: string;
+  paymentStatus?: string;
+  fromDate?: string;
+  toDate?: string;
+  userId?: string;
+  minAmount?: number;
+  maxAmount?: number;
+  sortBy?: string;
+  sortOrder?: "asc" | "desc";
+  page?: number;
+  limit?: number;
+}
+
+export interface AdminInvoiceQueryResult {
+  invoices: Invoice[];
+  currentPage: number;
+  totalPages: number;
+  totalInvoices: number;
+  limit: number;
+}
+
 // Hàm query function, sử dụng các kiểu đã import
 const fetchAllInvoicesAdmin = async (
-  params?: BaseAdminQueryParams
-): Promise<AdminInvoicePaginatedResponse> => {
+  params?: AdminInvoiceFilterParams
+): Promise<AdminInvoiceQueryResult> => {
   // Gọi repository với endpoint và params
   // InvoiceRepository.getAllInvoices đã được sửa để nhận params
   return await InvoiceRepository.getAllInvoices(
@@ -23,11 +46,10 @@ const fetchAllInvoicesAdmin = async (
 };
 
 // Hook useGetAllInvoicesQuery, sử dụng các kiểu đã import
-export const useGetAllInvoicesQuery = (params?: BaseAdminQueryParams) => {
-  return useQuery<AdminInvoicePaginatedResponse, Error>({
+export const useGetAllInvoicesQuery = (params?: AdminInvoiceFilterParams) => {
+  return useQuery<AdminInvoiceQueryResult, Error>({
     queryKey: ["allInvoicesAdmin", params],
     queryFn: () => fetchAllInvoicesAdmin(params),
-    // Thay thế keepPreviousData: true bằng placeholderData: keepPreviousData
-    placeholderData: keepPreviousData, // <-- Sửa ở đây
+    placeholderData: keepPreviousData,
   });
 };

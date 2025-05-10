@@ -51,7 +51,7 @@ const apiKeyAuth = (req, res, next) => {
 };
 
 const verifyAdmin = (req, res, next) => {
-    console.log("--------------------req.user.role", req.user)
+    // console.log("--------------------req.user.role", req.user)
     if (req.user && req.user.role === 'ADMIN') {
         // User has token AND is an Admin
         logger.info(`Admin access granted for user: ${req.user.email || req.user.id}`);
