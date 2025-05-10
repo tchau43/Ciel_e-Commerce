@@ -90,6 +90,7 @@ const {
   handleChat,
 } = require("../controllers/chatbotController");
 const { handleOpenAIChat } = require("../controllers/openaiChatController");
+const openaiAssistantRoutes = require('./openaiAssistantRoutes');
 
 // --- Router Definition ---
 const routerAPI = express.Router();
@@ -115,6 +116,9 @@ routerAPI.use(verifyToken);
 // routerAPI.post("/chatbot/query", handleChatbotQuery);
 routerAPI.post("/chatbot", handleChat); // Hoặc router.post('/chatbot', chatbotController.handleChat);
 routerAPI.post("/openai-chat", handleOpenAIChat);
+
+// Mount OpenAI Assistant Management Routes
+routerAPI.use('/openai', openaiAssistantRoutes);
 
 // --- User Routes (Authenticated) ---
 routerAPI.get("/user/:id", getUserById); // Get own or other user's public profile? Check service logic
