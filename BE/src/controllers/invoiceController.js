@@ -75,7 +75,8 @@ const getInvoice = async (req, res) => {
   }
 
   try {
-    const data = await getInvoiceService(userId);
+    // Pass all query parameters directly to the service
+    const data = await getInvoiceService(userId, req.query);
     res.status(200).json(data);
   } catch (error) {
     console.error(`Get Invoice Controller Error for User ${userId}:`, error);
@@ -129,6 +130,7 @@ const getAllInvoicesAdmin = async (req, res) => {
   try {
     // Lấy các query params từ request (ví dụ: /admin/invoices?searchTerm=john&page=1&limit=20)
     const queryParams = req.query;
+    console.log("-------------------------queryParams", queryParams);
     const data = await getAllInvoicesAdminService(queryParams);
     res.status(200).json(data); // Trả về object chứa invoices và thông tin phân trang
   } catch (error) {

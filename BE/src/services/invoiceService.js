@@ -9,6 +9,7 @@ const Variant = require("../models/variant");
 const Coupon = require("../models/coupon"); // Import Coupon model
 const { triggerOrderConfirmationEmail } = require('../utils/helper'); // Import email helper (ensure path is correct)
 const { getDeliveryFeeService } = require('./deliveryService'); // Import delivery service (ensure path is correct)
+const User = require("../models/user");
 
 // --- CREATE INVOICE ---
 /**
@@ -196,23 +197,105 @@ const getInvoiceByIdService = async (userId, invoiceId) => {
 };
 
 // --- GET INVOICES FOR USER ---
-const getInvoiceService = async (userId) => {
+const getInvoiceService = async (userId, queryParams = {}) => {
     try {
         if (!mongoose.Types.ObjectId.isValid(userId)) throw new Error("Invalid User ID format");
 
-        const invoices = await Invoice.find({ user: userId })
+        const {
+            orderStatus,
+            paymentStatus,
+            fromDate,
+            toDate,
+            minAmount,
+            maxAmount,
+            sortBy = 'createdAt',
+            sortOrder = 'desc',
+            page,
+            limit
+        } = queryParams;
+
+        let query = { user: userId };
+
+        // Filter by order status
+        if (orderStatus && Invoice.schema.path('orderStatus').enumValues.includes(orderStatus)) {
+            query.orderStatus = orderStatus;
+        }
+
+        // Filter by payment status
+        if (paymentStatus && Invoice.schema.path('paymentStatus').enumValues.includes(paymentStatus)) {
+            query.paymentStatus = paymentStatus;
+        }
+
+        // Filter by date range
+        if (fromDate || toDate) {
+            query.createdAt = {};
+            if (fromDate) {
+                query.createdAt.$gte = new Date(fromDate);
+            }
+            if (toDate) {
+                // Add one day to include the entire end date
+                const endDate = new Date(toDate);
+                endDate.setDate(endDate.getDate() + 1);
+                query.createdAt.$lt = endDate;
+            }
+        }
+
+        // Filter by amount
+        if (minAmount !== undefined || maxAmount !== undefined) {
+            query.totalAmount = {};
+            if (minAmount !== undefined) {
+                query.totalAmount.$gte = Number(minAmount);
+            }
+            if (maxAmount !== undefined) {
+                query.totalAmount.$lte = Number(maxAmount);
+            }
+        }
+
+        // Sort options
+        const sortOptions = { [sortBy]: sortOrder === 'asc' ? 1 : -1 };
+
+        // Handle pagination
+        const pageNum = parseInt(page, 10);
+        const limitNum = parseInt(limit, 10);
+        const applyPagination = !isNaN(limitNum) && limitNum > 0 && !isNaN(pageNum) && pageNum > 0;
+
+        // Query builder
+        let invoiceQuery = Invoice.find(query)
             .populate({ path: "user", select: "name email" })
             .populate({
                 path: "items.product",
-                select: "name images base_price category brand", // Select fields needed
+                select: "name images base_price category brand",
                 populate: { path: "category brand", select: "name" },
             })
-            .populate({ path: "items.variant", select: "types price" }) // Populate variant
-            .sort({ createdAt: -1 })
-            .lean();
+            .populate({ path: "items.variant", select: "types price" })
+            .sort(sortOptions);
+
+        // Count total for pagination info
+        const totalInvoices = await Invoice.countDocuments(query);
+
+        // Apply pagination if requested
+        if (applyPagination) {
+            const skip = (pageNum - 1) * limitNum;
+            invoiceQuery = invoiceQuery.skip(skip).limit(limitNum);
+        }
+
+        const invoices = await invoiceQuery.lean();
+
+        // Return with pagination info if pagination was applied
+        if (applyPagination) {
+            return {
+                invoices,
+                currentPage: pageNum,
+                totalPages: Math.ceil(totalInvoices / limitNum),
+                totalInvoices,
+                limit: limitNum
+            };
+        }
+
+        // Just return the invoices if no pagination
         return invoices;
     } catch (error) {
-        console.error("Error getting invoices:", error);
+        console.error("Error getting user invoices:", error);
         throw new Error("Error getting invoices: " + error.message);
     }
 };
@@ -243,88 +326,143 @@ const updateInvoiceStatusService = async (invoiceId, statusUpdates) => {
 // --- GET ALL INVOICES & SEARCH (Admin) ---
 const getAllInvoicesAdminService = async (queryParams) => {
     try {
-        const { searchTerm, page = 1, limit = 10, sortBy = 'createdAt', sortOrder = 'desc' } = queryParams;
+        const {
+            searchTerm,
+            sortBy = 'createdAt',
+            sortOrder = 'desc',
+            paymentStatus,
+            orderStatus,
+            fromDate,
+            toDate,
+            userId,
+            minAmount,
+            maxAmount
+        } = queryParams;
+        let pageFromQuery = queryParams.page;
+        let limitFromQuery = queryParams.limit;
+
+        // --- DEBUG LOGS START ---
+        console.log("[Service] Received queryParams:", queryParams);
+        console.log("[Service] limitFromQuery:", limitFromQuery, "(type:", typeof limitFromQuery, ")");
+        console.log("[Service] pageFromQuery:", pageFromQuery, "(type:", typeof pageFromQuery, ")");
+        // --- DEBUG LOGS END ---
 
         let query = {};
-        const userQuery = {}; // Query riêng cho User
 
-        // Xây dựng query tìm kiếm nếu có searchTerm
+        // Filter by searchTerm (existing functionality)
         if (searchTerm) {
-            const searchRegex = new RegExp(searchTerm, 'i'); // Tìm kiếm không phân biệt hoa thường
-
-            // Tìm user khớp với searchTerm (tên hoặc email)
+            const searchRegex = new RegExp(searchTerm, 'i');
             const usersFound = await User.find({
-                $or: [
-                    { name: searchRegex },
-                    { email: searchRegex }
-                ]
-            }).select('_id').lean(); // Chỉ lấy ID
-
+                $or: [{ name: searchRegex }, { email: searchRegex }]
+            }).select('_id').lean();
             const userIds = usersFound.map(user => user._id);
 
-            // Nếu tìm thấy user, lọc invoice theo userIds
-            // Nếu không tìm thấy user nào khớp, nhưng vẫn có searchTerm -> có thể tìm theo Invoice ID hoặc coupon
+            const orConditions = [];
             if (userIds.length > 0) {
-                 // Thêm điều kiện tìm theo user ID VÀ các trường khác của invoice
-                 query = {
-                     $or: [
-                         { user: { $in: userIds } },
-                         { couponCode: searchRegex }, // Tìm theo coupon code
-                         // Tìm theo Invoice ID (nếu searchTerm là ObjectId hợp lệ)
-                         ...(mongoose.Types.ObjectId.isValid(searchTerm) ? [{ _id: searchTerm }] : [])
-                     ]
-                 };
+                orConditions.push({ user: { $in: userIds } });
+            }
+            orConditions.push({ couponCode: searchRegex });
+            if (mongoose.Types.ObjectId.isValid(searchTerm)) {
+                orConditions.push({ _id: searchTerm });
+            }
+
+            if (orConditions.length > 0) {
+                query.$or = orConditions;
             } else {
-                 // Nếu không tìm thấy user nào, chỉ tìm theo coupon hoặc ID hóa đơn
-                 query = {
-                     $or: [
-                         { couponCode: searchRegex },
-                         ...(mongoose.Types.ObjectId.isValid(searchTerm) ? [{ _id: searchTerm }] : [])
-                     ]
-                 };
-                 // Để tránh trả về tất cả invoice khi searchTerm không khớp user/coupon/ID,
-                 // nếu không khớp gì cả, có thể set query thành điều kiện không thể xảy ra
-                 if (!mongoose.Types.ObjectId.isValid(searchTerm) && query.$or.length === 1) {
-                    // Gần như không thể có invoice nào khớp điều kiện này
-                    query = { _id: new mongoose.Types.ObjectId() };
-                 }
+                query = { _id: new mongoose.Types.ObjectId() }; // No results with searchTerm
             }
         }
 
-        // Tính toán skip và sortOptions
-        const skip = (page - 1) * limit;
-        const sortOptions = { [sortBy]: sortOrder === 'asc' ? 1 : -1 };
+        // Filter by specific user
+        if (userId && mongoose.Types.ObjectId.isValid(userId)) {
+            query.user = mongoose.Types.ObjectId(userId);
+        }
 
-        // Query lấy tổng số lượng documents khớp điều kiện (không phân trang)
+        // Filter by payment status
+        if (paymentStatus && Invoice.schema.path('paymentStatus').enumValues.includes(paymentStatus)) {
+            query.paymentStatus = paymentStatus;
+        }
+
+        // Filter by order status
+        if (orderStatus && Invoice.schema.path('orderStatus').enumValues.includes(orderStatus)) {
+            query.orderStatus = orderStatus;
+        }
+
+        // Filter by date range
+        if (fromDate || toDate) {
+            query.createdAt = {};
+            if (fromDate) {
+                query.createdAt.$gte = new Date(fromDate);
+            }
+            if (toDate) {
+                // Add one day to include the entire end date
+                const endDate = new Date(toDate);
+                endDate.setDate(endDate.getDate() + 1);
+                query.createdAt.$lt = endDate;
+            }
+        }
+
+        // Filter by amount
+        if (minAmount !== undefined || maxAmount !== undefined) {
+            query.totalAmount = {};
+            if (minAmount !== undefined) {
+                query.totalAmount.$gte = Number(minAmount);
+            }
+            if (maxAmount !== undefined) {
+                query.totalAmount.$lte = Number(maxAmount);
+            }
+        }
+
+        // Pagination handling (existing functionality)
+        let page = parseInt(pageFromQuery, 10);
+        let limit = parseInt(limitFromQuery, 10);
+        const applyPagination = !isNaN(limit) && limit > 0;
+
+        console.log("[Service] Parsed limit:", limit, "(type:", typeof limit, ")");
+        console.log("[Service] Parsed page:", page, "(type:", typeof page, ")");
+        console.log("[Service] applyPagination:", applyPagination);
+        console.log("[Service] Query filters:", JSON.stringify(query));
+
+        if (!applyPagination) {
+            page = 1;
+        } else {
+            if (isNaN(page) || page <= 0) {
+                page = 1;
+            }
+        }
+
+        const sortOptions = { [sortBy]: sortOrder === 'asc' ? 1 : -1 };
         const totalInvoices = await Invoice.countDocuments(query);
 
-        // Query lấy danh sách invoices với populate, sort và phân trang
-        const invoices = await Invoice.find(query)
-            .populate({ path: "user", select: "name email" }) // Populate thông tin user
-            .populate({
-                path: "items.product",
-                select: "name images", // Lấy tên và ảnh sản phẩm
-                // Nếu cần thêm category/brand thì populate tiếp
-                // populate: { path: "category brand", select: "name" },
-            })
-            .populate({ path: "items.variant", select: "types price" }) // Populate variant
-            .sort(sortOptions)
-            .skip(skip)
-            .limit(limit)
-            .lean(); // Sử dụng lean() để tăng tốc độ query
+        let invoicesQuery = Invoice.find(query)
+            .populate({ path: "user", select: "name email" })
+            .populate({ path: "items.product", select: "name images base_price" })
+            .populate({ path: "items.variant", select: "types price stock" })
+            .sort(sortOptions);
+
+        if (applyPagination) {
+            const skip = (page - 1) * limit;
+            invoicesQuery = invoicesQuery.skip(skip).limit(limit);
+            console.log(`[Service] Applying pagination: skip=${skip}, limit=${limit}`);
+        } else {
+            console.log("[Service] Not applying pagination, fetching all matching documents.");
+        }
+
+        const invoices = await invoicesQuery.lean();
+        console.log("[Service] Number of invoices fetched:", invoices.length);
 
         return {
             invoices,
             currentPage: page,
-            totalPages: Math.ceil(totalInvoices / limit),
+            totalPages: applyPagination ? Math.ceil(totalInvoices / limit) : (totalInvoices > 0 ? 1 : 0),
             totalInvoices,
+            limit: applyPagination ? limit : totalInvoices,
         };
+
     } catch (error) {
         console.error("Error getting all invoices (Admin):", error);
-        // Ném lỗi để controller xử lý
         throw new Error("Error getting invoices: " + error.message);
     }
 };
-
 
 module.exports = { createInvoiceService, getInvoiceService, updateInvoiceStatusService, getInvoiceByIdService, getAllInvoicesAdminService };

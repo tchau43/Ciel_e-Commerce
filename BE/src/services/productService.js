@@ -823,6 +823,67 @@ const listProductsByCategoryService = async (categoryName, limit = 5) => {
   }
 };
 
+// Get products by price range
+const getProductsByPriceRangeService = async (minPrice = 0, maxPrice = Number.MAX_SAFE_INTEGER) => {
+  try {
+    const query = { base_price: { $gte: minPrice } };
+
+    if (maxPrice !== Number.MAX_SAFE_INTEGER && maxPrice !== undefined) {
+      query.base_price.$lte = maxPrice;
+    }
+
+    const products = await Product.find(query)
+      .populate("category", "name")
+      .populate("brand", "name")
+      .sort({ base_price: 1 })
+      .lean();
+
+    return products;
+  } catch (error) {
+    logger.error(`Error in getProductsByPriceRangeService: ${error.message}`);
+    throw error;
+  }
+};
+
+// Search products by both price range and needs/keywords
+const searchProductsByPriceAndNeedsService = async (minPrice = 0, maxPrice = Number.MAX_SAFE_INTEGER, keywords) => {
+  try {
+    // Create text search query for keywords
+    const textQuery = keywords ?
+      {
+        $or: [
+          { name: { $regex: keywords, $options: 'i' } },
+          { description: { $regex: keywords, $options: 'i' } },
+          { "specifications.description": { $regex: keywords, $options: 'i' } },
+          { "features": { $regex: keywords, $options: 'i' } }
+        ]
+      } : {};
+
+    // Create price range query
+    const priceQuery = { base_price: { $gte: minPrice } };
+    if (maxPrice !== Number.MAX_SAFE_INTEGER && maxPrice !== undefined) {
+      priceQuery.base_price.$lte = maxPrice;
+    }
+
+    // Combine both queries
+    const query = {
+      ...textQuery,
+      ...priceQuery
+    };
+
+    const products = await Product.find(query)
+      .populate("category", "name")
+      .populate("brand", "name")
+      .sort({ base_price: 1 })
+      .lean();
+
+    return products;
+  } catch (error) {
+    logger.error(`Error in searchProductsByPriceAndNeedsService: ${error.message}`);
+    throw error;
+  }
+};
+
 // ... (Phần còn lại của file productService.js, đảm bảo export hàm mới)
 
 module.exports = {
@@ -844,4 +905,6 @@ module.exports = {
   getProductsSortedByPriceService,
   listProductsByCategoryService,
   countProductsByCategoryService,
+  getProductsByPriceRangeService,
+  searchProductsByPriceAndNeedsService,
 };

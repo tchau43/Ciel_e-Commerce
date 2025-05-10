@@ -157,8 +157,6 @@ const handleRequiredActions = async (toolCalls) => {
                             message: "Cửa hàng hiện chưa có sản phẩm nào.",
                         });
                     }
-
-                    // ===> THÊM LOGIC XỬ LÝ HÀM MỚI: countProductsByCategory <===
                 } else if (functionName === "countProductsByCategory") {
                     console.log(
                         "---------------------------------------countProductsByCategory"
@@ -186,9 +184,6 @@ const handleRequiredActions = async (toolCalls) => {
                             count: count,
                         });
                     }
-                    // ===> KẾT THÚC LOGIC XỬ LÝ HÀM MỚI <===
-
-                    // ===> CẬP NHẬT LOGIC XỬ LÝ HÀM listProductsByCategory (tên mới của getProductsByCategory) <===
                 } else if (functionName === "listProductsByCategory") {
                     // Đã đổi tên
                     console.log(
@@ -239,7 +234,203 @@ const handleRequiredActions = async (toolCalls) => {
                         }
                     }
                 }
-                // ===> KẾT THÚC LOGIC XỬ LÝ HÀM listProductsByCategory <===
+
+                // === NEW FUNCTION TOOLS FOR PRODUCT QUERIES ===
+
+                // 1. Search products by usage/needs
+                else if (functionName === "searchProductsByNeeds") {
+                    const { needs, limit = 5 } = functionArgs;
+
+                    if (!needs || typeof needs !== "string") {
+                        logger.warn(`Missing or invalid needs for searchProductsByNeeds.`);
+                        output = JSON.stringify({
+                            error: "Missing or invalid needs parameter.",
+                        });
+                    } else {
+                        logger.info(`Searching products for needs: "${needs}" with limit: ${limit}`);
+
+                        // First, search products by needs as keywords
+                        const products = await productService.searchProductService(needs);
+
+                        // Process and format full product details including specifications
+                        const productsWithDetails = await Promise.all(
+                            products.slice(0, limit).map(async (product) => {
+                                // Get full product details including specs if needed
+                                const details = await productService.getProductByIdService(product._id);
+                                return {
+                                    id: details._id,
+                                    name: details.name,
+                                    description: details.description,
+                                    base_price: details.base_price,
+                                    sale_price: details.sale_price,
+                                    discount_percent: details.discount_percent,
+                                    category: details.category?.name,
+                                    brand: details.brand?.name,
+                                    specs: details.specifications || {},
+                                    features: details.features || [],
+                                    image: details.images && details.images.length > 0 ? details.images[0] : null
+                                };
+                            })
+                        );
+
+                        output = JSON.stringify({
+                            message: productsWithDetails.length > 0
+                                ? `Tìm thấy ${productsWithDetails.length} sản phẩm phù hợp với nhu cầu "${needs}":`
+                                : `Không tìm thấy sản phẩm nào phù hợp với nhu cầu "${needs}".`,
+                            products: productsWithDetails
+                        });
+                    }
+                }
+
+                // 2. Get detailed product specifications
+                else if (functionName === "getProductSpecifications") {
+                    const { productName } = functionArgs;
+
+                    if (!productName || typeof productName !== "string") {
+                        logger.warn(`Missing or invalid productName for getProductSpecifications.`);
+                        output = JSON.stringify({
+                            error: "Missing or invalid productName parameter.",
+                        });
+                    } else {
+                        logger.info(`Getting specifications for product: "${productName}"`);
+
+                        // Search for the product by name
+                        const products = await productService.searchProductService(productName);
+
+                        if (products && products.length > 0) {
+                            // Get the most relevant product (first match)
+                            const productDetails = await productService.getProductByIdService(products[0]._id);
+
+                            output = JSON.stringify({
+                                product: {
+                                    id: productDetails._id,
+                                    name: productDetails.name,
+                                    category: productDetails.category?.name,
+                                    brand: productDetails.brand?.name,
+                                    price: productDetails.base_price,
+                                    sale_price: productDetails.sale_price,
+                                    specifications: productDetails.specifications || {},
+                                    features: productDetails.features || [],
+                                    description: productDetails.description
+                                }
+                            });
+                        } else {
+                            output = JSON.stringify({
+                                message: `Không tìm thấy sản phẩm nào có tên "${productName}".`
+                            });
+                        }
+                    }
+                }
+
+                // 3. Find products by price range
+                else if (functionName === "findProductsByPriceRange") {
+                    const { minPrice, maxPrice, needs, limit = 5 } = functionArgs;
+
+                    if (
+                        (minPrice !== undefined && typeof minPrice !== "number") ||
+                        (maxPrice !== undefined && typeof maxPrice !== "number")
+                    ) {
+                        logger.warn(`Invalid price range for findProductsByPriceRange.`);
+                        output = JSON.stringify({
+                            error: "Invalid price range parameters. Both minPrice and maxPrice must be numbers.",
+                        });
+                    } else {
+                        const priceFilter = {};
+                        if (minPrice !== undefined) priceFilter.minPrice = minPrice;
+                        if (maxPrice !== undefined) priceFilter.maxPrice = maxPrice;
+
+                        logger.info(`Finding products in price range: ${JSON.stringify(priceFilter)} with needs: "${needs || 'any'}"`);
+
+                        // Get products filtered by price range
+                        let products;
+
+                        if (needs) {
+                            // If needs specified, search by both needs and price
+                            products = await productService.searchProductsByPriceAndNeedsService(
+                                priceFilter.minPrice,
+                                priceFilter.maxPrice,
+                                needs
+                            );
+                        } else {
+                            // If no needs, just filter by price
+                            products = await productService.getProductsByPriceRangeService(
+                                priceFilter.minPrice,
+                                priceFilter.maxPrice
+                            );
+                        }
+
+                        // Format the product results
+                        const formattedProducts = products.slice(0, limit).map(p => ({
+                            id: p._id,
+                            name: p.name,
+                            price: p.base_price,
+                            sale_price: p.sale_price,
+                            category: p.category?.name,
+                            brand: p.brand?.name,
+                            description: p.description,
+                            features: p.features || []
+                        }));
+
+                        output = JSON.stringify({
+                            message: formattedProducts.length > 0
+                                ? `Tìm thấy ${formattedProducts.length} sản phẩm trong tầm giá từ ${minPrice || 0} đến ${maxPrice || 'không giới hạn'}${needs ? ` phù hợp với nhu cầu "${needs}"` : ''}:`
+                                : `Không tìm thấy sản phẩm nào trong tầm giá từ ${minPrice || 0} đến ${maxPrice || 'không giới hạn'}${needs ? ` phù hợp với nhu cầu "${needs}"` : ''}.`,
+                            products: formattedProducts
+                        });
+                    }
+                }
+
+                // 4. Compare products
+                else if (functionName === "compareProducts") {
+                    const { productNames } = functionArgs;
+
+                    if (!Array.isArray(productNames) || productNames.length < 2) {
+                        logger.warn(`Invalid productNames for compareProducts.`);
+                        output = JSON.stringify({
+                            error: "Invalid productNames parameter. Must provide an array of at least 2 product names.",
+                        });
+                    } else {
+                        logger.info(`Comparing products: ${JSON.stringify(productNames)}`);
+
+                        // Get product details for each product name
+                        const productsDetails = await Promise.all(
+                            productNames.map(async (name) => {
+                                const products = await productService.searchProductService(name);
+                                if (products && products.length > 0) {
+                                    return productService.getProductByIdService(products[0]._id);
+                                }
+                                return null;
+                            })
+                        );
+
+                        // Filter out any products that weren't found
+                        const validProducts = productsDetails.filter(p => p !== null);
+
+                        if (validProducts.length >= 2) {
+                            // Format product details for comparison
+                            const comparisonData = validProducts.map(p => ({
+                                id: p._id,
+                                name: p.name,
+                                price: p.base_price,
+                                sale_price: p.sale_price,
+                                category: p.category?.name,
+                                brand: p.brand?.name,
+                                specifications: p.specifications || {},
+                                features: p.features || []
+                            }));
+
+                            output = JSON.stringify({
+                                message: `So sánh ${validProducts.length} sản phẩm:`,
+                                products: comparisonData
+                            });
+                        } else {
+                            output = JSON.stringify({
+                                message: `Không tìm đủ sản phẩm để so sánh. Vui lòng kiểm tra lại tên sản phẩm.`
+                            });
+                        }
+                    }
+                }
+
                 else {
                     logger.warn(
                         `Function ${functionName} is not defined in the backend.`
@@ -277,7 +468,6 @@ const handleRequiredActions = async (toolCalls) => {
             }
         })
     ); // Kết thúc Promise.all / map
-
     return toolOutputs;
 };
 
@@ -433,8 +623,217 @@ const runAssistantAndGetResponse = async (threadId) => {
     );
 };
 
+// --- Assistant Management Functions ---
+
+// Create a new assistant
+const createAssistant = async (options) => {
+    if (!openai) throw new Error("OpenAI client not initialized.");
+
+    const {
+        name,
+        instructions,
+        model = "gpt-4-turbo-preview",
+        tools = [],
+        fileIds = [],
+        metadata = {}
+    } = options;
+
+    logger.info(`Creating new assistant with name: ${name}`);
+
+    try {
+        const assistant = await openai.beta.assistants.create({
+            name,
+            instructions,
+            model,
+            tools,
+            file_ids: fileIds,
+            metadata
+        });
+
+        logger.info(`Assistant created successfully: ${assistant.id}`);
+        return assistant;
+    } catch (error) {
+        logger.error(`Failed to create assistant: ${error.message}`);
+        throw error;
+    }
+};
+
+// Retrieve an assistant
+const getAssistant = async (assistantId) => {
+    if (!openai) throw new Error("OpenAI client not initialized.");
+    if (!assistantId) throw new Error("Assistant ID is required");
+
+    logger.info(`Retrieving assistant: ${assistantId}`);
+
+    try {
+        const assistant = await openai.beta.assistants.retrieve(assistantId);
+        return assistant;
+    } catch (error) {
+        logger.error(`Failed to retrieve assistant ${assistantId}: ${error.message}`);
+        throw error;
+    }
+};
+
+// Update an assistant
+const updateAssistant = async (assistantId, updates) => {
+    if (!openai) throw new Error("OpenAI client not initialized.");
+    if (!assistantId) throw new Error("Assistant ID is required");
+
+    logger.info(`Updating assistant: ${assistantId}`);
+
+    try {
+        const assistant = await openai.beta.assistants.update(
+            assistantId,
+            updates
+        );
+
+        logger.info(`Assistant ${assistantId} updated successfully`);
+        return assistant;
+    } catch (error) {
+        logger.error(`Failed to update assistant ${assistantId}: ${error.message}`);
+        throw error;
+    }
+};
+
+// List assistants
+const listAssistants = async (limit = 20, order = "desc", after = null, before = null) => {
+    if (!openai) throw new Error("OpenAI client not initialized.");
+
+    logger.info(`Listing assistants (limit: ${limit}, order: ${order})`);
+
+    try {
+        const params = { limit, order };
+        if (after) params.after = after;
+        if (before) params.before = before;
+
+        const assistants = await openai.beta.assistants.list(params);
+        return assistants;
+    } catch (error) {
+        logger.error(`Failed to list assistants: ${error.message}`);
+        throw error;
+    }
+};
+
+// Delete an assistant
+const deleteAssistant = async (assistantId) => {
+    if (!openai) throw new Error("OpenAI client not initialized.");
+    if (!assistantId) throw new Error("Assistant ID is required");
+
+    logger.info(`Deleting assistant: ${assistantId}`);
+
+    try {
+        const response = await openai.beta.assistants.del(assistantId);
+        logger.info(`Assistant ${assistantId} deleted successfully`);
+        return response;
+    } catch (error) {
+        logger.error(`Failed to delete assistant ${assistantId}: ${error.message}`);
+        throw error;
+    }
+};
+
+// Add a file to an assistant
+const addFileToAssistant = async (assistantId, fileId) => {
+    if (!openai) throw new Error("OpenAI client not initialized.");
+    if (!assistantId) throw new Error("Assistant ID is required");
+    if (!fileId) throw new Error("File ID is required");
+
+    logger.info(`Adding file ${fileId} to assistant ${assistantId}`);
+
+    try {
+        const file = await openai.beta.assistants.files.create(
+            assistantId,
+            { file_id: fileId }
+        );
+
+        logger.info(`File ${fileId} added to assistant ${assistantId}`);
+        return file;
+    } catch (error) {
+        logger.error(`Failed to add file ${fileId} to assistant ${assistantId}: ${error.message}`);
+        throw error;
+    }
+};
+
+// Remove a file from an assistant
+const removeFileFromAssistant = async (assistantId, fileId) => {
+    if (!openai) throw new Error("OpenAI client not initialized.");
+    if (!assistantId) throw new Error("Assistant ID is required");
+    if (!fileId) throw new Error("File ID is required");
+
+    logger.info(`Removing file ${fileId} from assistant ${assistantId}`);
+
+    try {
+        const response = await openai.beta.assistants.files.del(
+            assistantId,
+            fileId
+        );
+
+        logger.info(`File ${fileId} removed from assistant ${assistantId}`);
+        return response;
+    } catch (error) {
+        logger.error(`Failed to remove file ${fileId} from assistant ${assistantId}: ${error.message}`);
+        throw error;
+    }
+};
+
+// List files attached to an assistant
+const listAssistantFiles = async (assistantId, limit = 20, order = "desc", after = null, before = null) => {
+    if (!openai) throw new Error("OpenAI client not initialized.");
+    if (!assistantId) throw new Error("Assistant ID is required");
+
+    logger.info(`Listing files for assistant ${assistantId}`);
+
+    try {
+        const params = { limit, order };
+        if (after) params.after = after;
+        if (before) params.before = before;
+
+        const files = await openai.beta.assistants.files.list(
+            assistantId,
+            params
+        );
+
+        return files;
+    } catch (error) {
+        logger.error(`Failed to list files for assistant ${assistantId}: ${error.message}`);
+        throw error;
+    }
+};
+
+// Upload a file for assistants API
+const uploadFile = async (filePath, purpose = "assistants") => {
+    if (!openai) throw new Error("OpenAI client not initialized.");
+    if (!filePath) throw new Error("File path is required");
+
+    const fs = require('fs');
+
+    logger.info(`Uploading file ${filePath} for purpose: ${purpose}`);
+
+    try {
+        const file = await openai.files.create({
+            file: fs.createReadStream(filePath),
+            purpose
+        });
+
+        logger.info(`File uploaded successfully: ${file.id}`);
+        return file;
+    } catch (error) {
+        logger.error(`Failed to upload file ${filePath}: ${error.message}`);
+        throw error;
+    }
+};
+
 module.exports = {
     getOrCreateThread,
     addMessageToThread,
     runAssistantAndGetResponse,
+    // Export the new assistant management functions
+    createAssistant,
+    getAssistant,
+    updateAssistant,
+    listAssistants,
+    deleteAssistant,
+    addFileToAssistant,
+    removeFileFromAssistant,
+    listAssistantFiles,
+    uploadFile
 };

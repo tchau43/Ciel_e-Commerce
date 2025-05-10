@@ -16,7 +16,9 @@ export const useGetInvoiceQuery = (
     queryKey: ["invoices", variables],
     queryFn: () => {
       // Gọi phương thức repository với endpoint đúng
-      return InvoiceRepository.getInvoice(API_ENDPOINTS.GET_INVOICE(variables));
+      return InvoiceRepository.getInvoicesForUser(
+        API_ENDPOINTS.GET_INVOICE(variables)
+      );
     },
     enabled: !!variables, // Chỉ chạy query khi có userId (variables)
     ...options,
