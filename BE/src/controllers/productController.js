@@ -2,7 +2,7 @@
 // Handles CRUD for Products AND individual Variants after schema refactor
 
 const { default: mongoose } = require("mongoose");
-const { createProductService, getAllProductsService, getProductByIdService, getProductsByNameService, updateProductService, deleteProductService, getProductsByCategoryService, searchProductService, getVariantByIdService, updateVariantService, deleteVariantService, updateVariantStockService, addVariantToProductService } = require("../services/productService");
+const { createProductService, getAllProductsService, getProductByIdService, getProductsByNameService, updateProductService, deleteProductService, getProductsByCategoryService, searchProductService, getVariantByIdService, updateVariantService, deleteVariantService, updateVariantStockService, addVariantToProductService, getFeaturedProductsService } = require("../services/productService");
 
 // Import all service functions under a namespace for clarity
 
@@ -270,6 +270,17 @@ const addVariantToProduct = async (req, res) => {
   }
 };
 
+// --- GET FEATURED PRODUCTS ---
+const getFeaturedProducts = async (req, res) => {
+  try {
+    const limit = req.query.limit; // Lấy tham số limit từ query string
+    const featuredProducts = await getFeaturedProductsService(limit);
+    res.status(200).json(featuredProducts);
+  } catch (error) {
+    console.error("Error in getFeaturedProducts controller:", error);
+    res.status(500).json({ message: error.message });
+  }
+};
 
 module.exports = {
   // Product specific
@@ -287,4 +298,5 @@ module.exports = {
   deleteVariant,
   updateVariantStock,
   addVariantToProduct, // Added controller for adding variant
+  getFeaturedProducts, // Thêm vào exports
 };

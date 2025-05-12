@@ -33,6 +33,11 @@ class ProductRepository extends Base {
   getRecommendations = (url: string): Promise<RecommendationsResponse> => {
     return this.http<RecommendationsResponse>(url, "get");
   };
+
+  // Thêm phương thức lấy sản phẩm nổi bật
+  getFeaturedProducts = (url: string): Promise<ProductType[]> => {
+    return this.http<ProductType[]>(url, "get");
+  };
 }
 
 // Export instance with the new class name

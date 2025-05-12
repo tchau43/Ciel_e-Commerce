@@ -79,7 +79,7 @@ export type BaseAdminQueryParams = {
   page?: number;
   limit?: number;
   sortBy?: string;
-  sortOrder?: 'asc' | 'desc';
+  sortOrder?: "asc" | "desc";
 };
 // *** END: Added Type ***
 
@@ -353,7 +353,11 @@ export type ValidateCouponResponse = {
   reason?: string;
   coupon?: Pick<
     Coupon,
-    "code" | "description" | "discountType" | "discountValue" | "minPurchaseAmount"
+    | "code"
+    | "description"
+    | "discountType"
+    | "discountValue"
+    | "minPurchaseAmount"
   > & {
     calculatedDiscount?: number; // Frontend tự tính hay BE trả về?
   };
@@ -383,3 +387,10 @@ export type AdminInvoicePaginatedResponse = {
   totalInvoices: number; // Tổng số hóa đơn khớp query
 };
 // *** END: Added Type ***
+
+// Stripe Payment Input Type
+export type StripeData = {
+  invoiceId: string;
+  amount: number;
+  currency?: string;
+};

@@ -114,7 +114,7 @@ const CartPage = () => {
               Giỏ hàng của bạn hiện đang trống.
             </p>
             <Button
-              onClick={() => navigate("/product")} // Chuyển hướng đến trang sản phẩm
+              onClick={() => navigate("/products")} // Chuyển hướng đến trang sản phẩm
               className="px-6 py-2 bg-ch-blue text-white rounded hover:bg-ch-blue-dark transition duration-200"
             >
               Tiếp tục mua sắm
