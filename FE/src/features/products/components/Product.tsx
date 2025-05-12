@@ -5,11 +5,13 @@ import { useEffect, useState, useRef } from "react";
 import { getAuthCredentials } from "@/utils/authUtil";
 import { useAddProductToCartMutation } from "@/services/cart/addProductToCartMutation";
 import { Product as ProductType, Variant } from "@/types/dataTypes";
+import { toast } from "sonner";
 
 const Product = () => {
   const navigate = useNavigate();
   const [quantity, setQuantity] = useState<number>(1);
   const { id } = useParams<{ id: string }>();
+
   const { mutate: updateCart, isPending: isAddingToCart } =
     useAddProductToCartMutation();
   const [mainImage, setMainImage] = useState<string | undefined>();
@@ -93,13 +95,24 @@ const Product = () => {
       return;
     }
     if (quantity <= 0) return;
-    updateCart({
-      variables: {
-        productId: typedProduct._id,
-        quantity: quantity,
-        variantId: selectedVariantId,
+
+    updateCart(
+      {
+        variables: {
+          productId: typedProduct._id,
+          quantity: quantity,
+          variantId: selectedVariantId,
+        },
       },
-    });
+      {
+        onSuccess: () => {
+          toast.success("Sản phẩm đã được thêm vào giỏ hàng!");
+        },
+        onError: (error) => {
+          toast.error("Không thể thêm vào giỏ hàng: " + error.message);
+        },
+      }
+    );
   };
 
   const selectedVariant = typedProduct.variants?.find(
@@ -137,10 +150,10 @@ const Product = () => {
             </span>
           </>
         )}
-        {` / `}
+        {` / `}to
         <span className="text-gray-800">{typedProduct.name.toUpperCase()}</span>
       </p>
-      <div className="flex flex-col md:flex-row gap-x-8 bg-ch-blue-10 m-4">
+      <div className="flex flex-col md:flex-row gap-x-8 bg-ch-blue-10/50 backdrop-blur-sm m-4 px-2 pt-2 rounded-lg">
         <div
           ref={columnARef}
           className={`w-full md:w-3/5 lg:flex-2 mb-8 md:mb-0`}
@@ -294,19 +307,7 @@ const Product = () => {
                   : "bg-ch-red text-white hover:bg-ch-red-100 border-ch-red hover:border-ch-red-100" // Use ch-red theme for Add to Cart button
               }`}
             >
-              {isAddingToCart ? "Adding..." : "Add to Cart"}
-            </button>
-          </div>
-          <div className="flex flex-wrap gap-2 pt-2">
-            <button className="flex-1 bg-ch-blue h-10 px-4 text-white text-xs font-medium hover:bg-ch-blue-100 rounded min-w-[120px]">
-              {" "}
-              {/* Use ch-blue */}
-              Liên hệ báo giá sỉ
-            </button>
-            <button className="flex-1 bg-ch-gray-500 h-10 px-4 text-white text-xs font-medium hover:bg-ch-gray-900 rounded min-w-[120px]">
-              {" "}
-              {/* Use gray for secondary? Or blue/red? */}
-              Đăng ký đại lý
+              {isAddingToCart ? "Thêm..." : "Thêm vào giỏ hàng"}
             </button>
           </div>
         </div>

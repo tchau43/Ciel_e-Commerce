@@ -4,7 +4,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { useDeleteAllProductInCartMutation } from "@/services/cart/deleteAllProductInCartMutation";
 import { useCreateInvoiceMutation } from "@/services/invoice/createInvoiceMutation";
 // SỬA LỖI: Import đúng types từ dataTypes.ts
-import { CartItem, Address } from "@/types/dataTypes";
+import { CartItem, Address, PaymentMethod } from "@/types/dataTypes";
 import { getAuthCredentials } from "@/utils/authUtil";
 import { Button } from "@/components/ui/button"; // Import Button nếu cần
 import { Input } from "@/components/ui/input"; // Import Input nếu cần
@@ -30,7 +30,9 @@ const PaymentPage = () => {
   } = useCreateInvoiceMutation();
   const { mutate: deleteCart } = useDeleteAllProductInCartMutation();
 
-  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState("COD");
+  // Sử dụng đúng PaymentMethod từ enum
+  const [selectedPaymentMethod, setSelectedPaymentMethod] =
+    useState<PaymentMethod>(PaymentMethod.CASH);
   const [shippingAddress, setShippingAddress] = useState<Address>({
     // Sử dụng type Address
     street: userInfo?.address?.street || "", // Lấy thông tin chi tiết hơn nếu có
@@ -48,7 +50,7 @@ const PaymentPage = () => {
 
   const handlePaymentMethodChange = (value: string) => {
     // Handler cho Shadcn Select
-    setSelectedPaymentMethod(value);
+    setSelectedPaymentMethod(value as PaymentMethod);
   };
 
   const handleAddressChange = (e: ChangeEvent<HTMLInputElement>) => {
@@ -90,14 +92,14 @@ const PaymentPage = () => {
     }
 
     // Xử lý thanh toán Stripe (nếu chọn)
-    if (selectedPaymentMethod === "Stripe") {
+    if (selectedPaymentMethod === PaymentMethod.CARD) {
       navigate("/payment/stripe", {
         state: { cartItems, total, shippingAddress }, // Truyền cả địa chỉ
       });
       return;
     }
 
-    // Xử lý thanh toán COD
+    // Xử lý thanh toán CASH/COD
     createInvoice(
       {
         variables: {
@@ -109,7 +111,7 @@ const PaymentPage = () => {
             quantity: item.quantity,
             variantId: item.variantId || null, // Lấy variantId trực tiếp
           })),
-          paymentMethod: selectedPaymentMethod as "COD", // Ép kiểu nếu chắc chắn
+          paymentMethod: selectedPaymentMethod, // Sử dụng enum PaymentMethod đã chọn
         },
       },
       {
@@ -264,10 +266,10 @@ const PaymentPage = () => {
               <SelectValue placeholder="Chọn phương thức thanh toán" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="COD">
+              <SelectItem value={PaymentMethod.CASH}>
                 Thanh toán khi nhận hàng (COD)
               </SelectItem>
-              <SelectItem value="Stripe">
+              <SelectItem value={PaymentMethod.CARD}>
                 Thanh toán bằng thẻ (Stripe)
               </SelectItem>
             </SelectContent>
@@ -283,7 +285,7 @@ const PaymentPage = () => {
           >
             {isCreateInvoicePending
               ? "Đang xử lý..."
-              : selectedPaymentMethod === "Stripe"
+              : selectedPaymentMethod === PaymentMethod.CARD
               ? "Tiếp tục thanh toán thẻ"
               : "Đặt hàng (COD)"}
           </Button>

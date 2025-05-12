@@ -22,6 +22,7 @@ import TestPage from "./pages/TestPage.tsx";
 import Product from "./features/products/components/Product.tsx";
 import RecommendedProductsPage from "./pages/recommendations/RecommendedProductsPage.tsx";
 import AdminInvoicesManagementPage from "./features/admin/pages/AdminInvoicesManagementPage.tsx";
+import { Toaster } from "sonner";
 
 function LoadingSpinner() {
   return (
@@ -98,6 +99,7 @@ function App() {
           </Route>
           <Route path="test/" element={<TestPage />}></Route>
         </Routes>
+        <Toaster position="top-right" richColors />
       </Suspense>
     </Router>
   );
