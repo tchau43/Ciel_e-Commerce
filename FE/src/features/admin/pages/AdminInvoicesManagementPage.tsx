@@ -23,7 +23,6 @@ import {
 } from "@/components/ui/pagination";
 import { Input } from "@/components/ui/input";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Toaster } from "sonner";
 import {
   Select,
   SelectContent,
@@ -568,8 +567,6 @@ const AdminInvoicesManagementPage = () => {
           </PaginationContent>
         </Pagination>
       )}
-
-      <Toaster position="top-right" />
     </div>
   );
 };

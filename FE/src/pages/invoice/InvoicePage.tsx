@@ -51,17 +51,12 @@ const InvoicePage = () => {
       <h1 className="text-2xl font-semibold mb-6">Lịch sử đơn hàng</h1>
       {invoices && invoices.length > 0 ? (
         // Có hóa đơn -> map và hiển thị
-        <div className="space-y-6">
-          {" "}
+        <div className="space-y-6 bg-ch-blue-10/50 backdrop-blur-sm m-4 px-2 pt-2 rounded-lg">
           {/* Thêm khoảng cách giữa các hóa đơn */}
-          {invoices.map(
-            (
-              invoice: Invoice // Thêm kiểu Invoice cho rõ ràng
-            ) => (
-              // Đảm bảo InvoiceItems nhận đúng prop và có key
-              <InvoiceItems key={invoice._id} invoiceItem={invoice} />
-            )
-          )}
+          {invoices.map((invoice: Invoice) => (
+            // Đảm bảo InvoiceItems nhận đúng prop và có key
+            <InvoiceItems key={invoice._id} invoiceItem={invoice} />
+          ))}
         </div>
       ) : (
         // Không có hóa đơn -> hiển thị thông báo
