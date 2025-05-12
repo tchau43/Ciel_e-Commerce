@@ -50,7 +50,7 @@ const FloatingLabelInput = React.forwardRef<
           htmlFor={id} // Connect label to input for accessibility
           className={cn(
             // --- Base & Positioning ---
-            "absolute left-3 top-3 z-10 origin-[0] transform cursor-text px-1", // Position like placeholder, allow text cursor
+            "absolute left-3 top-[10px] z-10 origin-[0] transform cursor-text px-1", // Position like placeholder, allow text cursor
             "transition-all duration-200 ease-in-out", // Smooth animation
             "pointer-events-none", // Let clicks fall through to the input below
             // --- Text Styling (Default - Placeholder Look) ---

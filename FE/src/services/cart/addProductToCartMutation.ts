@@ -4,7 +4,10 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import Cart from "@/repositories/cart/cart";
 import { API_ENDPOINTS } from "@/utils/api/endpoint";
 
-export const useAddProductToCartMutation = () => {
+export const useAddProductToCartMutation = (options?: {
+  onSuccess?: () => void;
+  onError?: (error: Error) => void;
+}) => {
   const queryClient = useQueryClient();
   return useMutation({
     // Use the correct type for variables
@@ -17,10 +20,20 @@ export const useAddProductToCartMutation = () => {
       // Invalidate the cart query to trigger a refetch
       // Consider invalidating with the user ID if your query key includes it
       queryClient.invalidateQueries({ queryKey: ["cart"] });
+
+      // Call the custom onSuccess handler if provided
+      if (options?.onSuccess) {
+        options.onSuccess();
+      }
     },
-    onError: (error) => {
+    onError: (error: Error) => {
       // Log the specific error for better debugging
       console.error("Failed to add product to cart:", error);
+
+      // Call the custom onError handler if provided
+      if (options?.onError) {
+        options.onError(error);
+      }
     },
   });
 };
