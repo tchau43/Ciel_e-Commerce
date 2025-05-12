@@ -884,6 +884,31 @@ const searchProductsByPriceAndNeedsService = async (minPrice = 0, maxPrice = Num
   }
 };
 
+// --- GET FEATURED PRODUCTS ---
+// Trả về các sản phẩm nổi bật dựa trên các tiêu chí như lượt đánh giá cao, bán chạy, hoặc sản phẩm mới
+const getFeaturedProductsService = async (limit = 3) => {
+  try {
+    // Giới hạn số lượng sản phẩm được trả về
+    const limitNum = parseInt(limit, 10) || 3;
+
+    // Lấy danh sách sản phẩm sắp xếp theo độ phổ biến và đánh giá
+    const featuredProducts = await Product.find({})
+      .sort({
+        averageRating: -1, // Sắp xếp theo đánh giá cao nhất
+        numberOfReviews: -1 // Ưu tiên sản phẩm có nhiều đánh giá
+      })
+      .limit(limitNum)
+      .populate("category", "name")
+      .populate("brand", "name")
+      .lean();
+
+    return featuredProducts;
+  } catch (error) {
+    console.error("Error in getFeaturedProductsService:", error);
+    throw new Error("Error getting featured products: " + error.message);
+  }
+};
+
 // ... (Phần còn lại của file productService.js, đảm bảo export hàm mới)
 
 module.exports = {
@@ -907,4 +932,5 @@ module.exports = {
   countProductsByCategoryService,
   getProductsByPriceRangeService,
   searchProductsByPriceAndNeedsService,
+  getFeaturedProductsService,
 };
