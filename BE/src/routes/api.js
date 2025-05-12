@@ -34,6 +34,7 @@ const {
   deleteVariant,
   addVariantToProduct,
   updateVariantStock,
+  getFeaturedProducts,
 } = require("../controllers/productController"); // Includes variant controllers now
 
 const {
@@ -100,6 +101,7 @@ routerAPI.post("/register", createUser);
 routerAPI.post("/login", userLogin);
 // Publicly accessible read routes for products/categories/reviews
 routerAPI.get("/products", getAllProducts);
+routerAPI.get("/products/featured", getFeaturedProducts);
 routerAPI.get("/productsByCategory", getProductsByCategory);
 routerAPI.get("/product/search", getProductsByName); // Consider renaming route for clarity?
 routerAPI.get("/productsBySearch", searchProduct);

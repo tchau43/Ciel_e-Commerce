@@ -21,6 +21,7 @@ export const API_ENDPOINTS = {
   PRODUCTS_BY_SEARCH_NAME: `${VITE_API_VERSION}/product/searchName`, // GET (Query param 'name')
   PRODUCTS_BY_SEARCH_TERM: `${VITE_API_VERSION}/productsBySearch`, // GET (Query param 'searchTerm')
   PRODUCTS_BATCH: `${VITE_API_VERSION}/products/batch`, // POST (Auth required, expects { ids: [...] } in body)
+  FEATURED_PRODUCTS: `${VITE_API_VERSION}/products/featured`, // GET (Optional query param 'limit')
 
   // --- Variants ---
   VARIANT_BY_ID: (variantId: string) =>
@@ -36,7 +37,7 @@ export const API_ENDPOINTS = {
 
   // --- Cart ---
   // Note: Backend uses one endpoint for add/update/remove
-  CART_ITEM: `${VITE_API_VERSION}/cart/item`, // POST (Auth required) - Replaces ADD_TO_CART & UPDATE_CART
+  CART_ITEM: `${VITE_API_VERSION}/cart/item`, // POST (Auth required - Replaces ADD_TO_CART & UPDATE_CART)
   CART: (userId: string) => `${VITE_API_VERSION}/cart/${userId}`, // GET (Auth required)
   DELETE_CART: (userId: string) => `${VITE_API_VERSION}/cart/${userId}`, // DELETE (Auth required)
 
