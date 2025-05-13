@@ -11,11 +11,10 @@ const Footer = () => {
           </span>
         </p>
         <p className="text-sm text-[rgba(177,178,178,1)] font-normal">
-          Số điện thoại : <span className="hover:underline">0966661046</span>
+          Số điện thoại : <span className="hover:underline">0392031915</span>
         </p>
         <p className="text-sm text-[rgba(177,178,178,1)] font-normal">
-          Email :
-          <span className="hover:underline">tranngochieu2908@gmail.com</span>
+          Email :<span className="hover:underline">chaupt2823@gmail.com</span>
         </p>
       </div>
       <p className="text-xs text-[rgba(177,178,178,1)] font-extralight mt-4">
