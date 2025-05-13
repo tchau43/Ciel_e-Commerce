@@ -1,7 +1,20 @@
-import { Invoice, InvoiceItem, PaymentStatus } from "@/types/dataTypes";
+import {
+  Invoice,
+  InvoiceItem,
+  PaymentStatus,
+  OrderStatus,
+} from "@/types/dataTypes";
 import ProductInvoice from "./ProductInvoice";
 import moment from "moment";
-import { CheckCircle, Clock, XCircle, RefreshCw, Ban } from "lucide-react";
+import {
+  CheckCircle,
+  Clock,
+  XCircle,
+  RefreshCw,
+  Ban,
+  Truck,
+  Package,
+} from "lucide-react";
 
 interface InvoiceItemsProps {
   invoiceItem: Invoice;
@@ -13,7 +26,7 @@ const InvoiceItems = ({ invoiceItem }: InvoiceItemsProps) => {
   );
   const productList = invoiceItem.items;
 
-  const getStatusIcon = (status: PaymentStatus) => {
+  const getPaymentStatusIcon = (status: PaymentStatus) => {
     switch (status) {
       case PaymentStatus.PAID:
         return <CheckCircle className="h-5 w-5 text-green-500" />;
@@ -30,7 +43,7 @@ const InvoiceItems = ({ invoiceItem }: InvoiceItemsProps) => {
     }
   };
 
-  const getStatusClass = (status: PaymentStatus) => {
+  const getPaymentStatusClass = (status: PaymentStatus) => {
     switch (status) {
       case PaymentStatus.PAID:
         return "bg-green-100 text-green-800 border-green-200";
@@ -47,6 +60,74 @@ const InvoiceItems = ({ invoiceItem }: InvoiceItemsProps) => {
     }
   };
 
+  const getOrderStatusIcon = (status: OrderStatus) => {
+    switch (status) {
+      case OrderStatus.DELIVERED:
+        return <CheckCircle className="h-5 w-5 text-green-500" />;
+      case OrderStatus.SHIPPED:
+        return <Truck className="h-5 w-5 text-blue-500" />;
+      case OrderStatus.PROCESSING:
+        return <Package className="h-5 w-5 text-amber-500" />;
+      case OrderStatus.CANCELLED:
+        return <Ban className="h-5 w-5 text-gray-500" />;
+      case OrderStatus.RETURNED:
+        return <RefreshCw className="h-5 w-5 text-red-500" />;
+      default:
+        return <Clock className="h-5 w-5 text-gray-400" />;
+    }
+  };
+
+  const getOrderStatusClass = (status: OrderStatus) => {
+    switch (status) {
+      case OrderStatus.DELIVERED:
+        return "bg-green-100 text-green-800 border-green-200";
+      case OrderStatus.SHIPPED:
+        return "bg-blue-100 text-blue-800 border-blue-200";
+      case OrderStatus.PROCESSING:
+        return "bg-amber-100 text-amber-800 border-amber-200";
+      case OrderStatus.CANCELLED:
+        return "bg-gray-100 text-gray-800 border-gray-200";
+      case OrderStatus.RETURNED:
+        return "bg-red-100 text-red-800 border-red-200";
+      default:
+        return "bg-gray-100 text-gray-800 border-gray-200";
+    }
+  };
+
+  const getPaymentStatusText = (status: PaymentStatus) => {
+    switch (status) {
+      case PaymentStatus.PAID:
+        return "ĐÃ THANH TOÁN";
+      case PaymentStatus.PENDING:
+        return "CHỜ THANH TOÁN";
+      case PaymentStatus.FAILED:
+        return "THANH TOÁN THẤT BẠI";
+      case PaymentStatus.REFUNDED:
+        return "ĐÃ HOÀN TIỀN";
+      case PaymentStatus.CANCELLED:
+        return "ĐÃ HỦY";
+      default:
+        return "KHÔNG XÁC ĐỊNH";
+    }
+  };
+
+  const getOrderStatusText = (status: OrderStatus) => {
+    switch (status) {
+      case OrderStatus.DELIVERED:
+        return "ĐÃ GIAO HÀNG";
+      case OrderStatus.SHIPPED:
+        return "ĐANG VẬN CHUYỂN";
+      case OrderStatus.PROCESSING:
+        return "ĐANG XỬ LÝ";
+      case OrderStatus.CANCELLED:
+        return "ĐÃ HỦY";
+      case OrderStatus.RETURNED:
+        return "ĐÃ HOÀN TRẢ";
+      default:
+        return status.toUpperCase();
+    }
+  };
+
   return (
     <div className="mb-8 overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm transition hover:shadow-md">
       {/* Header */}
@@ -54,7 +135,7 @@ const InvoiceItems = ({ invoiceItem }: InvoiceItemsProps) => {
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div className="space-y-1">
             <h3 className="text-lg font-medium text-gray-900">
-              Đơn hàng #{invoiceItem._id.slice(-6)}
+              Đơn hàng #{invoiceItem._id}
             </h3>
             <div className="flex items-center gap-2 text-sm text-gray-500">
               <span className="flex items-center gap-1">
@@ -76,17 +157,31 @@ const InvoiceItems = ({ invoiceItem }: InvoiceItemsProps) => {
               </span>
             </div>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-3">
             <span
-              className={`flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium ${getStatusClass(
+              className={`flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium ${getPaymentStatusClass(
                 invoiceItem.paymentStatus as PaymentStatus
               )}`}
             >
-              {getStatusIcon(invoiceItem.paymentStatus as PaymentStatus)}
-              {invoiceItem.paymentStatus.toUpperCase()}
+              {getPaymentStatusIcon(invoiceItem.paymentStatus as PaymentStatus)}
+              {getPaymentStatusText(invoiceItem.paymentStatus as PaymentStatus)}
+            </span>
+            <span
+              className={`flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium ${getOrderStatusClass(
+                invoiceItem.orderStatus as OrderStatus
+              )}`}
+            >
+              {getOrderStatusIcon(invoiceItem.orderStatus as OrderStatus)}
+              {getOrderStatusText(invoiceItem.orderStatus as OrderStatus)}
             </span>
             <span className="rounded-full bg-gray-100 px-3 py-1 text-xs font-medium text-gray-800">
-              {invoiceItem.paymentMethod}
+              {invoiceItem.paymentMethod === "CARD"
+                ? "THẺ"
+                : invoiceItem.paymentMethod === "CASH"
+                ? "TIỀN MẶT"
+                : invoiceItem.paymentMethod === "BANK_TRANSFER"
+                ? "CHUYỂN KHOẢN"
+                : invoiceItem.paymentMethod}
             </span>
           </div>
         </div>

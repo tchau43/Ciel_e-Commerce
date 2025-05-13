@@ -293,6 +293,8 @@ const getInvoiceService = async (userId, queryParams = {}) => {
         }
 
         // Just return the invoices if no pagination
+
+        // console.log("-------------------------------SERVICE: Invoices fetched:", invoices);
         return invoices;
     } catch (error) {
         console.error("Error getting user invoices:", error);
