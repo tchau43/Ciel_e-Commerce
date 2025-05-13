@@ -1,12 +1,10 @@
-// Giả định đường dẫn đúng là src/pages/cart/CartPage.tsx hoặc tương tự
-// import CartItemComponent from "@/features/carts/components/CartItem";
-import CartItemComponent from "@/features/carts/components/CartItem"; // Giả sử tên file là CartItemComponent
+import CartItemComponent from "@/features/carts/components/CartItem";
 import { useGetCartQuery } from "@/services/cart/getCartQuery";
 import { getAuthCredentials } from "@/utils/authUtil";
 import { useNavigate } from "react-router-dom";
 import { Cart, CartItem, Variant } from "@/types/dataTypes";
-import { Skeleton } from "@/components/ui/skeleton"; // Import Skeleton
-import { Button } from "@/components/ui/button"; // Import Button
+import { Skeleton } from "@/components/ui/skeleton";
+import { Button } from "@/components/ui/button";
 
 const CartPage = () => {
   const navigate = useNavigate();
@@ -58,7 +56,6 @@ const CartPage = () => {
   }
 
   if (isLoading) {
-    // Hiển thị Skeleton khi đang tải
     return (
       <div className="min-h-screen py-8">
         <div className="container mx-auto px-4">
@@ -114,7 +111,7 @@ const CartPage = () => {
               Giỏ hàng của bạn hiện đang trống.
             </p>
             <Button
-              onClick={() => navigate("/products")} // Chuyển hướng đến trang sản phẩm
+              onClick={() => navigate("/products")}
               className="px-6 py-2 bg-ch-blue text-white rounded hover:bg-ch-blue-dark transition duration-200"
             >
               Tiếp tục mua sắm
@@ -132,8 +129,6 @@ const CartPage = () => {
             </div>
             <div className="md:w-1/3 mt-8 md:mt-0">
               <div className="bg-white rounded-lg shadow p-6 sticky top-24">
-                {" "}
-                {/* Tăng top sticky */}
                 <h2 className="text-xl font-semibold text-gray-800 border-b pb-3 mb-4">
                   Tóm tắt đơn hàng
                 </h2>
@@ -155,7 +150,7 @@ const CartPage = () => {
                   onClick={handleCheckout}
                   disabled={isEmpty}
                   className="mt-6 w-full px-6 py-3 bg-ch-red text-white font-semibold rounded-md hover:bg-ch-red-dark transition duration-200 disabled:bg-gray-400 disabled:cursor-not-allowed"
-                  size="lg" // Tăng kích thước nút
+                  size="lg"
                 >
                   Tiến hành thanh toán
                 </Button>
