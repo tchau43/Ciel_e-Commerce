@@ -1,7 +1,7 @@
 import React, { useEffect, useState, ChangeEvent, useMemo } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import CategoriesList from "@/features/category/components/CategoriesList";
-import ProductsList from "@/pages/product/component/ProductsList";
+import ProductsList from "@/features/products/components/ProductsList";
 import { useGetAllCategoriesQuery } from "@/services/category/getAllCategoriesQuery";
 import { useGetProductBySearchQuery } from "@/services/product/getProductBySearchQuery";
 import { Product, Category } from "@/types/dataTypes";
