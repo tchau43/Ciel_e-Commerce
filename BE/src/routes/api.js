@@ -53,6 +53,7 @@ const {
   getInvoice,
   updateInvoiceStatus,
   getAllInvoicesAdmin,
+  getDeliveredProducts,
 } = require("../controllers/invoiceController");
 
 const {
@@ -125,6 +126,7 @@ routerAPI.use('/openai', openaiAssistantRoutes);
 // --- User Routes (Authenticated) ---
 routerAPI.get("/user/:id", getUserById); // Get own or other user's public profile? Check service logic
 routerAPI.get("/user/:userId/purchased-products", getUserPurchased); // Likely needs userId check against req.user.id
+routerAPI.get("/user/:userId/delivered-products", getDeliveredProducts); // Get products eligible for review
 routerAPI.post("/invoice", createInvoice); // User creates their own invoice
 routerAPI.get("/invoice/:userId", getInvoice); // User gets their own invoices (needs userId check)
 routerAPI.post("/invoice/initiate-stripe", initiateStripePayment); // User initiates payment

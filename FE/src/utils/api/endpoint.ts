@@ -12,6 +12,8 @@ export const API_ENDPOINTS = {
   USER: (id: string) => `${VITE_API_VERSION}/user/${id}`, // GET (Auth required)
   USER_PURCHASES: (userId: string) =>
     `${VITE_API_VERSION}/user/${userId}/purchased-products`, // GET (Auth required)
+  USER_DELIVERED_PRODUCTS: (userId: string) =>
+    `${VITE_API_VERSION}/user/${userId}/delivered-products`, // GET (Auth required)
   // INFO: `${VITE_API_VERSION}/users/info`, // No specific BE route, use USER
 
   // --- Products ---

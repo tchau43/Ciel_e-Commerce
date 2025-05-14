@@ -467,4 +467,53 @@ const getAllInvoicesAdminService = async (queryParams) => {
     }
 };
 
-module.exports = { createInvoiceService, getInvoiceService, updateInvoiceStatusService, getInvoiceByIdService, getAllInvoicesAdminService };
+// --- GET DELIVERED PRODUCTS FOR USER ---
+const getDeliveredProductsForUserService = async (userId) => {
+    try {
+        if (!mongoose.Types.ObjectId.isValid(userId)) throw new Error("Invalid User ID format");
+
+        // Query for invoices with delivered status for this user
+        const query = {
+            user: userId,
+            orderStatus: "delivered"
+        };
+
+        // Find the invoices
+        const deliveredInvoices = await Invoice.find(query)
+            .populate({
+                path: "items.product",
+                select: "name images base_price category brand",
+                populate: { path: "category brand", select: "name" },
+            })
+            .populate({ path: "items.variant", select: "types price" })
+            .sort({ createdAt: -1 })
+            .lean();
+
+        // Extract products from invoices
+        const deliveredProducts = [];
+        deliveredInvoices.forEach(invoice => {
+            invoice.items.forEach(item => {
+                if (item.product) {
+                    deliveredProducts.push({
+                        invoice: {
+                            _id: invoice._id,
+                            createdAt: invoice.createdAt,
+                            orderStatus: invoice.orderStatus
+                        },
+                        product: item.product,
+                        variant: item.variant,
+                        quantity: item.quantity,
+                        priceAtPurchase: item.priceAtPurchase
+                    });
+                }
+            });
+        });
+
+        return deliveredProducts;
+    } catch (error) {
+        console.error("Error getting delivered products for user:", error);
+        throw new Error("Error getting delivered products: " + error.message);
+    }
+};
+
+module.exports = { createInvoiceService, getInvoiceService, updateInvoiceStatusService, getInvoiceByIdService, getAllInvoicesAdminService, getDeliveredProductsForUserService };
