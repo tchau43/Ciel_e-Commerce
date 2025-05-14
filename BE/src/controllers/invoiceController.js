@@ -4,6 +4,7 @@ const {
   getInvoiceService,
   updateInvoiceStatusService,
   getAllInvoicesAdminService,
+  getDeliveredProductsForUserService,
 } = require("../services/invoiceService");
 const Invoice = require("../models/invoice"); // For enum validation if needed
 const mongoose = require("mongoose");
@@ -141,9 +142,37 @@ const getAllInvoicesAdmin = async (req, res) => {
   }
 };
 
+// Get User's Delivered Products
+const getDeliveredProducts = async (req, res) => {
+  const { userId } = req.params;
+  const authenticatedUserId = req.user?._id; // Assuming verifyToken adds req.user
+
+  // Security check: User can only get their own delivered products (or admin bypass needed)
+  if (!authenticatedUserId || (authenticatedUserId.toString() !== userId && req.user?.role !== 'ADMIN')) {
+    return res
+      .status(403)
+      .json({ message: "Forbidden: Cannot access another user's product data." });
+  }
+
+  try {
+    const deliveredProducts = await getDeliveredProductsForUserService(userId);
+    res.status(200).json(deliveredProducts);
+  } catch (error) {
+    console.error(`Get Delivered Products Controller Error for User ${userId}:`, error);
+    if (error.message.includes("Invalid")) {
+      res.status(400).json({ message: error.message });
+    } else {
+      res
+        .status(500)
+        .json({ message: error.message || "Failed to get delivered products." });
+    }
+  }
+};
+
 module.exports = {
   createInvoice,
   getInvoice,
   updateInvoiceStatus,
   getAllInvoicesAdmin,
+  getDeliveredProducts,
 };

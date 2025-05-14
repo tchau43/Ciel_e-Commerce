@@ -9,6 +9,10 @@ class User extends Base {
   updateUserById = async (url: string, variables: UserType) => {
     return this.http<UserType>(url, "put", variables);
   };
+
+  getDeliveredProducts = async (url: string) => {
+    return this.http(url, "get");
+  };
 }
 
 export default new User();
