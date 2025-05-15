@@ -29,3 +29,11 @@ FE/.env.development
 FE/.env.test
 FE/.env.production
 FE/.env.*
+
+# Recommendation service environment files
+recommendation-service/.env
+recommendation-service/.env.local
+recommendation-service/.env.development
+recommendation-service/.env.test
+recommendation-service/.env.production
+recommendation-service/.env.*
