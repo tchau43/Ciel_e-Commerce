@@ -10,11 +10,23 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
 import { FAQResponse } from "@/repositories/faq/faq";
 
+// Define Category interface
+interface Category {
+  _id: string;
+  name: string;
+  slug: string;
+  description?: string;
+  icon?: string;
+  displayOrder?: number;
+  isActive?: boolean;
+  color?: string;
+}
+
 interface FAQ {
   _id: string;
   question: string;
   answer: string;
-  category: string;
+  category: Category | string; // Category can be an object or string ID
   isPublished: boolean;
   displayOrder: number;
   viewCount: number;
@@ -48,8 +60,20 @@ const FaqPage = () => {
   // Extract unique categories from all FAQs
   useEffect(() => {
     if (allFaqsResponse?.faqs && allFaqsResponse.faqs.length > 0) {
+      // Extract category IDs or slugs, handling both object and string formats
       const uniqueCategories = [
-        ...new Set(allFaqsResponse.faqs.map((faq) => faq.category)),
+        ...new Set(
+          allFaqsResponse.faqs.map((faq) => {
+            // If category is an object, use its ID or slug
+            if (typeof faq.category === "object" && faq.category !== null) {
+              // Use type assertion to tell TypeScript this is a Category object
+              const categoryObj = faq.category as Category;
+              return categoryObj.slug || categoryObj._id;
+            }
+            // If it's a string (ID), use it directly
+            return faq.category;
+          })
+        ),
       ];
       setCategories(uniqueCategories);
     }
@@ -104,6 +128,14 @@ const FaqPage = () => {
     (activeCategory !== "all" && isLoadingCategory) ||
     (searchQuery.length >= 2 && isLoadingSearch);
 
+  // Helper function to get category name or slug
+  const getCategoryName = (category: Category | string): string => {
+    if (typeof category === "object" && category !== null) {
+      return category.name || category.slug || "Unknown";
+    }
+    return category.toString();
+  };
+
   // Render FAQ list based on loading state and data availability
   const renderFaqList = () => {
     if (isLoading) {
@@ -128,7 +160,7 @@ const FaqPage = () => {
             _id={faq._id}
             question={faq.question}
             answer={faq.answer}
-            category={faq.category}
+            category={getCategoryName(faq.category)}
             helpfulCount={faq.helpfulCount}
             unhelpfulCount={faq.unhelpfulCount}
           />
