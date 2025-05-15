@@ -36,7 +36,7 @@ export const API_ENDPOINTS = {
   FAQS: `${VITE_API_VERSION}/faqs`, // GET
   FAQ_BY_ID: (id: string) => `${VITE_API_VERSION}/faqs/${id}`, // GET
   FAQS_BY_CATEGORY: (category: string) =>
-    `${VITE_API_VERSION}/faqs/category/${category}`, // GET
+    `${VITE_API_VERSION}/faqs/category/${category}`, // GET - Có thể dùng tên hoặc ID
   FAQS_SEARCH: (query: string) => `${VITE_API_VERSION}/faqs/search/${query}`, // GET
   FAQS_POPULAR: `${VITE_API_VERSION}/faqs/popular`, // GET
   FAQ_RATE: (id: string) => `${VITE_API_VERSION}/faqs/${id}/rate`, // POST
