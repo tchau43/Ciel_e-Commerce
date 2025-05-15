@@ -22,17 +22,29 @@ const ReviewForm = ({
   const [rating, setRating] = useState<number>(0);
   const [comment, setComment] = useState<string>("");
   const [hover, setHover] = useState<number>(0);
+  const [isSubmitSuccess, setIsSubmitSuccess] = useState<boolean>(false);
 
   const { mutate: submitReview, isPending } = useCreateReviewMutation({
     onSuccess: () => {
-      toast.success("Đánh giá của bạn đã được gửi thành công!");
-      if (onSuccess) onSuccess();
+      setIsSubmitSuccess(true);
+      toast.success("Đánh giá thành công!", {
+        description:
+          "Cảm ơn bạn đã đánh giá sản phẩm. Đánh giá của bạn sẽ được hiển thị sau khi được xem xét.",
+        duration: 5000,
+      });
+
+      // Slight delay before calling onSuccess to allow user to see the success state
+      setTimeout(() => {
+        if (onSuccess) onSuccess();
+      }, 1500);
     },
     onError: (error: any) => {
-      toast.error(
-        error?.response?.data?.message ||
-          "Đã xảy ra lỗi khi gửi đánh giá. Vui lòng thử lại."
-      );
+      toast.error("Không thể gửi đánh giá", {
+        description:
+          error?.response?.data?.message ||
+          "Đã xảy ra lỗi khi gửi đánh giá. Vui lòng thử lại.",
+        duration: 5000,
+      });
     },
   });
 
@@ -52,6 +64,43 @@ const ReviewForm = ({
       comment: comment.trim() || undefined,
     });
   };
+
+  if (isSubmitSuccess) {
+    return (
+      <div className="bg-green-50 border border-green-200 rounded-lg p-8 text-center">
+        <div className="flex items-center justify-center mb-4">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            className="h-16 w-16 text-green-500"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M5 13l4 4L19 7"
+            />
+          </svg>
+        </div>
+        <h3 className="text-xl font-semibold text-green-800 mb-2">
+          Đánh giá thành công!
+        </h3>
+        <p className="text-green-700 mb-4">
+          Cảm ơn bạn đã đánh giá sản phẩm. Đánh giá của bạn sẽ giúp người dùng
+          khác đưa ra quyết định mua hàng tốt hơn.
+        </p>
+        <div className="flex items-center justify-center gap-1">
+          {[...Array(rating)].map((_, i) => (
+            <span key={i} className="text-2xl text-yellow-400">
+              ★
+            </span>
+          ))}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-white p-4 rounded-lg shadow">

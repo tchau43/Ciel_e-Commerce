@@ -32,6 +32,15 @@ export const API_ENDPOINTS = {
   // --- Categories ---
   CATEGORIES: `${VITE_API_VERSION}/categories`, // GET
 
+  // --- FAQs ---
+  FAQS: `${VITE_API_VERSION}/faqs`, // GET
+  FAQ_BY_ID: (id: string) => `${VITE_API_VERSION}/faqs/${id}`, // GET
+  FAQS_BY_CATEGORY: (category: string) =>
+    `${VITE_API_VERSION}/faqs/category/${category}`, // GET
+  FAQS_SEARCH: (query: string) => `${VITE_API_VERSION}/faqs/search/${query}`, // GET
+  FAQS_POPULAR: `${VITE_API_VERSION}/faqs/popular`, // GET
+  FAQ_RATE: (id: string) => `${VITE_API_VERSION}/faqs/${id}/rate`, // POST
+
   // --- Reviews ---
   REVIEWS_BY_PRODUCT: (productId: string) =>
     `${VITE_API_VERSION}/products/${productId}/reviews`, // GET
@@ -105,6 +114,11 @@ export const API_ENDPOINTS = {
     `${VITE_API_VERSION}/admin/coupons/${id}`, // PATCH (Admin required)
   ADMIN_DELETE_COUPON: (id: string) =>
     `${VITE_API_VERSION}/admin/coupons/${id}`, // DELETE (Admin required)
+
+  // --- Admin: FAQ Management ---
+  ADMIN_CREATE_FAQ: `${VITE_API_VERSION}/admin/faqs`, // POST (Admin required)
+  ADMIN_UPDATE_FAQ: (id: string) => `${VITE_API_VERSION}/admin/faqs/${id}`, // PUT (Admin required)
+  ADMIN_DELETE_FAQ: (id: string) => `${VITE_API_VERSION}/admin/faqs/${id}`, // DELETE (Admin required)
 
   // --- Admin: Reviews ---
   // ADMIN_ALL_REVIEWS: `${VITE_API_VERSION}/admin/all-comments`, // Path '/admin/all-comments' not found in api.js
