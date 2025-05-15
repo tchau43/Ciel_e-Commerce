@@ -94,12 +94,10 @@ const ProductsPage = () => {
   } = useGetProductBySearchQuery(queryParams);
 
   if (categoriesLoading) {
-    return <p className="text-center text-gray-600 p-10">Loading Filters...</p>;
+    return <p className="text-center text-gray-600 p-10">Đang tải bộ lọc...</p>;
   }
   if (categoriesError) {
-    return (
-      <p className="text-center text-ch-red p-10">Error Loading Filters.</p>
-    );
+    return <p className="text-center text-ch-red p-10">Lỗi khi tải bộ lọc.</p>;
   }
 
   return (
@@ -107,7 +105,7 @@ const ProductsPage = () => {
       <button
         onClick={() => setIsSidebarOpen(true)}
         className="md:hidden fixed bottom-4 right-4 z-50 p-3 bg-ch-blue text-white rounded-full shadow-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-ch-blue"
-        aria-label="Open filters"
+        aria-label="Mở bộ lọc"
       >
         <FilterIcon />
       </button>
@@ -131,7 +129,7 @@ const ProductsPage = () => {
       >
         <div className="p-4 flex-grow overflow-y-auto">
           <h3 className="text-base sm:text-lg font-semibold mb-3 text-gray-800">
-            Categories
+            Danh mục
           </h3>
           {/* Pass required props to CategoriesList */}
           <CategoriesList
@@ -155,7 +153,7 @@ const ProductsPage = () => {
         )}
         {productsError && !productsLoading && (
           <p className="text-center text-ch-red p-10">
-            Could not load products.
+            Không thể tải sản phẩm.
           </p>
         )}
         {!productsLoading && !productsError && (
@@ -165,7 +163,7 @@ const ProductsPage = () => {
             ) : (
               <div className="text-center text-gray-500 mt-10">
                 <p className="text-lg">
-                  No products found matching your criteria.
+                  Không tìm thấy sản phẩm phù hợp với tiêu chí của bạn.
                 </p>
               </div>
             )}

@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { formatCurrency } from "@/utils/formatCurrency";
 import { FC } from "react";
+import { Link } from "react-router-dom";
 
 interface DeliveredProductProps {
   product: {
@@ -73,6 +74,9 @@ const DeliveredProduct: FC<DeliveredProductProps> = ({
     }
   };
 
+  // Product detail URL
+  const productUrl = `/product/${productData._id}`;
+
   // Render stars based on rating
   const renderStars = (rating: number | null | undefined) => {
     if (rating === null || rating === undefined) return null;
@@ -107,7 +111,10 @@ const DeliveredProduct: FC<DeliveredProductProps> = ({
           Đã đánh giá
         </div>
       )}
-      <div className="aspect-video relative bg-gray-100">
+      <Link
+        to={productUrl}
+        className="block aspect-video relative bg-gray-100 hover:opacity-90 transition-opacity"
+      >
         {imageUrl ? (
           <img
             src={imageUrl}
@@ -119,11 +126,16 @@ const DeliveredProduct: FC<DeliveredProductProps> = ({
             No image available
           </div>
         )}
-      </div>
+      </Link>
       <CardContent className="p-4">
         <div className="flex justify-between items-start mb-2">
           <h3 className="font-semibold text-lg line-clamp-2">
-            {productData.name}
+            <Link
+              to={productUrl}
+              className="hover:text-blue-600 transition-colors"
+            >
+              {productData.name}
+            </Link>
           </h3>
           <span className="text-sm bg-blue-100 text-blue-800 px-2 py-1 rounded-full">
             {variant.types}

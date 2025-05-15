@@ -77,6 +77,19 @@ const {
 } = require("../controllers/emailController");
 const { initiateStripePayment } = require("../controllers/stripeController");
 
+// FAQ controller
+const {
+  createFaq,
+  getAllFaqs,
+  getFaqById,
+  updateFaq,
+  deleteFaq,
+  getFaqsByCategory,
+  searchFaqs,
+  getPopularFaqs,
+  rateFaqHelpfulness
+} = require("../controllers/faqController");
+
 // Import models only if directly used (like in /products/batch)
 const { Product } = require("../models/product");
 const {
@@ -111,6 +124,14 @@ routerAPI.get("/variants/:variantId", getVariantById); // Gets specific variant 
 routerAPI.get("/categories", getAllCategories);
 routerAPI.get("/products/:productId/reviews", getReviewsForProduct); // Get reviews for a product
 routerAPI.get("/homepage", getHomePage); // Get public homepage config
+
+// FAQ Public Routes
+routerAPI.get("/faqs", getAllFaqs);
+routerAPI.get("/faqs/popular", getPopularFaqs);
+routerAPI.get("/faqs/category/:category", getFaqsByCategory);
+routerAPI.get("/faqs/search/:query", searchFaqs);
+routerAPI.get("/faqs/:id", getFaqById);
+routerAPI.post("/faqs/:id/rate", rateFaqHelpfulness);
 
 // === AUTHENTICATED ROUTES (Token Required for all routes below) ===
 routerAPI.use(verifyToken);
@@ -209,6 +230,11 @@ routerAPI.get("/admin/coupons", getAllCoupons);
 routerAPI.get("/admin/coupons/:id", getCouponById);
 routerAPI.patch("/admin/coupons/:id", updateCoupon); // Use PATCH for partial updates
 routerAPI.delete("/admin/coupons/:id", deleteCoupon);
+
+// --- Admin: FAQ Management ---
+routerAPI.post("/admin/faqs", createFaq);
+routerAPI.put("/admin/faqs/:id", updateFaq);
+routerAPI.delete("/admin/faqs/:id", deleteFaq);
 // --- END ADMIN ROUTES ---
 
 module.exports = routerAPI;
