@@ -5,10 +5,12 @@ const {
     updateFaqService,
     deleteFaqService,
     getFaqsByCategoryService,
+    getFaqsByCategorySlugService,
     searchFaqsService,
     getPopularFaqsService,
     rateFaqHelpfulnessService
 } = require('../services/faqService');
+const mongoose = require('mongoose');
 
 /**
  * Create a new FAQ
@@ -40,6 +42,7 @@ const getAllFaqs = async (req, res) => {
     try {
         const {
             category,
+            categorySlug,
             isPublished = 'true', // Default to only published FAQs for public access
             page,
             limit,
@@ -50,6 +53,7 @@ const getAllFaqs = async (req, res) => {
         // Build filters
         const filters = {};
         if (category) filters.category = category;
+        if (categorySlug) filters.categorySlug = categorySlug;
         if (isPublished !== undefined) filters.isPublished = isPublished === 'true';
         // console.log("----------filters", filters);
         // Build options
@@ -134,16 +138,63 @@ const deleteFaq = async (req, res) => {
 };
 
 /**
- * Get FAQs by category
+ * Get FAQs by category ID or name
  * @route GET /api/faqs/category/:category
  * @access Public
  */
 const getFaqsByCategory = async (req, res) => {
     try {
+        console.log("----------getFaqsByCategory", req.params);
         const { category } = req.params;
         const limit = parseInt(req.query.limit || 20, 10);
 
-        const faqs = await getFaqsByCategoryService(category, limit);
+        let faqs;
+        // Check if the parameter is a valid MongoDB ObjectId
+        if (mongoose.Types.ObjectId.isValid(category)) {
+            // If it's a valid ID, use getFaqsByCategoryService
+            faqs = await getFaqsByCategoryService(category, limit);
+        } else {
+            // If it's not a valid ID, try to find by category name or slug
+            // First try to find category by slug
+            try {
+                faqs = await getFaqsByCategorySlugService(category, limit);
+            } catch (error) {
+                // If not found by slug, try to find by handling it in getAllFaqsService
+                const result = await getAllFaqsService(
+                    {
+                        categoryName: category,
+                        isPublished: true
+                    },
+                    { limit }
+                );
+                faqs = result.faqs;
+            }
+        }
+
+        res.status(200).json({
+            success: true,
+            count: faqs.length,
+            faqs: faqs
+        });
+    } catch (error) {
+        res.status(400).json({
+            success: false,
+            message: error.message
+        });
+    }
+};
+
+/**
+ * Get FAQs by category slug
+ * @route GET /api/faqs/category-slug/:slug
+ * @access Public
+ */
+const getFaqsByCategorySlug = async (req, res) => {
+    try {
+        const { slug } = req.params;
+        const limit = parseInt(req.query.limit || 20, 10);
+
+        const faqs = await getFaqsByCategorySlugService(slug, limit);
 
         res.status(200).json({
             success: true,
@@ -247,6 +298,7 @@ module.exports = {
     updateFaq,
     deleteFaq,
     getFaqsByCategory,
+    getFaqsByCategorySlug,
     searchFaqs,
     getPopularFaqs,
     rateFaqHelpfulness

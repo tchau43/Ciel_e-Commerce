@@ -21,13 +21,9 @@ const faqSchema = new mongoose.Schema(
             maxlength: [2000, 'Answer cannot exceed 2000 characters']
         },
         category: {
-            type: String,
-            required: [true, 'Category is required'],
-            enum: {
-                values: ['shipping', 'payment', 'returns', 'product', 'account', 'general', 'other'],
-                message: '{VALUE} is not a valid category'
-            },
-            default: 'general'
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'FaqCategory',
+            required: [true, 'Category is required']
         },
         isPublished: {
             type: Boolean,
@@ -104,16 +100,18 @@ faqSchema.methods.rateHelpfulness = async function (isHelpful) {
 faqSchema.statics.findPopular = function (limit = 5) {
     return this.find({ isPublished: true })
         .sort({ viewCount: -1 })
+        .populate('category')
         .limit(limit);
 };
 
 // Static Method to find FAQs by category
-faqSchema.statics.findByCategory = function (category, limit = 20) {
+faqSchema.statics.findByCategory = function (categoryId, limit = 20) {
     return this.find({
-        category,
+        category: categoryId,
         isPublished: true
     })
         .sort({ displayOrder: 1 })
+        .populate('category')
         .limit(limit);
 };
 
@@ -126,6 +124,7 @@ faqSchema.statics.search = function (query, limit = 10) {
         },
         { score: { $meta: "textScore" } } // Add text score to results
     )
+        .populate('category')
         .sort({ score: { $meta: "textScore" } }) // Sort by relevance
         .limit(limit);
 };

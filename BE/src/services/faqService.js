@@ -1,4 +1,5 @@
 const FAQ = require('../models/faq');
+const FaqCategory = require('../models/faqCategory');
 const mongoose = require('mongoose');
 
 /**
@@ -8,8 +9,17 @@ const mongoose = require('mongoose');
  */
 const createFaqService = async (faqData) => {
     try {
+        // Verify that the category exists
+        if (faqData.category) {
+            const categoryExists = await FaqCategory.exists({ _id: faqData.category });
+            if (!categoryExists) {
+                throw new Error(`Category with ID '${faqData.category}' not found`);
+            }
+        }
+
         const faq = new FAQ(faqData);
-        return await faq.save();
+        await faq.save();
+        return await FAQ.findById(faq._id).populate('category');
     } catch (error) {
         console.error('Error creating FAQ:', error);
         throw new Error(`Error creating FAQ: ${error.message}`);
@@ -23,9 +33,6 @@ const createFaqService = async (faqData) => {
  * @returns {Promise<Array>} List of FAQs
  */
 const getAllFaqsService = async (filters = {}, options = {}) => {
-    // console.log("----------getAllFaqsService");
-    // console.log("----------filters", filters);
-    // console.log("----------options", options);
     try {
         const {
             page = 1,
@@ -35,16 +42,55 @@ const getAllFaqsService = async (filters = {}, options = {}) => {
         } = options;
 
         const query = { ...filters };
-        const sort = { [sortBy]: sortOrder === 'asc' ? 1 : -1 };
 
+        // Handle category filter by slug
+        if (filters.categorySlug) {
+            const category = await FaqCategory.findOne({ slug: filters.categorySlug });
+            if (category) {
+                query.category = category._id;
+            } else {
+                // Return empty results if category not found
+                return {
+                    faqs: [],
+                    totalFaqs: 0,
+                    currentPage: page,
+                    totalPages: 0,
+                    limit
+                };
+            }
+            delete query.categorySlug;
+        }
+
+        // Handle category filter by name
+        if (filters.categoryName) {
+            // Case insensitive search for category name
+            const category = await FaqCategory.findOne({
+                name: { $regex: new RegExp('^' + filters.categoryName + '$', 'i') }
+            });
+
+            if (category) {
+                query.category = category._id;
+            } else {
+                // Return empty results if category not found
+                return {
+                    faqs: [],
+                    totalFaqs: 0,
+                    currentPage: page,
+                    totalPages: 0,
+                    limit
+                };
+            }
+            delete query.categoryName;
+        }
+
+        const sort = { [sortBy]: sortOrder === 'asc' ? 1 : -1 };
         const skip = (page - 1) * limit;
 
         const faqs = await FAQ.find(query)
+            .populate('category')
             .sort(sort)
             .skip(skip)
             .limit(limit);
-
-        // console.log("----------faqs", faqs);
 
         const total = await FAQ.countDocuments(query);
 
@@ -72,7 +118,7 @@ const getFaqByIdService = async (faqId) => {
             throw new Error('Invalid FAQ ID format');
         }
 
-        const faq = await FAQ.findById(faqId);
+        const faq = await FAQ.findById(faqId).populate('category');
         if (!faq) {
             throw new Error(`FAQ with ID '${faqId}' not found`);
         }
@@ -101,11 +147,19 @@ const updateFaqService = async (faqId, updateData) => {
             throw new Error('Invalid FAQ ID format');
         }
 
+        // Verify that the category exists if it's being updated
+        if (updateData.category) {
+            const categoryExists = await FaqCategory.exists({ _id: updateData.category });
+            if (!categoryExists) {
+                throw new Error(`Category with ID '${updateData.category}' not found`);
+            }
+        }
+
         const faq = await FAQ.findByIdAndUpdate(
             faqId,
             updateData,
             { new: true, runValidators: true }
-        );
+        ).populate('category');
 
         if (!faq) {
             throw new Error(`FAQ with ID '${faqId}' not found`);
@@ -129,7 +183,7 @@ const deleteFaqService = async (faqId) => {
             throw new Error('Invalid FAQ ID format');
         }
 
-        const faq = await FAQ.findByIdAndDelete(faqId);
+        const faq = await FAQ.findByIdAndDelete(faqId).populate('category');
 
         if (!faq) {
             throw new Error(`FAQ with ID '${faqId}' not found`);
@@ -144,16 +198,56 @@ const deleteFaqService = async (faqId) => {
 
 /**
  * Get FAQs by category
- * @param {string} category - Category name
+ * @param {string} categoryId - Category ID
  * @param {number} limit - Maximum number of results
  * @returns {Promise<Array>} List of FAQs in the category
  */
-const getFaqsByCategoryService = async (category, limit = 20) => {
+const getFaqsByCategoryService = async (categoryId, limit = 20) => {
     try {
-        return await FAQ.findByCategory(category, limit);
+        if (!mongoose.Types.ObjectId.isValid(categoryId)) {
+            throw new Error('Invalid category ID format');
+        }
+
+        // Check if category exists
+        const categoryExists = await FaqCategory.exists({ _id: categoryId });
+        if (!categoryExists) {
+            throw new Error(`Category with ID '${categoryId}' not found`);
+        }
+
+        // Thay vì gọi static method, truy vấn trực tiếp
+        const faqs = await FAQ.find({
+            category: categoryId,
+            isPublished: true
+        })
+            .populate('category') // Thêm populate để lấy thông tin category
+            .sort({ displayOrder: 1 })
+            .limit(limit);
+
+        return faqs;
     } catch (error) {
         console.error('Error getting FAQs by category:', error);
         throw new Error(`Error getting FAQs by category: ${error.message}`);
+    }
+};
+
+/**
+ * Get FAQs by category slug
+ * @param {string} slug - Category slug
+ * @param {number} limit - Maximum number of results
+ * @returns {Promise<Array>} List of FAQs in the category
+ */
+const getFaqsByCategorySlugService = async (slug, limit = 20) => {
+    try {
+        // Find category by slug
+        const category = await FaqCategory.findOne({ slug });
+        if (!category) {
+            throw new Error(`Category with slug '${slug}' not found`);
+        }
+
+        return await FAQ.findByCategory(category._id, limit);
+    } catch (error) {
+        console.error('Error getting FAQs by category slug:', error);
+        throw new Error(`Error getting FAQs by category slug: ${error.message}`);
     }
 };
 
@@ -223,6 +317,7 @@ module.exports = {
     updateFaqService,
     deleteFaqService,
     getFaqsByCategoryService,
+    getFaqsByCategorySlugService,
     searchFaqsService,
     getPopularFaqsService,
     rateFaqHelpfulnessService
