@@ -161,6 +161,23 @@ const Navbar: React.FC = () => {
 
             <NavigationMenuItem>
               <NavLink
+                to="/reviews"
+                className={({ isActive }) =>
+                  cn(
+                    navigationMenuTriggerStyle(),
+                    linkBaseClasses,
+                    lightModeText,
+                    linkHoverClasses,
+                    isActive ? activeClass : ""
+                  )
+                }
+              >
+                ĐÁNH GIÁ SẢN PHẨM
+              </NavLink>
+            </NavigationMenuItem>
+
+            <NavigationMenuItem>
+              <NavLink
                 to="/faq"
                 className={({ isActive }) =>
                   cn(
