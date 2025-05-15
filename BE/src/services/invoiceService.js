@@ -514,7 +514,7 @@ const getDeliveredProductsForUserService = async (userId) => {
         const userReviews = await Review.find({ user: userId }).lean();
 
         console.log("User reviews found:", userReviews.length);
-        console.log("Sample review:", userReviews.length > 0 ? userReviews[0] : "No reviews");
+        // console.log("Sample review:", userReviews.length > 0 ? userReviews[0] : "No reviews");
 
         // Create a map of reviewed items for quick lookup
         const reviewedItemsMap = new Map();

@@ -1,4 +1,5 @@
 import { useGetProductByIdQuery } from "@/services/product/getProductByIdQuery";
+import { useGetProductReviewsQuery } from "@/services/review/getProductReviewsQuery";
 import { Outlet, useNavigate, useParams } from "react-router-dom";
 import ProductByCategory from "./ProductByCategory";
 import { useEffect, useState, useRef } from "react";
@@ -27,6 +28,15 @@ const Product = () => {
     isError,
     error,
   } = useGetProductByIdQuery(id!, {
+    enabled: !!id,
+  });
+
+  // Fetch reviews for this product
+  const {
+    data: reviews,
+    isLoading: isLoadingReviews,
+    isError: isErrorReviews,
+  } = useGetProductReviewsQuery(id!, {
     enabled: !!id,
   });
 
@@ -311,6 +321,83 @@ const Product = () => {
             </button>
           </div>
         </div>
+      </div>
+      <div className="mt-12 py-8 border-t">
+        <h2 className="text-2xl font-semibold mb-6">Đánh giá sản phẩm</h2>
+
+        {isLoadingReviews ? (
+          <div className="flex justify-center">
+            <p className="text-gray-500">Đang tải đánh giá...</p>
+          </div>
+        ) : isErrorReviews ? (
+          <div className="text-center text-red-500">
+            <p>Không thể tải đánh giá. Vui lòng thử lại sau.</p>
+          </div>
+        ) : reviews && reviews.length > 0 ? (
+          <div className="space-y-6">
+            {reviews.map((review) => (
+              <div
+                key={review._id}
+                className="border rounded-lg p-4 bg-white shadow-sm"
+              >
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="w-10 h-10 bg-gray-200 rounded-full overflow-hidden flex-shrink-0">
+                    {review.user.image ? (
+                      <img
+                        src={review.user.image}
+                        alt={review.user.name}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-gray-400">
+                        {review.user.name.charAt(0).toUpperCase()}
+                      </div>
+                    )}
+                  </div>
+                  <div>
+                    <p className="font-medium">{review.user.name}</p>
+                    <p className="text-sm text-gray-500">
+                      {new Date(review.createdAt).toLocaleDateString("vi-VN", {
+                        year: "numeric",
+                        month: "long",
+                        day: "numeric",
+                      })}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center mb-3">
+                  {[...Array(5)].map((_, i) => (
+                    <span
+                      key={i}
+                      className={`text-xl ${
+                        i < review.rating ? "text-yellow-400" : "text-gray-300"
+                      }`}
+                    >
+                      ★
+                    </span>
+                  ))}
+                  {review.variant && (
+                    <span className="ml-3 text-sm bg-blue-100 text-blue-800 px-2 py-1 rounded-full">
+                      {review.variant.types}
+                    </span>
+                  )}
+                </div>
+
+                {review.comment && (
+                  <p className="text-gray-700">{review.comment}</p>
+                )}
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-8 bg-gray-50 rounded-lg">
+            <p className="text-gray-500">Sản phẩm này chưa có đánh giá nào.</p>
+            <p className="text-gray-400 text-sm mt-2">
+              Hãy là người đầu tiên đánh giá!
+            </p>
+          </div>
+        )}
       </div>
       <div className="mt-12">
         {typedProduct.category?._id && (
