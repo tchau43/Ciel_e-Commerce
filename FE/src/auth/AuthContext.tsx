@@ -28,9 +28,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
 
   useEffect(() => {
-    // Load auth credentials on initial render
     const { token, role: storedRole, userInfo } = getAuthCredentials();
-
+    // console.log("---------------------------userInfo", userInfo);
     if (token && userInfo) {
       setUser(userInfo);
       setRole(storedRole);

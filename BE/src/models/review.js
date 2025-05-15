@@ -19,6 +19,12 @@ const reviewSchema = new mongoose.Schema({
         ref: 'Variant',
         required: true,
     },
+    invoice: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Invoice',
+        required: true,
+        index: true
+    },
     rating: {
         type: Number,
         required: true,
@@ -29,8 +35,10 @@ const reviewSchema = new mongoose.Schema({
         type: String,
         trim: true
     },
-
 }, { timestamps: true });
+
+// Compound index to ensure a user can review a product-variant combo only once per invoice
+reviewSchema.index({ user: 1, product: 1, variant: 1, invoice: 1 }, { unique: true });
 
 const Review = mongoose.model('Review', reviewSchema);
 

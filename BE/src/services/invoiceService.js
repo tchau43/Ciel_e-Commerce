@@ -509,7 +509,42 @@ const getDeliveredProductsForUserService = async (userId) => {
             });
         });
 
-        return deliveredProducts;
+        // Get all reviews by this user to check which products have been reviewed
+        const Review = require('../models/review');
+        const userReviews = await Review.find({ user: userId }).lean();
+
+        console.log("User reviews found:", userReviews.length);
+        console.log("Sample review:", userReviews.length > 0 ? userReviews[0] : "No reviews");
+
+        // Create a map of reviewed items for quick lookup
+        const reviewedItemsMap = new Map();
+        userReviews.forEach(review => {
+            const key = `${review.product}-${review.variant || 'none'}-${review.invoice}`;
+            console.log(`Adding review to map with key: ${key}`, review);
+            reviewedItemsMap.set(key, review);
+        });
+
+        // Add review status to each product
+        const productsWithReviewStatus = deliveredProducts.map(item => {
+            const productId = item.product._id.toString();
+            const variantId = item.variant ? item.variant._id.toString() : 'none';
+            const invoiceId = item.invoice._id.toString();
+
+            const key = `${productId}-${variantId}-${invoiceId}`;
+            const existingReview = reviewedItemsMap.get(key);
+
+            return {
+                ...item,
+                reviewStatus: {
+                    isReviewed: !!existingReview,
+                    reviewId: existingReview?._id || null,
+                    rating: existingReview?.rating || null,
+                    comment: existingReview?.comment || null
+                }
+            };
+        });
+
+        return productsWithReviewStatus;
     } catch (error) {
         console.error("Error getting delivered products for user:", error);
         throw new Error("Error getting delivered products: " + error.message);

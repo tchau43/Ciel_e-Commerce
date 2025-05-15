@@ -13,52 +13,47 @@ const { Product } = require('../models/product'); // Adjust path if needed
  * @param {string} userId - The ID of the user.
  * @param {string} productId - The ID of the product.
  * @param {string|null|undefined} variantId - The ID of the variant (optional).
+ * @param {string} invoiceId - The ID of the invoice.
  * @returns {Promise<boolean>} True if the user is eligible to review, false otherwise.
  */
-const canUserReviewProduct = async (userId, productId, variantId) => {
+const canUserReviewProduct = async (userId, productId, variantId, invoiceId) => {
     try {
         // Validate IDs passed to the function
-        if (!mongoose.Types.ObjectId.isValid(userId) || !mongoose.Types.ObjectId.isValid(productId)) {
-            console.warn(`Invalid userId or productId format passed to canUserReviewProduct`);
+        if (!mongoose.Types.ObjectId.isValid(userId) ||
+            !mongoose.Types.ObjectId.isValid(productId) ||
+            !mongoose.Types.ObjectId.isValid(invoiceId)) {
+            console.warn(`Invalid ID format passed to canUserReviewProduct`);
             return false;
         }
 
-        // Construct the query criteria for the item within the Invoice.items array
+        // Kiểm tra xem hóa đơn có tồn tại, thuộc về người dùng và đã giao hàng chưa
+        const invoice = await Invoice.findOne({
+            _id: invoiceId,
+            user: userId,
+            orderStatus: 'delivered'
+        }).lean();
+
+        if (!invoice) return false;
+
+        // Kiểm tra xem sản phẩm có trong hóa đơn không
         const itemMatchCriteria = {
             product: new mongoose.Types.ObjectId(productId)
-            // We will add the variant field conditionally below
         };
 
-        // Add the variant condition correctly based on variantId input
         if (variantId && mongoose.Types.ObjectId.isValid(variantId)) {
-            // User is reviewing a specific variant
             itemMatchCriteria.variant = new mongoose.Types.ObjectId(variantId);
-        } else if (variantId === null || variantId === undefined) {
-            // User is reviewing the base product or an item where variant wasn't tracked/applicable
-            // Match invoice items where variant is explicitly null or possibly doesn't exist
-            itemMatchCriteria.variant = null; // Or use { $exists: false } if applicable
-        } else if (variantId) {
-            // variantId was provided but in an invalid format
-            console.warn(`Invalid variantId format provided for eligibility check: ${variantId}`);
-            return false;
         }
-        // console.log("Eligibility Check Criteria:", itemMatchCriteria); // For debugging
 
-        // Find at least one invoice matching the user, status, and item criteria
-        const eligibleInvoice = await Invoice.findOne({
-            user: new mongoose.Types.ObjectId(userId),
-            orderStatus: 'delivered', // Order must be delivered
-            items: {
-                $elemMatch: itemMatchCriteria // Check if any item in the array matches
-            }
-        }).select('_id').lean(); // Only need to know if it exists
+        // Kiểm tra xem sản phẩm/biến thể có trong hóa đơn không
+        const hasProduct = invoice.items.some(item => {
+            return item.product.toString() === productId &&
+                (variantId ? item.variant.toString() === variantId : true);
+        });
 
-        // Return true if a matching invoice was found, false otherwise
-        return !!eligibleInvoice;
+        return hasProduct;
 
     } catch (error) {
         console.error("Error checking review eligibility:", error);
-        // Default to false eligibility in case of unexpected errors
         return false;
     }
 };
@@ -110,15 +105,15 @@ const updateProductReviewStats = async (productId) => {
  * Creates a new review document in the database after checking eligibility
  * and potentially checking for existing reviews by the same user for the same item.
  * @param {string} userId - The ID of the user creating the review.
- * @param {object} reviewData - Object containing { productId, variantId (optional), rating, comment (optional) }.
+ * @param {object} reviewData - Object containing { productId, variantId (optional), invoiceId, rating, comment (optional) }.
  * @returns {Promise<object>} The newly created review document (as a plain object).
  */
 const createReviewService = async (userId, reviewData) => {
-    const { productId, variantId, rating, comment } = reviewData;
+    const { productId, variantId, invoiceId, rating, comment } = reviewData;
 
     // 1. --- Input Validation ---
-    if (!productId || !rating) {
-        throw new Error("Product ID and rating are required.");
+    if (!productId || !rating || !invoiceId) {
+        throw new Error("Product ID, invoice ID, and rating are required.");
     }
     if (!mongoose.Types.ObjectId.isValid(productId)) {
         throw new Error("Invalid Product ID format.");
@@ -135,34 +130,31 @@ const createReviewService = async (userId, reviewData) => {
 
 
     // 2. --- Check Eligibility ---
-    // Ensure user purchased and received the item (product/variant combo)
-    const isEligible = await canUserReviewProduct(userId, productId, variantId);
+    const isEligible = await canUserReviewProduct(userId, productId, variantId, invoiceId);
     if (!isEligible) {
-        // Provide a user-friendly error message
         throw new Error("Review not allowed: You must have purchased and received this item.");
     }
 
     // 3. --- Check for Existing Review (Prevent Duplicates) ---
-    // Find if this user already reviewed this exact product/variant combination
-    const variantIdToFind = variantId ? new mongoose.Types.ObjectId(variantId) : null;
     const existingReview = await Review.findOne({
         user: userId,
         product: productId,
-        variant: variantIdToFind // Match variant exactly (null if base product review)
+        variant: variantId ? new mongoose.Types.ObjectId(variantId) : null,
+        invoice: invoiceId
     });
 
     if (existingReview) {
-        // Prevent duplicate reviews for the same item by the same user
-        throw new Error("You have already submitted a review for this specific product/variant.");
+        throw new Error("You have already submitted a review for this specific purchase.");
     }
 
     // 4. --- Create and Save the New Review ---
     const newReview = new Review({
         user: userId,
         product: productId,
-        variant: variantIdToFind, // Store the ObjectId or null
-        rating: rating,
-        comment: comment || "" // Store empty string if comment is null/undefined
+        variant: variantId ? new mongoose.Types.ObjectId(variantId) : null,
+        invoice: invoiceId,
+        rating,
+        comment: comment || ""
     });
 
     const savedReview = await newReview.save();

@@ -23,6 +23,7 @@ import Product from "./features/products/components/Product.tsx";
 import RecommendedProductsPage from "./features/recommendations/pages/RecommendedProductsPage.tsx";
 import AdminInvoicesManagementPage from "./features/admin/pages/AdminInvoicesManagementPage.tsx";
 import { Toaster } from "sonner";
+import CustomerReviewPage from "./features/review/pages/CustomerReviewPage.tsx";
 
 function LoadingSpinner() {
   return (
@@ -95,6 +96,7 @@ function App() {
               path="recommendations/"
               element={<RecommendedProductsPage />}
             />
+            <Route path="reviews/" element={<CustomerReviewPage />} />
             {/* <-- ADD ROUTE */}
           </Route>
           <Route path="test/" element={<TestPage />}></Route>
