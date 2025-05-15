@@ -5,3 +5,27 @@ BE/logs/
 FE/logs/
 *.log
 env/
+
+# Environment files
+.env
+.env.local
+.env.development
+.env.test
+.env.production
+.env.*
+
+# Backend environment files
+BE/.env
+BE/.env.local
+BE/.env.development
+BE/.env.test
+BE/.env.production
+BE/.env.*
+
+# Frontend environment files
+FE/.env
+FE/.env.local
+FE/.env.development
+FE/.env.test
+FE/.env.production
+FE/.env.*
