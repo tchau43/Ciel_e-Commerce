@@ -5,6 +5,7 @@
 require('dotenv').config({ path: 'BE/.env' }); // Use the correct path to .env file
 const mongoose = require('mongoose');
 const FAQ = require('../models/faq');
+const FaqCategory = require('../models/faqCategory'); // Import FaqCategory model instead of Category
 
 // Get MongoDB URI from environment or use a default value
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/ecommerce_db';
@@ -24,7 +25,7 @@ const faqData = [
     {
         question: 'Thời gian giao hàng là bao lâu?',
         answer: 'Thời gian giao hàng phụ thuộc vào vị trí địa lý của bạn. Đối với khu vực nội thành Hà Nội và TP. Hồ Chí Minh, thời gian giao hàng thường từ 1-2 ngày làm việc. Đối với các tỉnh thành khác, thời gian giao hàng dự kiến từ 3-5 ngày làm việc. Lưu ý rằng thời gian này không bao gồm ngày lễ, ngày nghỉ và các tình huống bất khả kháng.',
-        category: 'shipping',
+        category: 'shipping', // This will be replaced with the actual category ID
         displayOrder: 1,
         tags: ['giao hàng', 'thời gian', 'vận chuyển'],
     },
@@ -173,9 +174,59 @@ const seedFAQs = async () => {
         await FAQ.deleteMany({});
         console.log('Deleted existing FAQs');
 
-        // Insert new FAQs
-        const insertedFAQs = await FAQ.insertMany(faqData);
-        console.log(`Successfully added ${insertedFAQs.length} FAQs`);
+        // Get all categories from the database using FaqCategory model
+        const categories = await FaqCategory.find();
+        console.log(`Found ${categories.length} categories in the database`);
+
+        if (categories.length === 0) {
+            console.warn('No categories found in the database. FAQs will not be mapped to category IDs.');
+            console.warn('Please run seedFaqCategories.js first to populate categories.');
+            mongoose.connection.close();
+            process.exit(1);
+        }
+
+        // Create a mapping of category slug/name to category ID
+        const categoryMap = {};
+        categories.forEach(category => {
+            // Map both the slug and the name to handle different formats
+            if (category.slug) {
+                categoryMap[category.slug] = category._id;
+                // Also map lowercase version for case-insensitive matching
+                categoryMap[category.slug.toLowerCase()] = category._id;
+            }
+            if (category.name) {
+                categoryMap[category.name] = category._id;
+                // Also map lowercase version for case-insensitive matching
+                categoryMap[category.name.toLowerCase()] = category._id;
+            }
+        });
+
+        // Print categoryMap for debugging
+        console.log('Category map:', categoryMap);
+
+        // Replace category names with corresponding IDs
+        const processedFaqData = faqData.map(faq => {
+            const categoryValue = faq.category.toLowerCase();
+            if (categoryMap[categoryValue]) {
+                return {
+                    ...faq,
+                    category: categoryMap[categoryValue]
+                };
+            } else {
+                console.warn(`Category "${faq.category}" not found in database. Skipping this FAQ.`);
+                return null;
+            }
+        }).filter(faq => faq !== null); // Remove any FAQs with invalid categories
+
+        if (processedFaqData.length === 0) {
+            console.error('No valid FAQs to insert after category mapping. Check if your categories exist in the database.');
+            mongoose.connection.close();
+            process.exit(1);
+        }
+
+        // Insert new FAQs with proper category IDs
+        const insertedFAQs = await FAQ.insertMany(processedFaqData);
+        console.log(`Successfully added ${insertedFAQs.length} FAQs with proper category IDs`);
 
         mongoose.connection.close();
         console.log('Database connection closed');

@@ -85,10 +85,21 @@ const {
   updateFaq,
   deleteFaq,
   getFaqsByCategory,
+  getFaqsByCategorySlug,
   searchFaqs,
   getPopularFaqs,
   rateFaqHelpfulness
 } = require("../controllers/faqController");
+
+// FAQ Category controller
+const {
+  createFaqCategory,
+  getAllFaqCategories,
+  getFaqCategoryById,
+  getFaqCategoryBySlug,
+  updateFaqCategory,
+  deleteFaqCategory
+} = require("../controllers/faqCategoryController");
 
 // Import models only if directly used (like in /products/batch)
 const { Product } = require("../models/product");
@@ -129,9 +140,15 @@ routerAPI.get("/homepage", getHomePage); // Get public homepage config
 routerAPI.get("/faqs", getAllFaqs);
 routerAPI.get("/faqs/popular", getPopularFaqs);
 routerAPI.get("/faqs/category/:category", getFaqsByCategory);
+routerAPI.get("/faqs/category-slug/:slug", getFaqsByCategorySlug);
 routerAPI.get("/faqs/search/:query", searchFaqs);
 routerAPI.get("/faqs/:id", getFaqById);
 routerAPI.post("/faqs/:id/rate", rateFaqHelpfulness);
+
+// FAQ Category Public Routes
+routerAPI.get("/faq-categories", getAllFaqCategories);
+routerAPI.get("/faq-categories/:id", getFaqCategoryById);
+routerAPI.get("/faq-categories/slug/:slug", getFaqCategoryBySlug);
 
 // === AUTHENTICATED ROUTES (Token Required for all routes below) ===
 routerAPI.use(verifyToken);
@@ -235,6 +252,12 @@ routerAPI.delete("/admin/coupons/:id", deleteCoupon);
 routerAPI.post("/admin/faqs", createFaq);
 routerAPI.put("/admin/faqs/:id", updateFaq);
 routerAPI.delete("/admin/faqs/:id", deleteFaq);
+
+// --- Admin: FAQ Category Management ---
+routerAPI.post("/admin/faq-categories", createFaqCategory);
+routerAPI.put("/admin/faq-categories/:id", updateFaqCategory);
+routerAPI.delete("/admin/faq-categories/:id", deleteFaqCategory);
+
 // --- END ADMIN ROUTES ---
 
 module.exports = routerAPI;
