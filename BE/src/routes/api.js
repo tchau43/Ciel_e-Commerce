@@ -4,6 +4,7 @@
 const express = require("express");
 const path = require("path"); // Keep if needed elsewhere, not directly used here
 const upload = require("../middleware/multer"); // Multer for file uploads
+const mongoose = require("mongoose");
 
 // --- Middleware ---
 const { verifyToken, verifyAdmin } = require("../middleware/auth"); // Auth middleware
@@ -194,14 +195,14 @@ routerAPI.post("/products/batch", async (req, res) => {
         message: "Request body must contain an array of product IDs.",
       });
     }
-    // Validate IDs?
+    // Validate IDs
     const validIds = productIds.filter((id) =>
       mongoose.Types.ObjectId.isValid(id)
     );
     const products = await Product.find({ _id: { $in: validIds } })
       .populate("category", "name")
       .populate("brand", "name")
-      .lean(); // Fetch necessary fields
+      .lean();
 
     res.status(200).json(products || []); // Return empty array if no matches
   } catch (error) {

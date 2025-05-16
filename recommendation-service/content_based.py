@@ -2,6 +2,7 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import linear_kernel
 import requests
 import logging
+import numpy as np
 
 logger = logging.getLogger(__name__)
 
@@ -28,7 +29,7 @@ class ContentBasedRecommender:
             )
             response.raise_for_status()
             self.products = response.json()
-            self.product_ids = [p['_id'] for p in self.products]
+            self.product_ids = [str(p['_id']) for p in self.products]
             return self.products
         except Exception as e:
             logger.error(f"Product fetch error: {str(e)}")
@@ -41,7 +42,7 @@ class ContentBasedRecommender:
                 return None
                 
             descriptions = [
-                f"{p.get('name', '')} {p.get('description', '')} {p.get('category', '')}"
+                f"{p.get('name', '')} {p.get('description', '')} {p.get('category', {}).get('name', '')}"
                 for p in products
             ]
             
@@ -58,18 +59,26 @@ class ContentBasedRecommender:
                 if not self.prepare_similarity_matrix():
                     return []
             
+            product_id = str(product_id)
             try:
                 idx = self.product_ids.index(product_id)
             except ValueError:
                 logger.warning(f"Product {product_id} not found")
                 return []
             
+            # Get similarity scores for the product
             sim_scores = list(enumerate(self.cosine_sim[idx]))
+            # Sort products by similarity score
             sim_scores = sorted(sim_scores, key=lambda x: x[1], reverse=True)
-            sim_scores = sim_scores[1:k+1]
+            # Get top k most similar products (excluding itself)
+            sim_scores = [s for s in sim_scores if s[0] != idx][:k]
             
+            # Get product indices and return product data
             product_indices = [i[0] for i in sim_scores]
-            return [self.products[i] for i in product_indices]
+            recommended_products = [self.products[i] for i in product_indices]
+            
+            return recommended_products
+
         except Exception as e:
             logger.error(f"Content-based error: {str(e)}")
             return []

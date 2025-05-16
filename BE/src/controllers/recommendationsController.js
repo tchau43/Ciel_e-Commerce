@@ -4,15 +4,24 @@ const logger = require('../config/logger');
 
 const getUserRecommendations = async (req, res) => {
     const userId = req.query.userId;
+    const authHeader = req.headers.authorization;
 
     if (!userId) {
         logger.error('Recommendations request missing userId');
         return res.status(400).json({ message: "userId is required" });
     }
 
+    if (!authHeader) {
+        logger.error('Recommendations request missing authorization header');
+        return res.status(401).json({ message: "Authorization header is required" });
+    }
+
     try {
         const response = await axios.get('http://localhost:5000/recommendations', {
             params: { userId },
+            headers: {
+                'Authorization': authHeader
+            },
             timeout: 10000
         });
 
