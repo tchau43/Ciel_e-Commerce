@@ -9,26 +9,28 @@ load_dotenv()
 logger = logging.getLogger(__name__)
 
 class HybridRecommender:
-    def __init__(self):
+    def __init__(self, jwt_token=None):
         self.NODE_API_URL = "http://localhost:8080/v1"
         self.API_KEY = "XohvCe34tnpVulX9Xx2kNjsyNbeGWuOL"
-        self.JWT_TOKEN = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InRjaGF1MjgwMjFAZ21haWwuY29tIiwibmFtZSI6ImNoYXV1dXV1dTEyMyIsImlhdCI6MTc0NDczMjEyMCwiZXhwIjoxNzQ0ODE4NTIwfQ.SOm-6926DVVwC1lHOk7cLTnjf9iFestueFvvZyetzhg"
+        self.JWT_TOKEN = jwt_token
         
         self.headers = {
-            "Authorization": f"Bearer {self.JWT_TOKEN}",
             "x-api-key": self.API_KEY,
             "Content-Type": "application/json"
         }
         
+        if jwt_token:
+            self.headers["Authorization"] = f"Bearer {jwt_token}"
+        
         self.cf = CollaborativeFiltering(
             self.NODE_API_URL, 
             self.API_KEY, 
-            self.JWT_TOKEN
+            jwt_token
         )
         self.cb = ContentBasedRecommender(
             self.NODE_API_URL,
             self.API_KEY,
-            self.JWT_TOKEN
+            jwt_token
         )
 
     def get_purchased_products(self, user_id):
@@ -53,34 +55,56 @@ class HybridRecommender:
             cb_recs = []
 
             if purchased:
+                # Get collaborative filtering recommendations
                 cf_recs = self.cf.recommend(user_id, top_n) or []
+                
+                # Get content-based recommendations from last purchase
                 try:
                     last_purchased = purchased[-1]['productId']
                     cb_recs = self.cb.recommend(last_purchased, top_n) or []
                 except (IndexError, KeyError) as e:
                     logger.warning(f"Last purchase error: {str(e)}")
 
+            # Combine recommendations with weights
             all_recs = {}
+            
+            # Add collaborative filtering recommendations with higher weight
             if cf_recs:
-                all_recs = {item[0]: item[1] for item in cf_recs if item}
+                for item_id, score in cf_recs:
+                    all_recs[item_id] = score * 1.5  # Give CF recommendations more weight
                 
+            # Add content-based recommendations
             for product in cb_recs:
                 if isinstance(product, dict):
                     product_id = product.get('_id')
                     if product_id:
-                        all_recs[product_id] = all_recs.get(product_id, 0) + 1
+                        # Add or update score
+                        current_score = all_recs.get(product_id, 0)
+                        all_recs[product_id] = current_score + 1.0
 
+            # If no recommendations, use fallback
             if not all_recs:
                 return self.get_fallback_recommendations(top_n)
 
+            # Sort by score and get top recommendations
             sorted_recs = sorted(
                 all_recs.items(), 
                 key=lambda x: x[1], 
                 reverse=True
             )[:top_n]
             
-            product_ids = [item[0] for item in sorted_recs if item]
-            return self.get_product_details(product_ids)
+            # Get full product details
+            product_ids = [item[0] for item in sorted_recs]
+            recommendations = self.get_product_details(product_ids)
+            
+            # Filter out any products the user has already purchased
+            purchased_ids = set(str(item['productId']) for item in purchased)
+            filtered_recommendations = [
+                product for product in recommendations
+                if str(product.get('_id')) not in purchased_ids
+            ]
+            
+            return filtered_recommendations[:top_n]
             
         except Exception as e:
             logger.error(f"Hybrid recommendation failed: {str(e)}", exc_info=True)
@@ -89,7 +113,12 @@ class HybridRecommender:
     def get_fallback_recommendations(self, top_n):
         try:
             response = requests.get(
-                f"{self.NODE_API_URL}/products?sort=-popularity&limit={top_n}",
+                f"{self.NODE_API_URL}/products",
+                params={
+                    'sort': 'popularity',
+                    'order': 'desc',
+                    'limit': top_n
+                },
                 headers=self.headers,
                 timeout=5
             )

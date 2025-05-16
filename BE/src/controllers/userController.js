@@ -224,7 +224,7 @@ const getUserPurchased = async (req, res) => {
       });
       // }
     });
-    console.log("-------------------------------CONTROLLER: Purchased products:", purchasedProducts);
+    // console.log("-------------------------------CONTROLLER: Purchased products:", purchasedProducts);
     // Optionally de-duplicate the list if needed, though repeats might be intended
     // const uniquePurchases = Array.from(new Map(purchasedProducts.map(item => [item.productId.toString(), item])).values());
 

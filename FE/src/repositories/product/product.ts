@@ -30,8 +30,12 @@ class ProductRepository extends Base {
     return this.http<ProductType[]>(url, "get");
   };
 
-  getRecommendations = (url: string): Promise<RecommendationsResponse> => {
-    return this.http<RecommendationsResponse>(url, "get");
+  getRecommendations = (
+    url: string,
+    userId: string
+  ): Promise<RecommendationsResponse> => {
+    const queryParams = new URLSearchParams({ userId });
+    return this.http<RecommendationsResponse>(`${url}?${queryParams}`, "get");
   };
 
   // Thêm phương thức lấy sản phẩm nổi bật
