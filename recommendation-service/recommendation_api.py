@@ -8,15 +8,22 @@ logging.basicConfig(
 )
 
 app = Flask(__name__)
-recommender = HybridRecommender()
 
 @app.route('/recommendations', methods=['GET'])
 def recommendations():
     user_id = request.args.get('userId')
+    auth_header = request.headers.get('Authorization')
+    
     if not user_id:
         return jsonify({"error": "userId parameter is required"}), 400
-
+        
+    if not auth_header or not auth_header.startswith('Bearer '):
+        return jsonify({"error": "Authorization header with Bearer token is required"}), 401
+        
+    jwt_token = auth_header.split(' ')[1]
+    
     try:
+        recommender = HybridRecommender(jwt_token)
         recs = recommender.hybrid_recommendations(user_id)
         return jsonify(recs)
     except Exception as e:

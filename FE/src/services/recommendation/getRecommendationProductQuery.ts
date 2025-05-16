@@ -5,29 +5,39 @@ import ProductRepository from "@/repositories/product/product";
 import { Product } from "@/types/dataTypes";
 import { API_ENDPOINTS } from "@/utils/api/endpoint";
 import { useQuery } from "@tanstack/react-query";
+import { getAuthCredentials } from "@/utils/authUtil";
 
 export const useGetRecommendationProductQuery = (
   userId: string | undefined
-  // << SỬA LỖI: Option được truyền vào useQuery, không phải hook này
 ) => {
-  // << SỬA LỖI: Sử dụng đúng type Product[]
+  const { token } = getAuthCredentials();
+
   return useQuery<Product[], Error>({
-    // Specify return type and error type
-    queryKey: ["recommendations", userId], // Unique key for this query
-    queryFn: () => {
+    queryKey: ["recommendations", userId],
+    queryFn: async () => {
       if (!userId) {
-        // Should not happen if 'enabled' is used correctly, but good practice
-        return Promise.reject(
-          new Error("User ID is required for recommendations")
-        );
+        throw new Error("User ID is required for recommendations");
       }
-      // << SỬA LỖI: RECOMMENDATIONS là string, không phải function
-      const url = API_ENDPOINTS.RECOMMENDATIONS;
-      // Giả sử getRecommendations nhận url làm tham số duy nhất
-      return ProductRepository.getRecommendations(url);
+      if (!token) {
+        throw new Error("Authentication token is required for recommendations");
+      }
+      try {
+        const recommendations = await ProductRepository.getRecommendations(
+          API_ENDPOINTS.RECOMMENDATIONS,
+          userId
+        );
+        if (!recommendations || !Array.isArray(recommendations)) {
+          throw new Error("Invalid recommendations response format");
+        }
+        return recommendations;
+      } catch (error: any) {
+        console.error("Recommendation error:", error);
+        throw new Error(error.message || "Failed to fetch recommendations");
+      }
     },
-    enabled: !!userId, // Only run the query if userId is truthy
-    staleTime: 1000 * 60 * 5, // Optional: Cache data for 5 minutes
-    // Add other react-query options as needed
+    enabled: !!userId && !!token,
+    staleTime: 1000 * 60 * 5, // Cache data for 5 minutes
+    retry: 2, // Retry failed requests up to 2 times
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000), // Exponential backoff
   });
 };
