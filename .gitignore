@@ -7,35 +7,35 @@ FE/logs/
 env/
 
 # Environment files
-.env
-.env.local
-.env.development
-.env.test
-.env.production
+# .env
+# .env.local
+# .env.development
+# .env.test
+# .env.production
 
-# Backend environment files
-BE/.env
-BE/.env.local
-BE/.env.development
-BE/.env.test
-BE/.env.production
+# # Backend environment files
+# BE/.env
+# BE/.env.local
+# BE/.env.development
+# BE/.env.test
+# BE/.env.production
 
-# Frontend environment files
-FE/.env
-FE/.env.local
-FE/.env.development
-FE/.env.test
-FE/.env.production
+# # Frontend environment files
+# FE/.env
+# FE/.env.local
+# FE/.env.development
+# FE/.env.test
+# FE/.env.production
 
-# Recommendation service environment files
-recommendation-service/.env
-recommendation-service/.env.local
-recommendation-service/.env.development
-recommendation-service/.env.test
-recommendation-service/.env.production
+# # Recommendation service environment files
+# recommendation-service/.env
+# recommendation-service/.env.local
+# recommendation-service/.env.development
+# recommendation-service/.env.test
+# recommendation-service/.env.production
 
-# Keep example files
-!*.env.example
-!BE/.env.example
-!FE/.env.example
-!recommendation-service/.env.example
+# # Keep example files
+# !*.env.example
+# !BE/.env.example
+# !FE/.env.example
+# !recommendation-service/.env.example
