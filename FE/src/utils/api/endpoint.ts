@@ -71,7 +71,7 @@ export const API_ENDPOINTS = {
   SEND_EMAIL: `${VITE_API_VERSION}/email/payment/notify-success`, // POST (Auth required)
 
   // --- Chatbot ---
-  CHATBOT: `${VITE_API_VERSION}/chatbot`, // POST (Auth required)
+  CHATBOT: `${VITE_API_VERSION}/openai-chat`, // POST (Auth required)
 
   // --- Admin: User Management ---
   ADMIN_USERS: `${VITE_API_VERSION}/admin/users`, // GET (Admin required)
