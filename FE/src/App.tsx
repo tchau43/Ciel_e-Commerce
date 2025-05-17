@@ -25,6 +25,7 @@ import AdminInvoicesManagementPage from "./features/admin/pages/AdminInvoicesMan
 import { Toaster } from "sonner";
 import CustomerReviewPage from "./features/review/pages/CustomerReviewPage.tsx";
 import FaqPage from "./features/faq/pages/FaqPage";
+import ChatWidget from "./components/chat/ChatWidget";
 
 function LoadingSpinner() {
   return (
@@ -104,6 +105,7 @@ function App() {
           <Route path="test/" element={<TestPage />}></Route>
         </Routes>
         <Toaster position="top-right" richColors />
+        <ChatWidget />
       </Suspense>
     </Router>
   );
