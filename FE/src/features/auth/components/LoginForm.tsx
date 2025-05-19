@@ -46,6 +46,16 @@ const LoginForm: React.FC = () => {
           const { EC, accessToken, user } = response;
 
           if (EC === 0 && accessToken && user) {
+            if (user.role !== Role.CUSTOMER) {
+              setErrorMsg("Tài khoản hoặc mật khẩu không đúng");
+              // Reset form data
+              setFormData({
+                email: "",
+                password: "",
+              });
+              return;
+            }
+
             const userInfoToStore: UserReference = {
               _id: user._id,
               name: user.name,
@@ -55,14 +65,14 @@ const LoginForm: React.FC = () => {
             };
             const role: Role = user.role;
             setAuthCredentials(accessToken, role, userInfoToStore);
-
-            if (role === Role.ADMIN) {
-              navigate("/admin");
-            } else {
-              navigate("/");
-            }
+            navigate("/");
           } else {
-            setErrorMsg(response.message || "Login failed.");
+            setErrorMsg(response.message || "Đăng nhập thất bại.");
+            // Reset form data on any other error
+            setFormData({
+              email: "",
+              password: "",
+            });
           }
         },
         onError: (error: any) => {
@@ -70,8 +80,13 @@ const LoginForm: React.FC = () => {
           const message =
             error?.response?.data?.message ||
             error?.message ||
-            "An error occurred.";
+            "Đã xảy ra lỗi.";
           setErrorMsg(message);
+          // Reset form data on error
+          setFormData({
+            email: "",
+            password: "",
+          });
         },
       }
     );
