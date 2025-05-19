@@ -11,10 +11,8 @@ import AdminLayout from "./features/admin/AdminLayout.tsx";
 import AdminProductsManagementPage from "./features/admin/pages/AdminProductsManagementPage.tsx";
 import EditUser from "./features/admin/components/EditUser.tsx";
 import EditProduct from "./features/admin/components/EditProduct.tsx";
-import TestPage from "./features/pages/TestPage.tsx";
 import AdminInvoicesManagementPage from "./features/admin/pages/AdminInvoicesManagementPage.tsx";
 import { Toaster } from "sonner";
-import ChatWidget from "./components/chat/ChatWidget";
 
 function LoadingSpinner() {
   return (
@@ -36,7 +34,7 @@ function App() {
 
           {/* Route for admin */}
           <Route
-            path="/admin/*"
+            path="/*"
             element={
               <RoleBasedRoute allowedRoles={[Role.ADMIN]}>
                 <Suspense fallback={<LoadingSpinner />}>
@@ -51,13 +49,9 @@ function App() {
             <Route path="products/" element={<AdminProductsManagementPage />} />
             <Route path="editProduct/:id/" element={<EditProduct />} />
             <Route path="invoices/" element={<AdminInvoicesManagementPage />} />
-            {/* ADD THIS ROUTE */}
           </Route>
-
-          <Route path="test/" element={<TestPage />}></Route>
         </Routes>
         <Toaster position="top-right" richColors />
-        <ChatWidget />
       </Suspense>
     </Router>
   );
