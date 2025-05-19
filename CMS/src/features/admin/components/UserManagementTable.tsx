@@ -1,6 +1,6 @@
 // src/features/admin/components/UserManagementTable.tsx
 
-import React, { useState } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -41,7 +41,7 @@ const UserManagementTable = ({
   };
 
   const handleEdit = (id: string) => {
-    navigate(`/admin/editUser/${id}`);
+    navigate(`/editUser/${id}`);
   };
 
   // Helper functions for badge variants (assuming Role enum exists)

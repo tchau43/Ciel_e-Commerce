@@ -10,14 +10,11 @@ const Navbar: React.FC = () => {
   useEffect(() => {}, [localStorage]);
   return (
     <div className="flex ">
-      <NavLink
-        to="/admin/users"
-        className="mx-2 hover:underline hover:text-blue-500"
-      >
+      <NavLink to="/users" className="mx-2 hover:underline hover:text-blue-500">
         Users Management
       </NavLink>
       <NavLink
-        to="/admin/products"
+        to="/products"
         className="mx-2 hover:underline hover:text-blue-500"
       >
         Products Management

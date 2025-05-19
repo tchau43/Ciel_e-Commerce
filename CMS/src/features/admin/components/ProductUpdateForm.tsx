@@ -2,20 +2,19 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useGetAllCategoriesQuery } from "@/services/category/getAllCategoriesQuery";
 import { useUpdateProductMutation } from "@/services/product/updateProductMutation";
-import { ProductData } from "@/types/dataTypes";
+import { Product } from "@/types/dataTypes";
 import { Loader } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 const VITE_BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
 interface ProductUpdateFormProps {
-  product: ProductData;
+  product: Product;
 }
 
 const ProductUpdateForm = ({ product }: ProductUpdateFormProps) => {
-  const [formData, setFormData] = useState<ProductData>({ ...product });
+  const [formData, setFormData] = useState<Product>({ ...product });
   // console.log(">>>>>>>>formData", formData);
-  const [newImageUrl, setNewImageUrl] = useState("");
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
@@ -55,8 +54,8 @@ const ProductUpdateForm = ({ product }: ProductUpdateFormProps) => {
     // Append all text fields
     formDataToSend.append("name", formData.name);
     formDataToSend.append("price", formData.base_price.toString());
-    formDataToSend.append("description", formData.description);
-    formDataToSend.append("category", formData.category._id); // Use category ID
+    formDataToSend.append("description", formData.description?.join(",") || "");
+    formDataToSend.append("category", formData.category._id);
 
     // Append the image file
     if (selectedFile instanceof File) {
@@ -68,7 +67,7 @@ const ProductUpdateForm = ({ product }: ProductUpdateFormProps) => {
       {
         onSuccess: () => {
           setMessage("Product updated successfully!");
-          setTimeout(() => navigate("/admin/products"), 1000);
+          setTimeout(() => navigate("/products"), 1000);
         },
         onError: (error) => {
           setMessage(error.message || "Error updating product");
@@ -87,10 +86,6 @@ const ProductUpdateForm = ({ product }: ProductUpdateFormProps) => {
       };
       reader.readAsDataURL(file);
       setSelectedFile(file);
-      setFormData((prev) => ({
-        ...prev,
-        image: file, // Store File object directly
-      }));
     }
   };
 
@@ -248,7 +243,7 @@ const ProductUpdateForm = ({ product }: ProductUpdateFormProps) => {
           <div className="flex justify-between mt-4">
             <Button
               variant="secondary"
-              onClick={() => navigate("/admin/products")}
+              onClick={() => navigate("/products")}
               disabled={loading}
             >
               Cancel
