@@ -4,7 +4,7 @@ import { Elements } from "@stripe/react-stripe-js";
 import { loadStripe } from "@stripe/stripe-js";
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { CartItemData, ShippingAddress } from "@/types/dataTypes"; // Import ShippingAddress
+import { CartItem, Address } from "@/types/dataTypes"; // Updated imports to match dataTypes.ts
 // Import the CORRECT mutation hook
 import StripeForm from "@/features/stripe/components/StripeForm"; // Adjust path
 import { getAuthCredentials } from "@/utils/authUtil"; // To get userId
@@ -20,9 +20,9 @@ const StripePaymentPage = () => {
 
   // Destructure ALL data passed from PaymentPage
   const { cartItems, total, shippingAddress } = (location.state || {}) as {
-    cartItems: CartItemData[];
+    cartItems: CartItem[];
     total: number; // This FE total is mainly for initial display/fallback
-    shippingAddress: ShippingAddress; // Get the address object
+    shippingAddress: Address; // Updated type to match dataTypes.ts
   };
 
   // State to hold data received from the backend initiation endpoint
@@ -68,9 +68,9 @@ const StripePaymentPage = () => {
       userId: userInfo._id,
       // Map cart items correctly, including variantId
       productsList: cartItems.map((item) => ({
-        productId: item.product._id,
+        productId: item.productId,
         quantity: item.quantity,
-        variantId: item.variant || null,
+        variantId: item.variantId || null,
       })),
       shippingAddress: shippingAddress, // Pass the structured address
     };

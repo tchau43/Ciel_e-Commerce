@@ -6,7 +6,6 @@ import { Role } from "../../types/dataTypes";
 // import Topbar from "./components/Topbar"; // Bỏ comment nếu bạn dùng Topbar
 import Footer from "./components/Footer";
 import Navbar from "./components/Navbar";
-import { cn } from "@/lib/utils"; // Import cn nếu bạn muốn dùng
 
 const CustomerLayout: React.FC = () => {
   const { token, role } = getAuthCredentials();

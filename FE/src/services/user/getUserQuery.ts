@@ -1,18 +1,20 @@
-import OUser from "@/repositories/user/user";
-import { User } from "@/types/dataTypes";
 import { API_ENDPOINTS } from "@/utils/api/endpoint";
-import { useMutation, useQuery, UseQueryResult } from "@tanstack/react-query";
+import { useQuery, UseQueryResult } from "@tanstack/react-query";
+import usersRepository from "@/repositories/admin/userManagement.ts"; // Đổi tên import nếu cần
+import { User } from "@/types/dataTypes";
 
-export const useGetUserQuery = (
-  id: string,
-  options?: any
-): UseQueryResult<User, Error> => {
-  return useQuery({
-    queryKey: ["userId"],
+export const useUsersQuery = (options?: any): UseQueryResult<User[], Error> => {
+  return useQuery<User[], Error>({
+    queryKey: ["users"], // Giữ queryKey là 'users' vẫn ổn
     queryFn: () => {
-      return OUser.getUserById(API_ENDPOINTS.USER(id));
+      // SỬA LỖI: Sử dụng đúng endpoint ADMIN_USERS
+      const usersList = usersRepository.getAllUsers(API_ENDPOINTS.ADMIN_USERS);
+      // console.log("usersList", usersList); // Có thể bỏ console.log
+      return usersList;
     },
-    refetchOnMount: true,
-    refetchOnReconnect: true,
+    // Giữ lại các options khác nếu cần
+    // refetchOnMount: true, // Mặc định của React Query thường là true
+    // refetchOnReconnect: true, // Mặc định của React Query thường là true
+    ...options,
   });
 };
