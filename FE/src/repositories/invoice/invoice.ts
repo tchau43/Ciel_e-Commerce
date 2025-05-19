@@ -16,12 +16,6 @@ type InitiatePaymentVariables = {
   shippingAddress: ShippingAddress; // Use corrected type
 };
 
-type InitiatePaymentResponse = {
-  clientSecret: string;
-  invoiceId: string;
-  totalAmount: number;
-};
-
 class InvoiceRepository extends Base {
   // Existing method for COD/Manual invoice creation
   createInvoice = (url: string, variables: CreateInvoiceInput) => {

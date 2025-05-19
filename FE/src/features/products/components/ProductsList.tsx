@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { Product } from "@/types/dataTypes"; // Corrected import
 import ProductCard from "@/features/components/ProductCard";
 import { Pagination } from "antd";
@@ -61,7 +61,7 @@ const ProductsList = ({ data }: ProductsListProps) => {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  const handleAntdSizeChange = (current: number, size: number) => {
+  const handleAntdSizeChange = (_: number, size: number) => {
     setItemsPerPage(size);
     setCurrentPage(1);
     window.scrollTo({ top: 0, behavior: "smooth" });

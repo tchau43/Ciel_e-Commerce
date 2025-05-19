@@ -4,8 +4,7 @@ import { useAuth } from "@/auth/AuthContext";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import DeliveredProduct from "../components/DeliveredProduct";
-import { useNavigate } from "react-router-dom";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import ReviewForm from "../components/ReviewForm";
 import {
   Dialog,
@@ -46,7 +45,6 @@ interface DeliveredProductItem {
 const CustomerReviewPage = () => {
   const { user } = useAuth();
   const userId = user?._id || "";
-  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("all");
   const [reviewModalOpen, setReviewModalOpen] = useState(false);
   const [viewReviewModalOpen, setViewReviewModalOpen] = useState(false);
@@ -80,7 +78,7 @@ const CustomerReviewPage = () => {
       // Log all products with their review status for debugging
       console.log(
         "All delivered products with review status:",
-        deliveredProducts.map((p) => ({
+        deliveredProducts.map((p: DeliveredProductItem) => ({
           id: p.product._id,
           name: p.product.name,
           reviewStatus: p.reviewStatus,

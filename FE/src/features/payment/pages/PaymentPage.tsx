@@ -1,5 +1,5 @@
 // pages/PaymentPage.tsx
-import React, { useState, ChangeEvent } from "react"; // Import React
+import { useState, ChangeEvent } from "react"; // Import React
 import { useLocation, useNavigate } from "react-router-dom";
 import { useDeleteAllProductInCartMutation } from "@/services/cart/deleteAllProductInCartMutation";
 import { useCreateInvoiceMutation } from "@/services/invoice/createInvoiceMutation";
@@ -103,7 +103,6 @@ const PaymentPage = () => {
     createInvoice(
       {
         variables: {
-          userId: userId, // Đảm bảo userId đã được kiểm tra
           shippingAddress: shippingAddress,
           // SỬA LỖI: Map dữ liệu từ CartItem sang InvoiceItemInput
           productsList: cartItems.map((item: CartItem) => ({

@@ -6,7 +6,7 @@ import { useMutation } from "@tanstack/react-query";
 export const useUpdateUserByIdMutation = () => {
   return useMutation({
     mutationFn: ({ id, variables }: { id: string; variables: User }) => {
-      return OUser.updateUserById(API_ENDPOINTS.UPDATE_USER(id), variables); // ✅ Correct API call
+      return OUser.updateUserById(API_ENDPOINTS.USER(id), variables);
     },
   });
 };

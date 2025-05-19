@@ -1,10 +1,6 @@
 import React, { useEffect, useState, useCallback } from "react";
 // Import correct types
-import {
-  CartItem as CartItemType,
-  Variant,
-  CartItemInput,
-} from "@/types/dataTypes";
+import { CartItem as CartItemType, CartItemInput } from "@/types/dataTypes";
 import { useUpdateCartMutation } from "@/services/cart/updateCartMutation";
 import { getAuthCredentials } from "@/utils/authUtil";
 import { useNavigate } from "react-router-dom";

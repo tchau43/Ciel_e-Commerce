@@ -29,7 +29,7 @@ const LandingPage: React.FC = () => {
   });
 
   // Xử lý khi người dùng click vào các action
-  const handleActionClick = (action: string, productId?: string) => {
+  const handleActionClick = () => {
     // Luôn chuyển hướng đến trang đăng nhập vì trang này chỉ hiển thị cho người dùng chưa đăng nhập
     navigate("/login");
   };
@@ -78,13 +78,13 @@ const LandingPage: React.FC = () => {
             </p>
             <div className="flex flex-col sm:flex-row gap-4">
               <button
-                onClick={() => handleActionClick("shop")}
+                onClick={() => handleActionClick()}
                 className="bg-white text-blue-600 hover:bg-gray-100 px-8 py-3 rounded-md font-medium text-lg transition-colors"
               >
                 Mua Ngay
               </button>
               <button
-                onClick={() => handleActionClick("shop")}
+                onClick={() => handleActionClick()}
                 className="bg-transparent border-2 border-white hover:bg-white hover:text-blue-600 px-8 py-3 rounded-md font-medium text-lg transition-colors"
               >
                 Xem Ưu Đãi
@@ -142,7 +142,7 @@ const LandingPage: React.FC = () => {
               <div
                 key={category.name}
                 className={`${category.color} rounded-xl p-6 text-center cursor-pointer hover:shadow-md transition-shadow`}
-                onClick={() => handleActionClick("shop")}
+                onClick={() => handleActionClick()}
               >
                 <div className="text-4xl mb-3">{category.icon}</div>
                 <h3 className="font-medium text-lg">{category.name}</h3>
@@ -206,9 +206,7 @@ const LandingPage: React.FC = () => {
                       </div>
                       <button
                         className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-md transition-colors"
-                        onClick={() =>
-                          handleActionClick("addToCart", product._id)
-                        }
+                        onClick={() => handleActionClick()}
                       >
                         Thêm Vào Giỏ Hàng
                       </button>
@@ -242,7 +240,7 @@ const LandingPage: React.FC = () => {
               </p>
               <button
                 className="bg-white text-gray-900 hover:bg-gray-100 px-8 py-3 rounded-md font-medium"
-                onClick={() => handleActionClick("shop")}
+                onClick={() => handleActionClick()}
               >
                 Khám Phá Ngay
               </button>
@@ -318,7 +316,7 @@ const LandingPage: React.FC = () => {
             />
             <button
               className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-md font-medium transition-colors"
-              onClick={() => handleActionClick("subscribe")}
+              onClick={() => handleActionClick()}
             >
               Đăng Ký
             </button>
@@ -345,7 +343,7 @@ const LandingPage: React.FC = () => {
                     className="hover:text-white transition-colors"
                     onClick={(e) => {
                       e.preventDefault();
-                      handleActionClick("shop");
+                      handleActionClick();
                     }}
                   >
                     Điện Thoại
@@ -357,7 +355,7 @@ const LandingPage: React.FC = () => {
                     className="hover:text-white transition-colors"
                     onClick={(e) => {
                       e.preventDefault();
-                      handleActionClick("shop");
+                      handleActionClick();
                     }}
                   >
                     Laptop
@@ -369,7 +367,7 @@ const LandingPage: React.FC = () => {
                     className="hover:text-white transition-colors"
                     onClick={(e) => {
                       e.preventDefault();
-                      handleActionClick("shop");
+                      handleActionClick();
                     }}
                   >
                     Đồng Hồ Thông Minh
@@ -381,7 +379,7 @@ const LandingPage: React.FC = () => {
                     className="hover:text-white transition-colors"
                     onClick={(e) => {
                       e.preventDefault();
-                      handleActionClick("shop");
+                      handleActionClick();
                     }}
                   >
                     Phụ Kiện
@@ -398,7 +396,7 @@ const LandingPage: React.FC = () => {
                     className="hover:text-white transition-colors"
                     onClick={(e) => {
                       e.preventDefault();
-                      handleActionClick("support");
+                      handleActionClick();
                     }}
                   >
                     Liên Hệ
@@ -410,7 +408,7 @@ const LandingPage: React.FC = () => {
                     className="hover:text-white transition-colors"
                     onClick={(e) => {
                       e.preventDefault();
-                      handleActionClick("support");
+                      handleActionClick();
                     }}
                   >
                     Câu Hỏi Thường Gặp
@@ -422,7 +420,7 @@ const LandingPage: React.FC = () => {
                     className="hover:text-white transition-colors"
                     onClick={(e) => {
                       e.preventDefault();
-                      handleActionClick("support");
+                      handleActionClick();
                     }}
                   >
                     Thông Tin Vận Chuyển
@@ -434,7 +432,7 @@ const LandingPage: React.FC = () => {
                     className="hover:text-white transition-colors"
                     onClick={(e) => {
                       e.preventDefault();
-                      handleActionClick("support");
+                      handleActionClick();
                     }}
                   >
                     Chính Sách Bảo Hành
@@ -451,7 +449,7 @@ const LandingPage: React.FC = () => {
                     className="hover:text-white transition-colors"
                     onClick={(e) => {
                       e.preventDefault();
-                      handleActionClick("social");
+                      handleActionClick();
                     }}
                   >
                     Facebook
@@ -463,7 +461,7 @@ const LandingPage: React.FC = () => {
                     className="hover:text-white transition-colors"
                     onClick={(e) => {
                       e.preventDefault();
-                      handleActionClick("social");
+                      handleActionClick();
                     }}
                   >
                     Instagram
@@ -475,7 +473,7 @@ const LandingPage: React.FC = () => {
                     className="hover:text-white transition-colors"
                     onClick={(e) => {
                       e.preventDefault();
-                      handleActionClick("social");
+                      handleActionClick();
                     }}
                   >
                     YouTube
@@ -487,7 +485,7 @@ const LandingPage: React.FC = () => {
                     className="hover:text-white transition-colors"
                     onClick={(e) => {
                       e.preventDefault();
-                      handleActionClick("social");
+                      handleActionClick();
                     }}
                   >
                     Zalo

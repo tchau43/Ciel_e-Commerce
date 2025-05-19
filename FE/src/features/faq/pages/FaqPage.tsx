@@ -8,7 +8,6 @@ import FaqCategories from "../components/FaqCategories";
 import FaqSearch from "../components/FaqSearch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
-import { FAQResponse } from "@/repositories/faq/faq";
 
 // Define Category interface
 interface Category {
