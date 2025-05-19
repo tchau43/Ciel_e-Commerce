@@ -52,8 +52,8 @@ function Calendar({
         ...classNames,
       }}
       components={{
-        IconNext: () => <ChevronRight className="h-4 w-4" />,
-        IconPrevious: () => <ChevronLeft className="h-4 w-4" />,
+        PreviousMonthButton: () => <ChevronLeft className="h-4 w-4" />,
+        NextMonthButton: () => <ChevronRight className="h-4 w-4" />,
       }}
       locale={vi}
       {...props}

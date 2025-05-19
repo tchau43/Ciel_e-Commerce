@@ -48,7 +48,6 @@ import {
   X,
 } from "lucide-react";
 import {
-  Invoice,
   UpdateInvoiceStatusInput,
   OrderStatus,
   PaymentStatus,

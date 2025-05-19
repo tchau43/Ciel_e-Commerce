@@ -20,15 +20,11 @@ const ProductUpdateForm = ({ product }: ProductUpdateFormProps) => {
   const [message, setMessage] = useState<string | null>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null); // For local file
   const [imagePreviewUrl, setImagePreviewUrl] = useState(""); // Preview for local file
-  const { data: categories = [], isLoading } = useGetAllCategoriesQuery();
+  const { data: categories = [] } = useGetAllCategoriesQuery();
   useEffect(() => {
     setFormData({ ...product });
   }, [product]);
-  const {
-    mutate: productUpdate,
-    isError,
-    isPending,
-  } = useUpdateProductMutation();
+  const { mutate: productUpdate } = useUpdateProductMutation();
 
   // const imageSources = product?.images
   //   ? Array.from({ length: 4 }, (_, index) => {
