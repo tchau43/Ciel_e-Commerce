@@ -23,10 +23,7 @@ interface UserManagementTableProps {
   title?: string; // Optional title prop
 }
 
-const UserManagementTable = ({
-  data,
-  title = "Quản lý Người dùng",
-}: UserManagementTableProps) => {
+const UserManagementTable = ({ data }: UserManagementTableProps) => {
   const navigate = useNavigate();
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 8;
