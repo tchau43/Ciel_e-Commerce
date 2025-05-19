@@ -31,7 +31,7 @@ export const useUpdateInvoiceStatusMutation = () => {
         variables
       );
     },
-    onSuccess: (data, variables) => {
+    onSuccess: (data) => {
       // data là response từ API, variables là input của mutation
       toast.success(
         data?.message || "Trạng thái hóa đơn đã được cập nhật thành công!"

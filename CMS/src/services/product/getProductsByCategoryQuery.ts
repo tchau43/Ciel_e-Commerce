@@ -1,13 +1,13 @@
 import product from "@/repositories/product/product";
-import { ProductData } from "@/types/dataTypes";
+import { Product } from "@/types/dataTypes";
 import { API_ENDPOINTS } from "@/utils/api/endpoint";
 import { useQuery, UseQueryResult } from "@tanstack/react-query";
 
 export const useGetProductsByCategoryQuery = (
   params: string,
   option?: any
-): UseQueryResult<ProductData[]> => {
-  return useQuery<ProductData[]>({
+): UseQueryResult<Product[]> => {
+  return useQuery<Product[]>({
     // Use queryKey based on params, so the query is re-triggered when params change
     queryKey: ["products", params], // queryKey should change with params
     queryFn: () => {

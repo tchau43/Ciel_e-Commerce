@@ -39,8 +39,8 @@ const RoleBasedRoute = ({ allowedRoles, children }: RoleBasedRouteProps) => {
     return <Navigate to="/login" />;
   }
 
-  // If the user doesn't have the required role, redirect to not found page
-  if (!allowedRoles.includes(role)) {
+  // If the user doesn't have the required role or role is null, redirect to not found page
+  if (!role || !allowedRoles.includes(role)) {
     return <Navigate to="/notfound" />;
   }
 

@@ -2,7 +2,7 @@
 
 import ProductCard from "@/features/components/ProductCard";
 import { useGetRecommendationProductQuery } from "@/services/recommendation/getRecommendationProductQuery";
-import { ProductData } from "@/types/dataTypes";
+import { Product } from "@/types/dataTypes";
 import { getAuthCredentials } from "@/utils/authUtil";
 
 const RecommendedProductsPage = () => {
@@ -52,7 +52,7 @@ const RecommendedProductsPage = () => {
 
       {hasRecommendations ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-          {recommendedProducts.map((product: ProductData) => (
+          {recommendedProducts.map((product: Product) => (
             <ProductCard key={product._id} product={product} />
           ))}
         </div>

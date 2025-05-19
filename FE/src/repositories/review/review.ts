@@ -1,13 +1,5 @@
 import Base from "../base";
 
-interface CreateReviewRequest {
-  productId: string;
-  variantId: string;
-  invoiceId: string;
-  rating: number;
-  comment?: string;
-}
-
 interface CreateReviewResponse {
   message: string;
   review: {

@@ -2,8 +2,7 @@
 import React, { useState, ChangeEvent } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useRegisterMutation } from "@/services/auth/registerMutation";
-import { RegisterInput, Address } from "@/types/dataTypes";
-import { cn } from "@/lib/utils";
+import { RegisterInput } from "@/types/dataTypes";
 
 // Import Card components
 import {

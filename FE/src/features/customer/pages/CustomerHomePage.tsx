@@ -16,12 +16,7 @@ import { useGetRecommendationProductQuery } from "@/services/recommendation/getR
 import { useGetAllProductsQuery } from "@/services/product/getAllProductsQuery";
 import { useGetAllCategoriesQuery } from "@/services/category/getAllCategoriesQuery";
 import { getAuthCredentials } from "@/utils/authUtil";
-import {
-  Product,
-  Category,
-  HomePageItem,
-  CategoryReference,
-} from "@/types/dataTypes";
+import { Product, Category, HomePageItem } from "@/types/dataTypes";
 import ProductCard from "@/features/components/ProductCard";
 
 const CustomerHomePage: React.FC = () => {
