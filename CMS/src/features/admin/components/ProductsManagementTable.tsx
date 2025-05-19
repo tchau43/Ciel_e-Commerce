@@ -1,6 +1,6 @@
 // src/features/admin/components/ProductsManagementTable.tsx
 
-import React, { useState, useMemo } from "react";
+import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"; // For product images
 import { Button } from "@/components/ui/button";
@@ -13,7 +13,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
 // Corrected import: Use Product instead of ProductData
 import { Product } from "@/types/dataTypes";
 import {
@@ -24,7 +23,6 @@ import {
   ArrowUp, // For ascending sort
   ArrowDown, // For descending sort
 } from "lucide-react";
-import { cn } from "@/lib/utils"; // Import cn utility
 
 interface ProductsManagementTableProps {
   data: Product[]; // Use the correct Product type
@@ -39,10 +37,7 @@ const formatCurrency = (amount: number) => {
   }).format(amount);
 };
 
-const ProductsManagementTable = ({
-  data,
-  title = "Quản lý Sản phẩm",
-}: ProductsManagementTableProps) => {
+const ProductsManagementTable = ({ data }: ProductsManagementTableProps) => {
   const navigate = useNavigate();
   const [currentPage, setCurrentPage] = useState(1);
   const [sortConfig, setSortConfig] = useState<{
@@ -107,7 +102,7 @@ const ProductsManagementTable = ({
   };
 
   const handleEdit = (_id: string) => {
-    navigate(`/admin/editProduct/${_id}`);
+    navigate(`/editProduct/${_id}`);
   };
 
   // Helper for sort icons

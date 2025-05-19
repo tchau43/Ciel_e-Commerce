@@ -63,7 +63,7 @@ const LoginForm: React.FC = () => {
             };
             const role: Role = user.role;
             setAuthCredentials(accessToken, role, userInfoToStore);
-            navigate("/admin");
+            navigate("/");
           } else {
             setErrorMsg(response.message || "Đăng nhập thất bại.");
             // Reset form data on any other error

@@ -17,9 +17,9 @@ const Header: React.FC = () => {
 
   // Navigation items with Vietnamese labels
   const navItems = [
-    { to: "/admin/users", label: "Người dùng" }, // Translated
-    { to: "/admin/products", label: "Sản phẩm" }, // Translated
-    { to: "/admin/invoices", label: "Đơn hàng" }, // Translated
+    { to: "/users", label: "Người dùng" }, // Translated
+    { to: "/products", label: "Sản phẩm" }, // Translated
+    { to: "/invoices", label: "Đơn hàng" }, // Translated
     // Add more admin links here if needed
   ];
 
@@ -37,7 +37,7 @@ const Header: React.FC = () => {
       <div className="container flex h-16 max-w-screen items-center justify-between px-4 sm:px-6 lg:px-8">
         {/* Left Side: Logo/Brand */}
         <div className="flex items-center">
-          <NavLink to="/admin" className="flex items-center space-x-2">
+          <NavLink to="/" className="flex items-center space-x-2">
             {/* Logo SVG */}
             <svg
               xmlns="http://www.w3.org/2000/svg"

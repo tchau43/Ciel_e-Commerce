@@ -52,7 +52,7 @@ const UserUpdateForm: React.FC<UserUpdateFormProps> = ({ user }) => {
           console.log(response);
           setMessage("Update User Successfully!");
           setTimeout(() => {
-            navigate("/admin/users"), 1500;
+            navigate("/users"), 1500;
           });
         },
         onError: (error) => {
@@ -136,7 +136,7 @@ const UserUpdateForm: React.FC<UserUpdateFormProps> = ({ user }) => {
         <div className="flex justify-between mt-4">
           <Button
             variant="secondary"
-            onClick={() => navigate("/admin/users")}
+            onClick={() => navigate("/users")}
             disabled={loading}
           >
             Cancel
