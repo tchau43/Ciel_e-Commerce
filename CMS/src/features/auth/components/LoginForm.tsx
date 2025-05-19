@@ -46,7 +46,7 @@ const LoginForm: React.FC = () => {
           const { EC, accessToken, user } = response;
 
           if (EC === 0 && accessToken && user) {
-            if (user.role !== Role.CUSTOMER) {
+            if (user.role !== Role.ADMIN) {
               setErrorMsg("Tài khoản hoặc mật khẩu không đúng");
               // Reset form data
               setFormData({
@@ -65,7 +65,7 @@ const LoginForm: React.FC = () => {
             };
             const role: Role = user.role;
             setAuthCredentials(accessToken, role, userInfoToStore);
-            navigate("/");
+            navigate("/admin");
           } else {
             setErrorMsg(response.message || "Đăng nhập thất bại.");
             // Reset form data on any other error
