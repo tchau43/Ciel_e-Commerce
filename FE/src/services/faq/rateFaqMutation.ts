@@ -18,7 +18,7 @@ export const useRateFaqMutation = (faqId: string, options?: RateFaqOptions) => {
         isHelpful
       );
     },
-    onSuccess: (data) => {
+    onSuccess: () => {
       // Invalidate relevant queries
       queryClient.invalidateQueries({ queryKey: ["faqs", "detail", faqId] });
 

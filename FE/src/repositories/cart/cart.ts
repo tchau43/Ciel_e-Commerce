@@ -1,9 +1,8 @@
-import { UpdateCartItemData } from "@/types/dataTypes";
+import { CartItemInput } from "@/types/dataTypes";
 import Base from "../base";
-import { url } from "inspector";
 
 class Cart extends Base {
-  updateCart = (url: string, variables: UpdateCartItemData) => {
+  updateCart = (url: string, variables: CartItemInput) => {
     return this.http(url, "post", variables);
   };
 
@@ -15,7 +14,7 @@ class Cart extends Base {
     return this.http(url, "delete");
   };
 
-  // addProductToCart = (url: string, variables: UpdateCartItemData) => {
+  // addProductToCart = (url: string, variables: CartItemInput) => {
   //   return this.http(url, "post", variables);
   // };
 }

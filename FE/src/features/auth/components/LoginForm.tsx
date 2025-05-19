@@ -7,10 +7,8 @@ import {
   Role,
   LoginResponse,
   UserReference,
-  Address,
 } from "@/types/dataTypes";
 import { setAuthCredentials } from "@/utils/authUtil";
-import { cn } from "@/lib/utils";
 
 // Import the UI components
 import {

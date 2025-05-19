@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import {
   Card,
   CardContent,
@@ -6,7 +6,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useGetAllInvoicesQuery } from "@/services/invoice/getAllInvoicesQuery";
 import {
   BarChart,
@@ -24,7 +24,6 @@ import {
 } from "recharts";
 import {
   format,
-  subDays,
   startOfMonth,
   endOfMonth,
   startOfWeek,
@@ -345,7 +344,7 @@ const AdminDashboardPage = () => {
                     `${name}: ${(percent * 100).toFixed(0)}%`
                   }
                 >
-                  {orderStatusData.map((entry, index) => (
+                  {orderStatusData.map((_, index) => (
                     <Cell
                       key={`cell-${index}`}
                       fill={COLORS[index % COLORS.length]}

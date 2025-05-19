@@ -1,13 +1,13 @@
 // src/services/invoice/initiateStripePaymentMutation.ts (Should look like this)
 import Invoice from "@/repositories/invoice/invoice";
-import { ShippingAddress, InvoiceProductInputData } from "@/types/dataTypes";
+import { Address, InvoiceItemInput } from "@/types/dataTypes";
 import { API_ENDPOINTS } from "@/utils/api/endpoint";
 import { useMutation } from "@tanstack/react-query";
 
 type InitiatePaymentVariables = {
   userId: string;
-  productsList: InvoiceProductInputData[];
-  shippingAddress: ShippingAddress;
+  productsList: InvoiceItemInput[];
+  shippingAddress: Address;
 };
 
 type InitiatePaymentResponse = {

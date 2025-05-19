@@ -1,11 +1,11 @@
 import CustomerHomePage from "@/repositories/customerPage/customerPage";
-import { HomePageRes } from "@/types/dataTypes";
+import { HomePage } from "@/types/dataTypes";
 import { API_ENDPOINTS } from "@/utils/api/endpoint";
 import { useQuery, UseQueryResult } from "@tanstack/react-query";
 
 export const useGetHomePageQuery = (
   options?: any
-): UseQueryResult<HomePageRes, Error> => {
+): UseQueryResult<HomePage, Error> => {
   return useQuery({
     queryKey: ["homepageId"],
     queryFn: () => {
@@ -13,5 +13,6 @@ export const useGetHomePageQuery = (
     },
     refetchOnMount: true,
     refetchOnReconnect: true,
+    ...options,
   });
 };
