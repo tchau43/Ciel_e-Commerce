@@ -2,7 +2,7 @@ import CartItemComponent from "@/features/carts/components/CartItem";
 import { useGetCartQuery } from "@/services/cart/getCartQuery";
 import { getAuthCredentials } from "@/utils/authUtil";
 import { useNavigate } from "react-router-dom";
-import { Cart, CartItem, Variant } from "@/types/dataTypes";
+import { CartItem } from "@/types/dataTypes";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 

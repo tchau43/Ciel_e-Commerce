@@ -4,11 +4,7 @@ import InvoiceRepository from "@/repositories/invoice/invoice";
 import { API_ENDPOINTS } from "@/utils/api/endpoint";
 // Import thêm keepPreviousData từ thư viện
 import { useQuery, keepPreviousData } from "@tanstack/react-query";
-import {
-  Invoice,
-  AdminInvoicePaginatedResponse,
-  BaseAdminQueryParams,
-} from "@/types/dataTypes";
+import { Invoice } from "@/types/dataTypes";
 
 export interface AdminInvoiceFilterParams {
   searchTerm?: string;

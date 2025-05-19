@@ -1,4 +1,3 @@
-import React from "react"; // Import React
 import InvoiceItems from "@/features/invoices/components/InvoiceItems"; // Đảm bảo đường dẫn đúng
 import { useGetInvoiceQuery } from "@/services/invoice/getInvoiceQuery";
 import { getAuthCredentials } from "@/utils/authUtil";

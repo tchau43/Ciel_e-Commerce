@@ -3,7 +3,7 @@ import { getAuthCredentials } from "@/utils/authUtil"; // Might not need userInf
 import { useDeleteAllProductInCartMutation } from "@/services/cart/deleteAllProductInCartMutation"; // For clearing cart
 import { CardElement, useElements, useStripe } from "@stripe/react-stripe-js";
 import { useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 // Props might change depending on what you pass from the backend initiator endpoint
 interface StripeFormProps {

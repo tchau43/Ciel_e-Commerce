@@ -2,7 +2,6 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import LoginPage from "./features/auth/pages/LoginPage.tsx";
 import { Suspense } from "react";
 import LandingPage from "./features/landing/pages/LandingPage.tsx";
-import RegisterPage from "./features/auth/pages/RegisterPage.tsx";
 import RoleBasedRoute from "./routes/RoleBasedRoute.tsx";
 import { Role } from "./types/dataTypes.ts";
 import AdminDashBoardPage from "./features/admin/pages/AdminDashBoardPage.tsx";
@@ -30,7 +29,6 @@ function App() {
           {/* Route for LandingPage, Login, Register - not require authenticated */}
           <Route path="/landing" element={<LandingPage />} />
           <Route path="/login" element={<LoginPage />} />
-          <Route path="/register" element={<RegisterPage />} />
 
           {/* Route for admin */}
           <Route

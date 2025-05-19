@@ -1,8 +1,8 @@
-import { ProductData } from "@/types/dataTypes";
+import { Product } from "@/types/dataTypes";
 import { useNavigate } from "react-router-dom";
 
 interface ProductIntroProps {
-  data: ProductData;
+  data: Product;
 }
 
 const ProductIntro = ({ data }: ProductIntroProps) => {

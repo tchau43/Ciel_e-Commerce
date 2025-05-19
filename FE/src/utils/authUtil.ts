@@ -1,5 +1,5 @@
 // src/utils/authUtil.ts (Updated)
-import { Role, UserReference, Address } from "../types/dataTypes"; // Import Role and UPDATED UserReference
+import { Role, UserReference } from "../types/dataTypes"; // Import Role and UPDATED UserReference
 
 // Define keys for localStorage for consistency
 const AUTH_TOKEN_KEY = "access_token";
