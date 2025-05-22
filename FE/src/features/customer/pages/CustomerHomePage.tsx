@@ -1,6 +1,6 @@
 // src/features/customer/pages/CustomerHomePage.tsx
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef, useLayoutEffect } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -18,10 +18,23 @@ import { useGetAllCategoriesQuery } from "@/services/category/getAllCategoriesQu
 import { getAuthCredentials } from "@/utils/authUtil";
 import { Product, Category, HomePageItem } from "@/types/dataTypes";
 import ProductCard from "@/features/components/ProductCard";
+import { gsap } from "gsap";
 
 const CustomerHomePage: React.FC = () => {
   const [userId, setUserId] = useState<string | undefined>(undefined);
   const MAX_PRODUCTS_TO_SHOW = 8;
+  const categoryContainerRef = useRef<HTMLDivElement>(null);
+  const featuresContainerRef = useRef<HTMLDivElement>(null);
+
+  // Add category icons mapping
+  const categoryIcons: { [key: string]: { icon: string; color: string } } = {
+    MOBILE: { icon: "📱", color: "bg-red-100" },
+    LAPTOP: { icon: "💻", color: "bg-blue-100" },
+    WATCH: { icon: "⌚", color: "bg-green-100" },
+    TABLET: { icon: "📱", color: "bg-purple-100" }, // Consider a different icon for Tablet if desired
+    ACCESSORY: { icon: "🎧", color: "bg-yellow-100" },
+    OTHER: { icon: "📦", color: "bg-gray-100" },
+  };
 
   useEffect(() => {
     const credentials = getAuthCredentials();
@@ -63,6 +76,181 @@ const CustomerHomePage: React.FC = () => {
   const categories: Category[] | undefined = Array.isArray(categoriesData)
     ? categoriesData
     : (categoriesData as any)?.data;
+
+  useLayoutEffect(() => {
+    if (
+      isLoadingCategories ||
+      !categoryContainerRef.current ||
+      !categories ||
+      categories.length === 0
+    ) {
+      return;
+    }
+
+    const categoryItems = Array.from(
+      categoryContainerRef.current.children
+    ).filter((child) =>
+      child.classList.contains("category-item")
+    ) as HTMLElement[];
+
+    if (categoryItems.length === 0) return;
+
+    const DURATION = 0.3;
+    const EXPAND_FLEX_GROW = 3;
+    const NORMAL_FLEX_GROW = 1;
+    const SHRINK_FLEX_GROW = 0.5;
+
+    categoryItems.forEach((item) => {
+      gsap.set(item, { flexGrow: NORMAL_FLEX_GROW }); // Initialize flexGrow
+
+      item.addEventListener("mouseenter", () => {
+        gsap.to(item, {
+          flexGrow: EXPAND_FLEX_GROW,
+          duration: DURATION,
+          ease: "power2.inOut",
+        });
+        categoryItems.forEach((otherItem) => {
+          if (otherItem !== item) {
+            gsap.to(otherItem, {
+              flexGrow: SHRINK_FLEX_GROW,
+              ease: "power2.inOut",
+            });
+          }
+        });
+      });
+
+      item.addEventListener("mouseleave", () => {
+        categoryItems.forEach((el) => {
+          gsap.to(el, {
+            flexGrow: NORMAL_FLEX_GROW,
+            duration: DURATION,
+            ease: "power2.inOut",
+          });
+        });
+      });
+    });
+
+    // Basic cleanup (more robust cleanup might be needed depending on exact usage)
+    return () => {
+      categoryItems.forEach((item) => {
+        // Remove listeners if they were added directly without GSAP's internal handling
+        // However, GSAP's event listeners on DOM elements are generally cleaned up when the elements are removed.
+        // If creating GSAP timelines or other GSAP objects, they should be killed here.
+      });
+    };
+  }, [isLoadingCategories, categories]);
+
+  useLayoutEffect(() => {
+    if (
+      isLoadingHomePage ||
+      !featuresContainerRef.current ||
+      !homePageData?.features ||
+      homePageData.features.length === 0
+    ) {
+      return;
+    }
+
+    const featureItems = Array.from(
+      featuresContainerRef.current.children
+    ) as HTMLElement[];
+
+    if (featureItems.length === 0) return;
+
+    const DURATION = 0.3;
+    const EXPAND_FLEX_GROW = 2;
+    const NORMAL_FLEX_GROW = 1;
+    const SHRINK_FLEX_GROW = 0.5;
+
+    featureItems.forEach((item) => {
+      const descriptionElement = item.querySelector(".feature-description");
+      const buttonElement = item.querySelector(".feature-button");
+
+      // Initially hide description and button
+      if (descriptionElement && buttonElement) {
+        gsap.set([descriptionElement, buttonElement], {
+          opacity: 0,
+          y: 20,
+          display: "none",
+        });
+      }
+
+      // Set initial state
+      gsap.set(item, {
+        flexGrow: NORMAL_FLEX_GROW,
+        width: `${100 / featureItems.length}%`,
+      });
+
+      item.addEventListener("mouseenter", () => {
+        // Expand hovered item
+        gsap.to(item, {
+          flexGrow: EXPAND_FLEX_GROW,
+          duration: DURATION,
+          ease: "power2.inOut",
+        });
+
+        // Show description and button
+        if (descriptionElement && buttonElement) {
+          gsap.to([descriptionElement, buttonElement], {
+            opacity: 1,
+            y: 0,
+            display: "block",
+            duration: DURATION,
+            stagger: 0.1,
+            ease: "power2.out",
+          });
+        }
+
+        // Shrink other items
+        featureItems.forEach((otherItem) => {
+          if (otherItem !== item) {
+            gsap.to(otherItem, {
+              flexGrow: SHRINK_FLEX_GROW,
+              duration: DURATION,
+              ease: "power2.inOut",
+            });
+          }
+        });
+      });
+
+      item.addEventListener("mouseleave", () => {
+        // Reset hovered item
+        gsap.to(item, {
+          flexGrow: NORMAL_FLEX_GROW,
+          duration: DURATION,
+          ease: "power2.inOut",
+        });
+
+        // Hide description and button
+        if (descriptionElement && buttonElement) {
+          gsap.to([descriptionElement, buttonElement], {
+            opacity: 0,
+            y: 20,
+            display: "none",
+            duration: DURATION,
+            ease: "power2.in",
+          });
+        }
+
+        // Reset other items
+        featureItems.forEach((otherItem) => {
+          if (otherItem !== item) {
+            gsap.to(otherItem, {
+              flexGrow: NORMAL_FLEX_GROW,
+              duration: DURATION,
+              ease: "power2.inOut",
+            });
+          }
+        });
+      });
+    });
+
+    return () => {
+      featureItems.forEach((item) => {
+        item.removeEventListener("mouseenter", () => {});
+        item.removeEventListener("mouseleave", () => {});
+      });
+    };
+  }, [isLoadingHomePage, homePageData?.features]);
 
   const shouldUseRecommendations =
     !!userId && isSuccessRecommendations && !isErrorRecommendations;
@@ -146,37 +334,47 @@ const CustomerHomePage: React.FC = () => {
         )}
       </section>
 
-      <section className="container mx-auto px-4">
-        <h2 className="text-xl md:text-2xl font-semibold text-center mb-6 md:mb-8">
-          Danh mục Nổi bật
-        </h2>
-        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-3 md:gap-5">
-          {isLoadingCategories
-            ? Array.from({ length: 6 }).map((_, i) => (
-                <div key={i} className="space-y-2 flex flex-col items-center">
-                  <Skeleton className="w-16 h-16 md:w-20 md:h-20 rounded-full" />
-                  <Skeleton className="h-4 w-16" />
-                </div>
-              ))
-            : (categories || []).map((category: Category) => (
-                <Link
-                  key={category._id}
-                  to={`/products?category=${category._id}`}
-                  className="flex flex-col items-center text-center group p-2"
-                >
-                  <div className="w-16 h-16 md:w-20 md:h-20 rounded-full overflow-hidden bg-gray-100 mb-2 border-2 border-transparent group-hover:border-ch-blue transition-colors flex items-center justify-center shadow-sm">
-                    <img
-                      src={`/images/category-placeholder.png`}
-                      alt={category.name}
-                      className="w-full h-full object-contain p-2"
-                      loading="lazy"
-                    />
+      <section className="py-8 md:py-16 bg-white">
+        <div className="container mx-auto px-4">
+          <h2 className="text-2xl md:text-3xl font-bold text-center mb-8 md:mb-12">
+            Danh Mục Sản Phẩm
+          </h2>
+          <div
+            ref={categoryContainerRef}
+            className="flex flex-wrap justify-center gap-3 md:gap-4" // Use flex, flex-wrap and gap
+          >
+            {isLoadingCategories
+              ? Array.from({ length: 6 }).map((_, i) => (
+                  <div
+                    key={i}
+                    className="flex flex-col items-center p-2"
+                    style={{ flex: `1 1 calc(100% / 6 - 1rem)` }}
+                  >
+                    {/* Adjust flex-basis for skeletons too */}
+                    <Skeleton className="w-20 h-20 md:w-24 md:h-24 rounded-xl" />
+                    <Skeleton className="h-4 w-16 md:w-20 mt-2" />
                   </div>
-                  <p className="text-xs md:text-sm font-medium group-hover:text-ch-blue transition-colors line-clamp-2">
-                    {category.name}
-                  </p>
-                </Link>
-              ))}
+                ))
+              : (categories || []).map((category: Category) => {
+                  const iconData = categoryIcons[
+                    category.name.toUpperCase() as keyof typeof categoryIcons
+                  ] || { icon: "📦", color: "bg-gray-100" };
+                  return (
+                    <Link
+                      key={category._id}
+                      to={`/products?category=${category._id}`}
+                      className={`${iconData.color} category-item rounded-xl p-3 md:p-4 text-center cursor-pointer hover:shadow-lg transition-shadow duration-200 ease-in-out flex flex-col items-center justify-center min-w-[100px] md:min-w-[120px]`}
+                    >
+                      <div className="text-3xl md:text-4xl mb-2">
+                        {iconData.icon}
+                      </div>
+                      <h3 className="font-medium text-sm md:text-base line-clamp-2 h-10 md:h-12 flex items-center justify-center text-center w-full">
+                        {category.name}
+                      </h3>
+                    </Link>
+                  );
+                })}
+          </div>
         </div>
       </section>
 
@@ -192,7 +390,6 @@ const CustomerHomePage: React.FC = () => {
           ) : productsToShowSource && productsToShowSource.length > 0 ? (
             productsToShowSource
               .slice(0, MAX_PRODUCTS_TO_SHOW)
-              // Sử dụng component ProductCard đã import
               .map((product) => (
                 <ProductCard key={product._id} product={product} />
               ))
@@ -216,36 +413,40 @@ const CustomerHomePage: React.FC = () => {
       {!isLoadingHomePage &&
         homePageData?.features &&
         homePageData.features.length > 0 && (
-          <section className="container mx-auto px-4">
+          <section className="container mx-auto px-4 overflow-hidden">
             <h2 className="text-xl md:text-2xl font-semibold text-center mb-6 md:mb-8">
               Ưu đãi Đặc biệt
             </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
+            <div
+              ref={featuresContainerRef}
+              className="flex flex-row gap-4 md:gap-6 h-[300px] w-full"
+            >
               {homePageData.features.map((feature: HomePageItem) => (
                 <div
                   key={feature._id}
-                  className="relative bg-gray-100 rounded-lg overflow-hidden aspect-video md:aspect-[16/7] group shadow-sm hover:shadow-lg transition-shadow duration-300"
+                  className="relative bg-gray-100 rounded-lg overflow-hidden flex-1 cursor-pointer"
                 >
                   <img
                     src={
                       (feature as any).image_url ||
+                      feature.photo_url ||
                       "/images/feature-placeholder.png"
                     }
                     alt={feature.title || "Promotion"}
-                    className="absolute inset-0 w-full h-full object-cover transition-transform duration-300 group-hover:scale-105 -z-10"
+                    className="absolute inset-0 w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/30 to-transparent group-hover:from-black/70 transition-all duration-300"></div>
-                  <div className="relative z-10 h-full flex flex-col justify-end md:justify-center p-4 md:p-8 text-white max-w-xs md:max-w-sm">
-                    <h3 className="text-lg md:text-xl lg:text-2xl font-semibold mb-1 md:mb-2 drop-shadow">
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent"></div>
+                  <div className="feature-content relative z-10 h-full flex flex-col justify-end p-6">
+                    <h3 className="text-lg md:text-xl font-semibold text-white mb-2">
                       {feature.title}
                     </h3>
-                    <p className="text-sm md:text-base text-white/90 mb-3 md:mb-4 drop-shadow line-clamp-2">
+                    <p className="feature-description text-sm md:text-base text-white/90 mb-4">
                       {feature.description}
                     </p>
                     <Button
                       variant="secondary"
                       size="sm"
-                      className="self-start mt-auto md:mt-0 bg-white/90 text-black hover:bg-white"
+                      className="feature-button self-start bg-white text-black hover:bg-white/80 content-center"
                       asChild
                     >
                       <Link to={"#"}> Xem ngay </Link>
@@ -265,8 +466,20 @@ const CustomerHomePage: React.FC = () => {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
             <div className="flex items-start gap-4 p-4">
               <div className="flex-shrink-0 w-10 h-10 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center">
-                {" "}
-                i{" "}
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  strokeWidth={1.5}
+                  stroke="currentColor"
+                  className="w-5 h-5"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M8.25 18.75a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m3 0h6m-9 0H3.375a1.125 1.125 0 0 1-1.125-1.125V14.25m17.25 4.5a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m3 0h1.125c.621 0 1.125-.504 1.125-1.125V14.25m-17.25 4.5H9.75m0-4.5H3.375M9.75 14.25H14.25m5.25 0H9.75M14.25 14.25h4.875c.621 0 1.125.504 1.125 1.125V18.75M14.25 14.25V9.75c0-.621-.504-1.125-1.125-1.125H5.625c-.621 0-1.125.504-1.125 1.125v4.5"
+                  />
+                </svg>
               </div>
               <div>
                 <h3 className="font-medium text-base mb-1">
@@ -279,8 +492,20 @@ const CustomerHomePage: React.FC = () => {
             </div>
             <div className="flex items-start gap-4 p-4">
               <div className="flex-shrink-0 w-10 h-10 bg-green-100 text-green-600 rounded-full flex items-center justify-center">
-                {" "}
-                i{" "}
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  strokeWidth={1.5}
+                  stroke="currentColor"
+                  className="w-5 h-5"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"
+                  />
+                </svg>
               </div>
               <div>
                 <h3 className="font-medium text-base mb-1">
@@ -293,8 +518,20 @@ const CustomerHomePage: React.FC = () => {
             </div>
             <div className="flex items-start gap-4 p-4">
               <div className="flex-shrink-0 w-10 h-10 bg-purple-100 text-purple-600 rounded-full flex items-center justify-center">
-                {" "}
-                i{" "}
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  strokeWidth={1.5}
+                  stroke="currentColor"
+                  className="w-5 h-5"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"
+                  />
+                </svg>
               </div>
               <div>
                 <h3 className="font-medium text-base mb-1">
