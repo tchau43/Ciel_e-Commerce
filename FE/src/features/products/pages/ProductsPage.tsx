@@ -86,7 +86,7 @@ const ProductsPage = () => {
       <div
         className={cn(
           "bg-white h-44",
-          "fixed inset-y-0 left-0 z-50 w-64 sm:w-72 transform transition-transform duration-300 ease-in-out",
+          "fixed inset-y-0 left-0  w-64 sm:w-72 transform transition-transform duration-300 ease-in-out",
           isSidebarOpen ? "translate-x-0" : "-translate-x-full",
           "md:static md:translate-x-0 md:w-64 lg:w-72 md:flex-shrink-0 md:flex md:flex-col",
           "border-r border-gray-200 "
