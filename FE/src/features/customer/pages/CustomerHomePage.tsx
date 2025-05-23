@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   Carousel,
+  CarouselApi,
   CarouselContent,
   CarouselItem,
   CarouselNext,
@@ -19,9 +20,13 @@ import { getAuthCredentials } from "@/utils/authUtil";
 import { Product, Category, HomePageItem } from "@/types/dataTypes";
 import ProductCard from "@/features/components/ProductCard";
 import { gsap } from "gsap";
+import { useGetFeaturedProductsQuery } from "@/services/product/getFeaturedProductsQuery";
+import { formatCurrency } from "@/utils/formatCurrency";
 
 const CustomerHomePage: React.FC = () => {
   const [userId, setUserId] = useState<string | undefined>(undefined);
+  const [currentSlide, setCurrentSlide] = useState(0);
+  const [api, setApi] = useState<CarouselApi>();
   const MAX_PRODUCTS_TO_SHOW = 8;
   const categoryContainerRef = useRef<HTMLDivElement>(null);
   const featuresContainerRef = useRef<HTMLDivElement>(null);
@@ -90,6 +95,11 @@ const CustomerHomePage: React.FC = () => {
       return product.category?._id === categoryId;
     }).length;
   };
+
+  const { data: featuredProducts, isLoading: isLoadingFeatured } =
+    useGetFeaturedProductsQuery({
+      limit: 10,
+    });
 
   useLayoutEffect(() => {
     if (
@@ -262,6 +272,16 @@ const CustomerHomePage: React.FC = () => {
     };
   }, [isLoadingHomePage, homePageData?.features]);
 
+  useEffect(() => {
+    if (!api) {
+      return;
+    }
+
+    api.on("select", () => {
+      setCurrentSlide(api.selectedScrollSnap());
+    });
+  }, [api]);
+
   const shouldUseRecommendations =
     !!userId && isSuccessRecommendations && !isErrorRecommendations;
   const shouldUseFallback = enableFallback && isSuccessFallback;
@@ -292,54 +312,89 @@ const CustomerHomePage: React.FC = () => {
   return (
     <div className="space-y-10 md:space-y-16 pb-16">
       <section className="relative -mt-px">
-        {isLoadingHomePage ? (
+        {isLoadingHomePage || isLoadingFeatured ? (
           <Skeleton className="w-full h-[35vh] md:h-[55vh] lg:h-[70vh]" />
-        ) : homePageData?.banners && homePageData.banners.length > 0 ? (
-          <Carousel
-            opts={{ loop: true, align: "start" }}
-            className="w-full overflow-hidden"
-          >
-            <CarouselContent>
-              {homePageData.banners.map((banner: HomePageItem) => (
-                <CarouselItem key={banner._id}>
-                  <div className="relative w-full h-[35vh] md:h-[55vh] lg:h-[70vh] bg-cover bg-center flex items-center">
-                    <img
-                      src={banner.photo_url || "/images/default-banner.jpg"}
-                      alt={banner.title || "Banner"}
-                      className="absolute inset-0 w-full h-full object-cover -z-10"
-                    />
-                    <div className="absolute inset-0 bg-black/40"></div>
-                    <div className="relative z-10 text-left max-w-screen-xl mx-auto px-6 md:px-12 lg:px-16 w-full">
-                      <div className="max-w-lg md:max-w-xl">
-                        <h1 className="text-white text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold mb-3 md:mb-5 drop-shadow-lg leading-tight">
-                          {banner.title}
-                        </h1>
-                        <p className="text-white/90 text-sm md:text-base lg:text-lg mb-5 md:mb-7 drop-shadow">
-                          {banner.description}
-                        </p>
-                        <Button
-                          size="lg"
-                          className="bg-white text-black hover:bg-gray-200"
-                          asChild
-                        >
-                          <Link to={"#"}> Mua ngay </Link>
-                        </Button>
+        ) : featuredProducts && featuredProducts.length > 0 ? (
+          <div className="relative">
+            <Carousel
+              opts={{ loop: true, align: "start" }}
+              className="w-full overflow-hidden"
+              setApi={setApi}
+            >
+              <CarouselContent>
+                {featuredProducts.map((product) => (
+                  <CarouselItem key={product._id}>
+                    <div className="relative w-full h-[35vh] md:h-[55vh] lg:h-[70vh] bg-cover bg-center flex items-center">
+                      <img
+                        src={product.images[0] || "/images/default-banner.jpg"}
+                        alt={product.name}
+                        className="absolute inset-0 w-full h-full object-cover -z-10"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/50 to-transparent"></div>
+                      <div className="relative z-10 text-left max-w-screen-xl mx-auto px-6 md:px-12 lg:px-16 w-full">
+                        <div className="max-w-lg md:max-w-xl">
+                          <div className="mb-3 inline-block px-3 py-1 bg-red-600 text-white text-sm font-medium rounded-full">
+                            Sản phẩm nổi bật #
+                            {featuredProducts.indexOf(product) + 1}
+                          </div>
+                          <h1 className="text-white text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold mb-3 md:mb-5 drop-shadow-lg leading-tight">
+                            {product.name}
+                          </h1>
+                          <div className="flex items-center gap-3 mb-3">
+                            <span className="text-white/90 text-lg md:text-xl lg:text-2xl font-semibold">
+                              {formatCurrency(product.base_price)}
+                            </span>
+                            {product.averageRating && (
+                              <div className="px-2 py-1 bg-white/20 backdrop-blur-sm rounded text-white text-sm flex items-center gap-1">
+                                <span>⭐</span>
+                                <span>{product.averageRating.toFixed(1)}</span>
+                              </div>
+                            )}
+                          </div>
+                          <p className="text-white/90 text-sm md:text-base lg:text-lg mb-5 md:mb-7 drop-shadow line-clamp-2">
+                            {product.description?.[0]}
+                          </p>
+                          <Button
+                            size="lg"
+                            className="bg-white text-black hover:bg-gray-200"
+                            asChild
+                          >
+                            <Link to={`/product/${product._id}`}>
+                              Xem chi tiết
+                            </Link>
+                          </Button>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                </CarouselItem>
+                  </CarouselItem>
+                ))}
+              </CarouselContent>
+              {featuredProducts.length > 1 && (
+                <>
+                  <CarouselPrevious className="absolute left-4 md:left-6 top-1/2 -translate-y-1/2 z-20 hidden md:inline-flex bg-white/70 hover:bg-white text-black" />
+                  <CarouselNext className="absolute right-4 md:right-6 top-1/2 -translate-y-1/2 z-20 hidden md:inline-flex bg-white/70 hover:bg-white text-black" />
+                </>
+              )}
+            </Carousel>
+            {/* Pagination Dots */}
+            <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 z-20 flex items-center gap-2">
+              {featuredProducts.map((_, index) => (
+                <button
+                  key={index}
+                  onClick={() => setCurrentSlide(index)}
+                  className={`w-2.5 h-2.5 rounded-full transition-all duration-300 ${
+                    currentSlide === index
+                      ? "bg-white w-8"
+                      : "bg-white/50 hover:bg-white/70"
+                  }`}
+                  aria-label={`Go to slide ${index + 1}`}
+                />
               ))}
-            </CarouselContent>
-            {homePageData.banners.length > 1 && (
-              <>
-                <CarouselPrevious className="absolute left-4 md:left-6 top-1/2 -translate-y-1/2 z-20 hidden md:inline-flex bg-white/70 hover:bg-white text-black" />
-                <CarouselNext className="absolute right-4 md:right-6 top-1/2 -translate-y-1/2 z-20 hidden md:inline-flex bg-white/70 hover:bg-white text-black" />
-              </>
-            )}
-          </Carousel>
+            </div>
+          </div>
         ) : (
           <div className="w-full h-[35vh] md:h-[55vh] lg:h-[70vh] bg-gray-200 flex items-center justify-center">
-            <p className="text-gray-500">Không có banner.</p>
+            <p className="text-gray-500">Không có sản phẩm nổi bật.</p>
           </div>
         )}
       </section>

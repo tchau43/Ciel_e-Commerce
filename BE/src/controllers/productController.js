@@ -28,10 +28,14 @@ const createProduct = async (req, res) => {
 };
 
 const getAllProducts = async (req, res) => {
-  // Service returns products without populated variants
   try {
     const { sort } = req.query;
-    const data = await getAllProductsService(sort);
+    // Allow sorting by purchasedQuantity
+    let sortParam = sort;
+    if (sort === 'popular') {
+      sortParam = 'purchasedQuantity:desc';
+    }
+    const data = await getAllProductsService(sortParam);
     res.status(200).json(data);
   } catch (error) {
     console.error("Error in getAllProducts controller:", error);
