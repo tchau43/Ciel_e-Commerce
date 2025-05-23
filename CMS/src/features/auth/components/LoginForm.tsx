@@ -106,7 +106,6 @@ const LoginForm: React.FC = () => {
       <CardBorder className="w-full max-w-md">
         {/* Card provides the main background and structure */}
         <Card className="relative h-auto bg-white dark:bg-gray-950">
-          {" "}
           {/* Adjusted bg */}
           {/* Background blur elements */}
           <div
@@ -124,7 +123,6 @@ const LoginForm: React.FC = () => {
           >
             <CardHeader>
               <CardTitle className="text-center text-xl sm:text-2xl text-gray-900 dark:text-gray-100">
-                {" "}
                 {/* Adjusted text color */}
                 Đăng nhập
               </CardTitle>
@@ -137,7 +135,6 @@ const LoginForm: React.FC = () => {
 
             {/* Use space-y on CardContent for spacing between inputs */}
             <CardContent className="space-y-6">
-              {" "}
               {/* Increased spacing slightly */}
               {/* --- Email Input --- */}
               <FloatingLabelInput
@@ -170,7 +167,6 @@ const LoginForm: React.FC = () => {
             </CardContent>
 
             <CardFooter className="flex flex-col pt-5">
-              {" "}
               {/* Adjusted padding */}
               <button
                 type="submit"
@@ -179,16 +175,6 @@ const LoginForm: React.FC = () => {
               >
                 {isPending ? "Đang đăng nhập ..." : "Đăng nhập"}
               </button>
-              <p className="text-center text-sm text-gray-600 dark:text-gray-400 pt-4">
-                {/* Adjusted text color */}
-                Chưa có tài khoản?{" "}
-                <Link
-                  to="/register"
-                  className="font-medium text-ch-blue hover:underline dark:text-ch-blue-light"
-                >
-                  Đăng ký ngay
-                </Link>
-              </p>
             </CardFooter>
           </form>
         </Card>
