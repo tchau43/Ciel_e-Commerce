@@ -1,8 +1,6 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import LoginPage from "./features/auth/pages/LoginPage.tsx";
 import { Suspense } from "react";
 import LandingPage from "./features/landing/pages/LandingPage.tsx";
-import RegisterPage from "./features/auth/pages/RegisterPage.tsx";
 import RoleBasedRoute from "./routes/RoleBasedRoute.tsx";
 import { Role } from "./types/dataTypes.ts";
 import CustomerLayout from "./features/customer/CustomerLayout.tsx";
@@ -19,6 +17,7 @@ import { Toaster } from "sonner";
 import CustomerReviewPage from "./features/review/pages/CustomerReviewPage.tsx";
 import FaqPage from "./features/faq/pages/FaqPage";
 import ChatWidget from "./components/chat/ChatWidget";
+import AuthPage from "./features/auth/pages/AuthPage.tsx";
 
 function LoadingSpinner() {
   return (
@@ -35,8 +34,7 @@ function App() {
         <Routes>
           {/* Route for LandingPage, Login, Register - not require authenticated */}
           <Route path="/landing" element={<LandingPage />} />
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/register" element={<RegisterPage />} />
+          <Route path="/auth" element={<AuthPage />} />
 
           {/* Route for user */}
           <Route
@@ -45,37 +43,25 @@ function App() {
               <RoleBasedRoute allowedRoles={[Role.CUSTOMER]}>
                 <Suspense fallback={<LoadingSpinner />}>
                   <CustomerLayout />
-                  {/* <StripePayment /> */}
                 </Suspense>
               </RoleBasedRoute>
             }
           >
             <Route index element={<CustomerHomePage />} />
-            <Route
-              path="products/*"
-              element={
-                // <Suspense fallback={<LoadingSpinner />}>
-                <ProductsPage />
-                // </Suspense>
-              }
-            ></Route>
-            <Route path="product/:id/*" element={<Product />}></Route>
-            <Route path="cart/" element={<CartPage />}></Route>
-            <Route path="payment/" element={<PaymentPage />}></Route>
-            <Route
-              path="payment/stripe"
-              element={<StripePaymentPage />}
-            ></Route>
-            <Route path="invoice/" element={<InvoicePage />}></Route>
+            <Route path="products/*" element={<ProductsPage />} />
+            <Route path="product/:id/*" element={<Product />} />
+            <Route path="cart/" element={<CartPage />} />
+            <Route path="payment/" element={<PaymentPage />} />
+            <Route path="payment/stripe" element={<StripePaymentPage />} />
+            <Route path="invoice/" element={<InvoicePage />} />
             <Route
               path="recommendations/"
               element={<RecommendedProductsPage />}
             />
             <Route path="reviews/" element={<CustomerReviewPage />} />
             <Route path="faq/" element={<FaqPage />} />
-            {/* <-- ADD ROUTE */}
           </Route>
-          <Route path="test/" element={<TestPage />}></Route>
+          <Route path="test/" element={<TestPage />} />
         </Routes>
         <Toaster position="top-right" richColors />
         <ChatWidget />
