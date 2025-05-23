@@ -142,20 +142,18 @@ const getAllProductsService = async (sort) => {
         sortOption[field] = order.toLowerCase() === "desc" ? -1 : 1;
       } else {
         console.warn(`Invalid sort parameter: ${sort}. Using default.`);
-        sortOption = { createdAt: -1 };
+        sortOption = { purchasedQuantity: -1, createdAt: -1 }; // Default to most purchased first
       }
     } else {
-      sortOption = { createdAt: -1 }; // Default sort
+      sortOption = { purchasedQuantity: -1, createdAt: -1 }; // Default sort by purchased quantity
     }
 
     const products = await Product.find({})
       .sort(sortOption)
-      .populate("category", "name") // Populate only names for efficiency
-      .populate("brand", "name") // Populate only names for efficiency
+      .populate("category", "name")
+      .populate("brand", "name")
       .lean();
 
-    // Note: products here will have product.variants as an array of ObjectIds
-    // console.log("----------------------------products", products);
     return products;
   } catch (error) {
     console.error("Error in getAllProductsService:", error);
@@ -888,14 +886,14 @@ const searchProductsByPriceAndNeedsService = async (minPrice = 0, maxPrice = Num
 // Trả về các sản phẩm nổi bật dựa trên các tiêu chí như lượt đánh giá cao, bán chạy, hoặc sản phẩm mới
 const getFeaturedProductsService = async (limit = 3) => {
   try {
-    // Giới hạn số lượng sản phẩm được trả về
     const limitNum = parseInt(limit, 10) || 3;
 
-    // Lấy danh sách sản phẩm sắp xếp theo độ phổ biến và đánh giá
+    // Get products sorted by a combination of ratings, reviews, and purchase quantity
     const featuredProducts = await Product.find({})
       .sort({
-        averageRating: -1, // Sắp xếp theo đánh giá cao nhất
-        numberOfReviews: -1 // Ưu tiên sản phẩm có nhiều đánh giá
+        purchasedQuantity: -1, // Most purchased first
+        averageRating: -1,    // Then by highest rating
+        numberOfReviews: -1   // Then by most reviews
       })
       .limit(limitNum)
       .populate("category", "name")

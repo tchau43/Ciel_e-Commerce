@@ -18,13 +18,13 @@ const createUserService = async (userData) => {
     if (checkEmail) {
       console.log("Email already exists:", email);
       // Throw specific error for controller to handle
-      throw new Error("EMAIL_EXISTS");
+      throw new Error("Email này đã tồn tại.");
     }
 
     // --- Password validation ---
     if (!password || typeof password !== 'string') {
       console.error("Password is required and must be a string.");
-      throw new Error("INVALID_PASSWORD");
+      throw new Error("Mật khẩu không hợp lệ.");
     }
 
     // --- Vietnamese Phone Number Validation ---
@@ -32,13 +32,13 @@ const createUserService = async (userData) => {
     if (phoneNumber && typeof phoneNumber === 'string' && phoneNumber.trim() !== '') {
       if (!isValidVNPhone(phoneNumber)) {
         console.log("Invalid Vietnamese phone number format:", phoneNumber);
-        throw new Error("INVALID_PHONE_FORMAT");
+        throw new Error("Số điện thoại không hợp lệ.");
       }
       // If validation passes, phoneNumber is a valid VN phone string
     } else if (phoneNumber && typeof phoneNumber !== 'string') {
       // Handle case where input is not a string unexpectedly
       console.log("Phone number received is not a string:", phoneNumber);
-      throw new Error("INVALID_PHONE_INPUT_TYPE");
+      throw new Error("Số điện thoại không hợp lệ.");
     }
     // --- End Phone Number Validation ---
 

@@ -9,6 +9,7 @@ interface FloatingLabelInputProps
   id: string; // Input ID is required for label association
   label: string; // Label text is required
   containerClassName?: string; // Optional class for the main container div
+  required?: boolean;
 }
 
 const FloatingLabelInput = React.forwardRef<
@@ -16,7 +17,15 @@ const FloatingLabelInput = React.forwardRef<
   FloatingLabelInputProps
 >(
   (
-    { className, containerClassName, id, label, type = "text", ...props },
+    {
+      className,
+      containerClassName,
+      id,
+      label,
+      type = "text",
+      required,
+      ...props
+    },
     ref // Forward ref to the actual input element
   ) => {
     return (
@@ -70,12 +79,13 @@ const FloatingLabelInput = React.forwardRef<
             // Optionally keep color changed if input has value but not focused (remove if not desired)
             // 'peer-[:not(:placeholder-shown)]:text-gray-600 dark:peer-[:not(:placeholder-shown)]:text-gray-400',
 
-            // Add background matching card bg only when floated to "cutout" the border
-            "peer-focus:bg-white dark:peer-focus:bg-gray-900", // Match these BGs to your card/page BG
-            "peer-[:not(:placeholder-shown)]:bg-white dark:peer-[:not(:placeholder-shown)]:bg-gray-900" // Match these BGs to your card/page BG
+            // Add background matching form bg only when floated to "cutout" the border
+            "peer-focus:bg-gray-50 dark:peer-focus:bg-gray-950", // Match form background
+            "peer-[:not(:placeholder-shown)]:bg-gray-50 dark:peer-[:not(:placeholder-shown)]:bg-gray-950" // Match form background
           )}
         >
           {label}
+          {required && <span className="text-red-500 ml-1">*</span>}
         </label>
       </div>
     );
