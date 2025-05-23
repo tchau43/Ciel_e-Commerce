@@ -304,25 +304,61 @@ const getInvoiceService = async (userId, queryParams = {}) => {
 
 // --- UPDATE INVOICE STATUS (Admin) ---
 const updateInvoiceStatusService = async (invoiceId, statusUpdates) => {
-    // ... (Implementation from previous response - unchanged) ...
-    if (!mongoose.Types.ObjectId.isValid(invoiceId)) throw new Error("Invalid invoice ID format");
-    const validatedUpdates = {};
-    if (statusUpdates.orderStatus && Invoice.schema.path('orderStatus').enumValues.includes(statusUpdates.orderStatus)) {
-        validatedUpdates.orderStatus = statusUpdates.orderStatus;
-    }
-    if (statusUpdates.paymentStatus && Invoice.schema.path('paymentStatus').enumValues.includes(statusUpdates.paymentStatus)) {
-        validatedUpdates.paymentStatus = statusUpdates.paymentStatus;
-    }
-    if (Object.keys(validatedUpdates).length === 0) throw new Error("No valid status fields provided.");
+    const session = await mongoose.startSession();
+    session.startTransaction();
 
-    const updatedInvoice = await Invoice.findByIdAndUpdate(invoiceId, { $set: validatedUpdates }, { new: true, runValidators: true })
-        .populate('user', 'name email')
-        .populate({ path: "items.product", select: "name" })
-        .populate({ path: "items.variant", select: "types" })
-        .lean();
-    if (!updatedInvoice) throw new Error(`Invoice '${invoiceId}' not found.`);
-    // TODO: Trigger relevant notification emails based on status change (e.g., shipping confirmation)
-    return updatedInvoice;
+    try {
+        if (!mongoose.Types.ObjectId.isValid(invoiceId)) throw new Error("Invalid invoice ID format");
+        const validatedUpdates = {};
+        if (statusUpdates.orderStatus && Invoice.schema.path('orderStatus').enumValues.includes(statusUpdates.orderStatus)) {
+            validatedUpdates.orderStatus = statusUpdates.orderStatus;
+        }
+        if (statusUpdates.paymentStatus && Invoice.schema.path('paymentStatus').enumValues.includes(statusUpdates.paymentStatus)) {
+            validatedUpdates.paymentStatus = statusUpdates.paymentStatus;
+        }
+        if (Object.keys(validatedUpdates).length === 0) throw new Error("No valid status fields provided.");
+
+        // Find the invoice and update its status
+        const updatedInvoice = await Invoice.findByIdAndUpdate(
+            invoiceId,
+            { $set: validatedUpdates },
+            { new: true, runValidators: true, session }
+        )
+            .populate('user', 'name email')
+            .populate({ path: "items.product", select: "name" })
+            .populate({ path: "items.variant", select: "types" });
+
+        if (!updatedInvoice) throw new Error(`Invoice '${invoiceId}' not found.`);
+
+        // If order status is changed to "delivered", update product purchase quantities
+        if (validatedUpdates.orderStatus === "delivered") {
+            // Group items by product ID and sum quantities
+            const productQuantities = {};
+            updatedInvoice.items.forEach(item => {
+                const productId = item.product._id.toString();
+                productQuantities[productId] = (productQuantities[productId] || 0) + item.quantity;
+            });
+
+            // Update each product's purchasedQuantity
+            const updatePromises = Object.entries(productQuantities).map(([productId, quantity]) => {
+                return Product.findByIdAndUpdate(
+                    productId,
+                    { $inc: { purchasedQuantity: quantity } },
+                    { session }
+                );
+            });
+
+            await Promise.all(updatePromises);
+        }
+
+        await session.commitTransaction();
+        return updatedInvoice;
+    } catch (error) {
+        await session.abortTransaction();
+        throw error;
+    } finally {
+        session.endSession();
+    }
 };
 
 // --- GET ALL INVOICES & SEARCH (Admin) ---
