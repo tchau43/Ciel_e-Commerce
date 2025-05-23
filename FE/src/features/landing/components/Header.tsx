@@ -25,30 +25,20 @@ const Header: React.FC = () => {
         </NavLink>
 
         {!isLAuth ? (
-          <>
-            <NavLink
-              to="/login"
-              className="mx-2 hover:underline hover:text-blue-500"
-            >
-              Login
-            </NavLink>
-            <NavLink
-              to="/register"
-              className="mx-2 hover:underline hover:text-blue-500"
-            >
-              Register
-            </NavLink>
-          </>
+          <NavLink
+            to="/auth"
+            className="mx-2 hover:underline hover:text-blue-500"
+          >
+            Đăng nhập / Đăng ký
+          </NavLink>
         ) : (
-          <>
-            <NavLink
-              to="/login"
-              className="mx-2 hover:underline hover:text-blue-500"
-              onClick={handleLogout}
-            >
-              Logout
-            </NavLink>
-          </>
+          <NavLink
+            to="/auth"
+            className="mx-2 hover:underline hover:text-blue-500"
+            onClick={handleLogout}
+          >
+            Đăng xuất
+          </NavLink>
         )}
       </div>
     </div>

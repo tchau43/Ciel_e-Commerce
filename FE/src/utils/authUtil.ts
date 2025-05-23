@@ -13,6 +13,11 @@ export interface AuthCredentials {
   userInfo: UserReference | null; // Uses the updated UserReference
 }
 
+// Function to validate if a role is allowed for the frontend
+function isValidFrontendRole(role: string | null): boolean {
+  return role === Role.CUSTOMER;
+}
+
 export function getAuthCredentials(): AuthCredentials {
   let token: string | null = null;
   let role: Role | null = null;
@@ -20,9 +25,15 @@ export function getAuthCredentials(): AuthCredentials {
 
   if (typeof window !== "undefined" && window.localStorage) {
     token = localStorage.getItem(AUTH_TOKEN_KEY);
-
     const roleString = localStorage.getItem(AUTH_ROLE_KEY);
+
+    // Check if role is valid for frontend
     if (roleString && Object.values(Role).includes(roleString as Role)) {
+      if (!isValidFrontendRole(roleString)) {
+        // If role is not valid for frontend, clear credentials
+        clearAuthCredentials();
+        return { token: null, role: null, userInfo: null };
+      }
       role = roleString as Role;
     }
 
@@ -41,14 +52,22 @@ export function getAuthCredentials(): AuthCredentials {
           // Cast to the updated UserReference type
           userInfo = parsedInfo as UserReference;
         } else {
-          console.error(
-            "Stored userInfo format is invalid (missing core fields)."
-          );
+          console.error("Stored userInfo format is invalid");
+          clearAuthCredentials();
+          return { token: null, role: null, userInfo: null };
         }
       } catch (error) {
-        console.error("Failed to parse userInfo from localStorage:", error);
+        console.error("Failed to parse userInfo:", error);
+        clearAuthCredentials();
+        return { token: null, role: null, userInfo: null };
       }
     }
+  }
+
+  // If we have a token but no valid role or userInfo, clear everything
+  if (token && (!role || !userInfo)) {
+    clearAuthCredentials();
+    return { token: null, role: null, userInfo: null };
   }
 
   return { token, role, userInfo };
@@ -60,6 +79,13 @@ export function setAuthCredentials(
   role: Role,
   userInfo: UserReference // Uses the updated UserReference
 ): void {
+  // Validate role before setting
+  if (!isValidFrontendRole(role)) {
+    console.error("Invalid role for frontend application");
+    clearAuthCredentials();
+    return;
+  }
+
   if (typeof window !== "undefined" && window.localStorage) {
     localStorage.setItem(AUTH_TOKEN_KEY, token);
     localStorage.setItem(AUTH_ROLE_KEY, role);
@@ -76,4 +102,10 @@ export function clearAuthCredentials(): void {
     localStorage.removeItem(AUTH_ROLE_KEY);
     localStorage.removeItem(AUTH_USER_INFO_KEY);
   }
+}
+
+// New function to check if user is authenticated
+export function isAuthenticated(): boolean {
+  const { token, role, userInfo } = getAuthCredentials();
+  return !!(token && role && userInfo && isValidFrontendRole(role));
 }
