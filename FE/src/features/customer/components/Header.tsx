@@ -73,10 +73,11 @@ const Header: React.FC = () => {
       <NavLink to="/" aria-label="Homepage">
         <img
           className="h-10 sm:h-12 lg:h-14 w-auto"
-          // src="/logo.png" // Thay bằng logo thực tế của bạn
-          alt="Logo"
+          src="/CielLogo.png"
+          alt="CielLogo"
         />
       </NavLink>
+      <div></div>
 
       {/* Search Bar */}
       <div className="flex-1 mx-4 sm:mx-8 max-w-lg">
