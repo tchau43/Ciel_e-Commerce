@@ -1,6 +1,6 @@
 // src/pages/auth/LoginForm.tsx
 import React, { useState, ChangeEvent } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { useLoginMutation } from "@/services/auth/loginMutation";
 import {
   LoginInput,
