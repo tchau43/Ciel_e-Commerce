@@ -77,6 +77,20 @@ const CustomerHomePage: React.FC = () => {
     ? categoriesData
     : (categoriesData as any)?.data;
 
+  // Lấy tất cả sản phẩm để đếm số lượng cho mỗi danh mục
+  const { data: allProducts } = useGetAllProductsQuery({ limit: 1000 });
+
+  // Tính số lượng sản phẩm cho mỗi danh mục
+  const getCategoryProductCount = (categoryId: string) => {
+    if (!allProducts?.length) return 0;
+    return allProducts.filter((product: Product) => {
+      if (typeof product.category === "string") {
+        return product.category === categoryId;
+      }
+      return product.category?._id === categoryId;
+    }).length;
+  };
+
   useLayoutEffect(() => {
     if (
       isLoadingCategories ||
@@ -132,11 +146,7 @@ const CustomerHomePage: React.FC = () => {
 
     // Basic cleanup (more robust cleanup might be needed depending on exact usage)
     return () => {
-      categoryItems.forEach((item) => {
-        // Remove listeners if they were added directly without GSAP's internal handling
-        // However, GSAP's event listeners on DOM elements are generally cleaned up when the elements are removed.
-        // If creating GSAP timelines or other GSAP objects, they should be killed here.
-      });
+      // GSAP automatically cleans up its event listeners
     };
   }, [isLoadingCategories, categories]);
 
@@ -341,7 +351,7 @@ const CustomerHomePage: React.FC = () => {
           </h2>
           <div
             ref={categoryContainerRef}
-            className="flex flex-wrap justify-center gap-3 md:gap-4" // Use flex, flex-wrap and gap
+            className="flex flex-wrap justify-center gap-3 md:gap-4"
           >
             {isLoadingCategories
               ? Array.from({ length: 6 }).map((_, i) => (
@@ -350,7 +360,6 @@ const CustomerHomePage: React.FC = () => {
                     className="flex flex-col items-center p-2"
                     style={{ flex: `1 1 calc(100% / 6 - 1rem)` }}
                   >
-                    {/* Adjust flex-basis for skeletons too */}
                     <Skeleton className="w-20 h-20 md:w-24 md:h-24 rounded-xl" />
                     <Skeleton className="h-4 w-16 md:w-20 mt-2" />
                   </div>
@@ -359,11 +368,12 @@ const CustomerHomePage: React.FC = () => {
                   const iconData = categoryIcons[
                     category.name.toUpperCase() as keyof typeof categoryIcons
                   ] || { icon: "📦", color: "bg-gray-100" };
+                  const productCount = getCategoryProductCount(category._id);
                   return (
                     <Link
                       key={category._id}
                       to={`/products?category=${category._id}`}
-                      className={`${iconData.color} category-item rounded-xl p-3 md:p-4 text-center cursor-pointer hover:shadow-lg transition-shadow duration-200 ease-in-out flex flex-col items-center justify-center min-w-[100px] md:min-w-[120px]`}
+                      className={`${iconData.color} category-item rounded-xl p-3 md:p-4 text-center cursor-pointer hover:shadow-lg transition-shadow duration-200 ease-in-out flex flex-col items-center justify-center min-w-[100px] md:min-w-[120px] relative group`}
                     >
                       <div className="text-3xl md:text-4xl mb-2">
                         {iconData.icon}
@@ -371,6 +381,11 @@ const CustomerHomePage: React.FC = () => {
                       <h3 className="font-medium text-sm md:text-base line-clamp-2 h-10 md:h-12 flex items-center justify-center text-center w-full">
                         {category.name}
                       </h3>
+                      <div className="absolute inset-0 bg-black/60 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center">
+                        <p className="text-white font-medium">
+                          {productCount} sản phẩm
+                        </p>
+                      </div>
                     </Link>
                   );
                 })}
