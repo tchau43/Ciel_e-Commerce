@@ -140,6 +140,7 @@ export type Product = BaseDoc & {
   images: string[];
   averageRating?: number;
   numberOfReviews?: number;
+  purchasedQuantity?: number; // Add field to track successful purchases
   variants: Variant[]; // Chi tiết sẽ có danh sách variant đầy đủ
 };
 

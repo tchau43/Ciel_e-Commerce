@@ -27,6 +27,16 @@ const formatPrice = (price: number) => {
   }).format(price);
 };
 
+// --- Helper: Format Purchase Quantity ---
+const formatPurchaseQuantity = (quantity: number) => {
+  if (quantity >= 1000000) {
+    return `${(quantity / 1000000).toFixed(1)}M`;
+  } else if (quantity >= 1000) {
+    return `${(quantity / 1000).toFixed(1)}K`;
+  }
+  return quantity.toString();
+};
+
 // --- Helper: Placeholder Icons (Keep as is) ---
 const StarIcon = ({ className }: { className?: string }) => (
   <svg
@@ -198,7 +208,10 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, className }) => {
               <span className="flex items-center whitespace-nowrap text-gray-400 dark:text-gray-500">
                 <BagIcon className="w-3 h-3 sm:w-4 sm:h-4 mr-0.5 sm:mr-1" />
                 {/* Replace with actual sales data if available */}
-                <span>500+ sold</span>
+                <span>
+                  {formatPurchaseQuantity(product.purchasedQuantity || 0)} đã
+                  bán
+                </span>
               </span>
             </div>
           </CardContent>
