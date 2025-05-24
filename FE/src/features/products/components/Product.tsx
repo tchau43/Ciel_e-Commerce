@@ -7,6 +7,7 @@ import { getAuthCredentials } from "@/utils/authUtil";
 import { useAddProductToCartMutation } from "@/services/cart/addProductToCartMutation";
 import { Product as ProductType, Variant } from "@/types/dataTypes";
 import { toast } from "sonner";
+import { motion } from "framer-motion";
 
 const Product = () => {
   const navigate = useNavigate();
@@ -322,26 +323,43 @@ const Product = () => {
           </div>
         </div>
       </div>
-      <div className="mt-12 py-8 border-t">
-        <h2 className="text-2xl font-semibold mb-6">Đánh giá sản phẩm</h2>
+      <div className="mt-12 bg-gray-50 rounded-xl p-8">
+        <motion.h2
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="text-3xl font-bold mb-8 text-center bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent"
+        >
+          Đánh giá sản phẩm
+        </motion.h2>
 
         {isLoadingReviews ? (
           <div className="flex justify-center">
-            <p className="text-gray-500">Đang tải đánh giá...</p>
+            <motion.div
+              animate={{ rotate: 360 }}
+              transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+              className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full"
+            />
           </div>
         ) : isErrorReviews ? (
-          <div className="text-center text-red-500">
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="text-center text-red-500 p-4 bg-red-50 rounded-lg"
+          >
             <p>Không thể tải đánh giá. Vui lòng thử lại sau.</p>
-          </div>
+          </motion.div>
         ) : reviews && reviews.length > 0 ? (
           <div className="space-y-6">
-            {reviews.map((review) => (
-              <div
+            {reviews.map((review, index) => (
+              <motion.div
                 key={review._id}
-                className="border rounded-lg p-4 bg-white shadow-sm"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.1 }}
+                className="bg-white rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow duration-300"
               >
-                <div className="flex items-center gap-3 mb-3">
-                  <div className="w-10 h-10 bg-gray-200 rounded-full overflow-hidden flex-shrink-0">
+                <div className="flex items-center gap-4 mb-4">
+                  <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-500 rounded-full overflow-hidden flex-shrink-0">
                     {review.user.image ? (
                       <img
                         src={review.user.image}
@@ -349,13 +367,13 @@ const Product = () => {
                         className="w-full h-full object-cover"
                       />
                     ) : (
-                      <div className="w-full h-full flex items-center justify-center text-gray-400">
+                      <div className="w-full h-full flex items-center justify-center text-white font-bold text-xl">
                         {review.user.name.charAt(0).toUpperCase()}
                       </div>
                     )}
                   </div>
                   <div>
-                    <p className="font-medium">{review.user.name}</p>
+                    <p className="font-semibold text-lg">{review.user.name}</p>
                     <p className="text-sm text-gray-500">
                       {new Date(review.createdAt).toLocaleDateString("vi-VN", {
                         year: "numeric",
@@ -366,37 +384,55 @@ const Product = () => {
                   </div>
                 </div>
 
-                <div className="flex items-center mb-3">
-                  {[...Array(5)].map((_, i) => (
-                    <span
-                      key={i}
-                      className={`text-xl ${
-                        i < review.rating ? "text-yellow-400" : "text-gray-300"
-                      }`}
-                    >
-                      ★
-                    </span>
-                  ))}
+                <div className="flex items-center gap-4 mb-4">
+                  <div className="flex">
+                    {[...Array(5)].map((_, i) => (
+                      <motion.span
+                        key={i}
+                        initial={{ opacity: 0, scale: 0 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        transition={{ delay: index * 0.1 + i * 0.1 }}
+                        className={`text-2xl ${
+                          i < review.rating
+                            ? "text-yellow-400"
+                            : "text-gray-200"
+                        }`}
+                      >
+                        ★
+                      </motion.span>
+                    ))}
+                  </div>
                   {review.variant && (
-                    <span className="ml-3 text-sm bg-blue-100 text-blue-800 px-2 py-1 rounded-full">
+                    <span className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">
                       {review.variant.types}
                     </span>
                   )}
                 </div>
 
                 {review.comment && (
-                  <p className="text-gray-700">{review.comment}</p>
+                  <motion.p
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: index * 0.1 + 0.3 }}
+                    className="text-gray-700 bg-gray-50 p-4 rounded-lg"
+                  >
+                    {review.comment}
+                  </motion.p>
                 )}
-              </div>
+              </motion.div>
             ))}
           </div>
         ) : (
-          <div className="text-center py-8 bg-gray-50 rounded-lg">
-            <p className="text-gray-500">Sản phẩm này chưa có đánh giá nào.</p>
-            <p className="text-gray-400 text-sm mt-2">
-              Hãy là người đầu tiên đánh giá!
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="text-center py-12"
+          >
+            <p className="text-gray-500 text-lg mb-2">
+              Sản phẩm này chưa có đánh giá nào.
             </p>
-          </div>
+            <p className="text-gray-400">Hãy là người đầu tiên đánh giá!</p>
+          </motion.div>
         )}
       </div>
       <div className="mt-12">
