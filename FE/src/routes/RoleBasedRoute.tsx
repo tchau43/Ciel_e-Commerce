@@ -20,7 +20,7 @@ const RoleBasedRoute = ({ allowedRoles, children }: RoleBasedRouteProps) => {
     // Check authentication on mount and when dependencies change
     if (!isAuthenticated()) {
       clearAuthCredentials();
-      navigate("/auth", { replace: true });
+      navigate("/landing", { replace: true });
     }
   }, [navigate]);
 
@@ -47,16 +47,16 @@ const RoleBasedRoute = ({ allowedRoles, children }: RoleBasedRouteProps) => {
     return <>{children}</>;
   }
 
-  // If not authenticated, clear any existing credentials and redirect to auth
+  // If not authenticated, clear any existing credentials and redirect to landing
   if (!isAuthenticated()) {
     clearAuthCredentials();
-    return <Navigate to="/auth" replace />;
+    return <Navigate to="/landing" replace />;
   }
 
-  // If the user doesn't have the required role, clear credentials and redirect
+  // If the user doesn't have the required role, clear credentials and redirect to landing
   if (!role || !allowedRoles.includes(role)) {
     clearAuthCredentials();
-    return <Navigate to="/auth" replace />;
+    return <Navigate to="/landing" replace />;
   }
 
   // If the user is authenticated and has the correct role, render the children
