@@ -1,4 +1,9 @@
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  Navigate,
+} from "react-router-dom";
 import { Suspense } from "react";
 import LandingPage from "./features/landing/pages/LandingPage.tsx";
 import RoleBasedRoute from "./routes/RoleBasedRoute.tsx";
@@ -32,11 +37,14 @@ function App() {
     <Router>
       <Suspense fallback={<LoadingSpinner />}>
         <Routes>
-          {/* Route for LandingPage, Login, Register - not require authenticated */}
+          {/* Redirect root to landing page */}
+          <Route path="/" element={<Navigate to="/landing" replace />} />
+
+          {/* Public routes */}
           <Route path="/landing" element={<LandingPage />} />
           <Route path="/auth" element={<AuthPage />} />
 
-          {/* Route for user */}
+          {/* Protected customer routes */}
           <Route
             path="/*"
             element={
@@ -61,6 +69,8 @@ function App() {
             <Route path="reviews/" element={<CustomerReviewPage />} />
             <Route path="faq/" element={<FaqPage />} />
           </Route>
+
+          {/* Test route */}
           <Route path="test/" element={<TestPage />} />
         </Routes>
         <Toaster position="top-right" richColors />

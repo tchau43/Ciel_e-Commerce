@@ -150,7 +150,7 @@ const AuthForm: React.FC = () => {
   };
 
   return (
-    <div className="flex justify-center items-center min-h-screen bg-gradient-to-r from-[#e2e2e2] to-[#c9d6ff] p-5">
+    <div className="flex justify-center items-center min-h-[calc(100vh-4rem)] p-5">
       <div
         className={`relative w-[850px] h-[550px] bg-white m-5 rounded-[30px] shadow-2xl overflow-hidden
                     sm:h-[calc(100vh-40px)] sm:w-full
