@@ -15,7 +15,7 @@ export interface AuthCredentials {
 
 // Function to validate if a role is allowed for the CMS
 function isValidCMSRole(role: string | null): boolean {
-  return role === Role.ADMIN || role === Role.STAFF;
+  return role === Role.ADMIN;
 }
 
 export function getAuthCredentials(): AuthCredentials {
