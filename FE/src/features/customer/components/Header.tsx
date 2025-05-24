@@ -32,7 +32,7 @@ const Header: React.FC = () => {
 
   const handleLogout = () => {
     clearAuthCredentials();
-    navigate("/login"); // Điều hướng về login sau khi logout
+    navigate("/landing"); // Điều hướng về login sau khi logout
   };
 
   const handleSearchInputChange = (event: ChangeEvent<HTMLInputElement>) => {
