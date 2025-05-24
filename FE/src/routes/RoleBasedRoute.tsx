@@ -14,7 +14,7 @@ interface RoleBasedRouteProps {
 
 const RoleBasedRoute = ({ allowedRoles, children }: RoleBasedRouteProps) => {
   const navigate = useNavigate();
-  const { token, role } = getAuthCredentials();
+  const { role } = getAuthCredentials();
 
   useEffect(() => {
     // Check authentication on mount and when dependencies change
