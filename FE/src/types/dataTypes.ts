@@ -298,9 +298,10 @@ export type InvoiceItemInput = Pick<
 >; // Giống CartItemInput nhưng quantity > 0
 
 export type CreateInvoiceInput = {
+  userId: string;
   productsList: InvoiceItemInput[];
   paymentMethod: PaymentMethod;
-  shippingAddress: Address; // Dùng lại Address type
+  shippingAddress: Address;
   couponCode?: string;
 };
 
