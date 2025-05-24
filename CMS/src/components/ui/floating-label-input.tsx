@@ -9,6 +9,7 @@ interface FloatingLabelInputProps
   id: string; // Input ID is required for label association
   label: string; // Label text is required
   containerClassName?: string; // Optional class for the main container div
+  required?: boolean;
 }
 
 const FloatingLabelInput = React.forwardRef<
@@ -16,7 +17,15 @@ const FloatingLabelInput = React.forwardRef<
   FloatingLabelInputProps
 >(
   (
-    { className, containerClassName, id, label, type = "text", ...props },
+    {
+      className,
+      containerClassName,
+      id,
+      label,
+      type = "text",
+      required,
+      ...props
+    },
     ref // Forward ref to the actual input element
   ) => {
     return (
@@ -76,6 +85,7 @@ const FloatingLabelInput = React.forwardRef<
           )}
         >
           {label}
+          {required && <span className="text-red-500 ml-1">*</span>}
         </label>
       </div>
     );
