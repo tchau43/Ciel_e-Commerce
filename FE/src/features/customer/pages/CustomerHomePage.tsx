@@ -22,7 +22,9 @@ import ProductCard from "@/features/components/ProductCard";
 import { gsap } from "gsap";
 import { useGetFeaturedProductsQuery } from "@/services/product/getFeaturedProductsQuery";
 import { formatCurrency } from "@/utils/formatCurrency";
-import CategoryGrid from "@/components/share/CategoryGrid";
+import { ExpandableSection } from "@/components/ui/expandable-section";
+import { Package } from "lucide-react";
+import { CategoryShowcase } from "@/components/shared/CategoryShowcase";
 
 const CustomerHomePage: React.FC = () => {
   const navigate = useNavigate();
@@ -74,6 +76,21 @@ const CustomerHomePage: React.FC = () => {
     useGetFeaturedProductsQuery({
       limit: 10,
     });
+
+  const { data: allProducts } = useGetAllProductsQuery({});
+
+  // Tính toán số lượng sản phẩm cho mỗi danh mục
+  const categoryProductCounts = React.useMemo(() => {
+    if (!allProducts) return {};
+
+    return allProducts.reduce((acc: { [key: string]: number }, product) => {
+      const categoryId = product.category?._id;
+      if (categoryId) {
+        acc[categoryId] = (acc[categoryId] || 0) + 1;
+      }
+      return acc;
+    }, {});
+  }, [allProducts]);
 
   // Xử lý khi click vào danh mục
   const handleCategoryClick = (category: Category) => {
@@ -320,12 +337,29 @@ const CustomerHomePage: React.FC = () => {
       </section>
 
       <section className="py-16">
-        <CategoryGrid
-          categories={categories}
-          isLoading={isLoadingCategories}
-          error={null}
-          onCategoryClick={handleCategoryClick}
-        />
+        <div className="container mx-auto px-4">
+          <h2 className="text-xl md:text-2xl font-semibold text-center mb-6 md:mb-8">
+            Danh Mục Sản Phẩm
+          </h2>
+          {isLoadingCategories ? (
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+              {Array.from({ length: 6 }).map((_, i) => (
+                <Skeleton key={i} className="h-[200px] rounded-lg" />
+              ))}
+            </div>
+          ) : categories && categories.length > 0 ? (
+            <CategoryShowcase
+              categories={categories}
+              onCategoryClick={handleCategoryClick}
+              categoryProductCounts={categoryProductCounts}
+            />
+          ) : (
+            <div className="text-center py-8">
+              <Package className="w-12 h-12 mx-auto mb-3 text-gray-400" />
+              <p className="text-gray-500">Không có danh mục nào.</p>
+            </div>
+          )}
+        </div>
       </section>
 
       <section className="container mx-auto px-4">
@@ -367,44 +401,18 @@ const CustomerHomePage: React.FC = () => {
             <h2 className="text-xl md:text-2xl font-semibold text-center mb-6 md:mb-8">
               Ưu đãi Đặc biệt
             </h2>
-            <div
-              ref={featuresContainerRef}
-              className="flex flex-row gap-4 md:gap-6 h-[300px] w-full"
-            >
-              {homePageData.features.map((feature: HomePageItem) => (
-                <div
-                  key={feature._id}
-                  className="relative bg-gray-100 rounded-lg overflow-hidden flex-1 cursor-pointer"
-                >
-                  <img
-                    src={
-                      feature.image_url ||
-                      feature.photo_url ||
-                      "/images/feature-placeholder.png"
-                    }
-                    alt={feature.title || "Promotion"}
-                    className="absolute inset-0 w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent"></div>
-                  <div className="feature-content relative z-10 h-full flex flex-col justify-end p-6">
-                    <h3 className="text-lg md:text-xl font-semibold text-white mb-2">
-                      {feature.title}
-                    </h3>
-                    <p className="feature-description text-sm md:text-base text-white/90 mb-4">
-                      {feature.description}
-                    </p>
-                    <Button
-                      variant="secondary"
-                      size="sm"
-                      className="feature-button self-start bg-white text-black hover:bg-white/80 content-center"
-                      asChild
-                    >
-                      <Link to={"#"}> Xem ngay </Link>
-                    </Button>
-                  </div>
-                </div>
-              ))}
-            </div>
+            <ExpandableSection
+              items={homePageData.features.map((feature) => ({
+                id: feature._id,
+                title: feature.title || "Ưu đãi đặc biệt",
+                description: feature.description,
+                imageUrl:
+                  feature.image_url ||
+                  feature.photo_url ||
+                  "/images/feature-placeholder.png",
+                link: "#",
+              }))}
+            />
           </section>
         )}
 
