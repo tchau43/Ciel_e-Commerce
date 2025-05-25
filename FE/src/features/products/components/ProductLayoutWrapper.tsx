@@ -1,4 +1,3 @@
-import { Navigate } from "react-router-dom";
 import { getAuthCredentials } from "@/utils/authUtil";
 import CustomerLayout from "@/features/customer/CustomerLayout";
 import LandingLayout from "@/features/landing/LandingLayout";
