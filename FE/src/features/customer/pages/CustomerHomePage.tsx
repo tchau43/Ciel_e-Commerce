@@ -1,7 +1,7 @@
 // src/features/customer/pages/CustomerHomePage.tsx
 
 import React, { useState, useEffect, useRef, useLayoutEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
@@ -22,24 +22,15 @@ import ProductCard from "@/features/components/ProductCard";
 import { gsap } from "gsap";
 import { useGetFeaturedProductsQuery } from "@/services/product/getFeaturedProductsQuery";
 import { formatCurrency } from "@/utils/formatCurrency";
+import CategoryGrid from "@/components/share/CategoryGrid";
 
 const CustomerHomePage: React.FC = () => {
+  const navigate = useNavigate();
   const [userId, setUserId] = useState<string | undefined>(undefined);
   const [currentSlide, setCurrentSlide] = useState(0);
   const [api, setApi] = useState<CarouselApi>();
   const MAX_PRODUCTS_TO_SHOW = 8;
-  const categoryContainerRef = useRef<HTMLDivElement>(null);
   const featuresContainerRef = useRef<HTMLDivElement>(null);
-
-  // Add category icons mapping
-  const categoryIcons: { [key: string]: { icon: string; color: string } } = {
-    MOBILE: { icon: "📱", color: "bg-red-100" },
-    LAPTOP: { icon: "💻", color: "bg-blue-100" },
-    WATCH: { icon: "⌚", color: "bg-green-100" },
-    TABLET: { icon: "📱", color: "bg-purple-100" }, // Consider a different icon for Tablet if desired
-    ACCESSORY: { icon: "🎧", color: "bg-yellow-100" },
-    OTHER: { icon: "📦", color: "bg-gray-100" },
-  };
 
   useEffect(() => {
     const credentials = getAuthCredentials();
@@ -76,89 +67,18 @@ const CustomerHomePage: React.FC = () => {
     enabled: Boolean(enableFallback),
   });
 
-  const { data: categoriesData, isLoading: isLoadingCategories } =
+  const { data: categories, isLoading: isLoadingCategories } =
     useGetAllCategoriesQuery({ limit: 6 });
-  const categories: Category[] | undefined = Array.isArray(categoriesData)
-    ? categoriesData
-    : (categoriesData as any)?.data;
-
-  // Lấy tất cả sản phẩm để đếm số lượng cho mỗi danh mục
-  const { data: allProducts } = useGetAllProductsQuery({ limit: 1000 });
-
-  // Tính số lượng sản phẩm cho mỗi danh mục
-  const getCategoryProductCount = (categoryId: string) => {
-    if (!allProducts?.length) return 0;
-    return allProducts.filter((product: Product) => {
-      if (typeof product.category === "string") {
-        return product.category === categoryId;
-      }
-      return product.category?._id === categoryId;
-    }).length;
-  };
 
   const { data: featuredProducts, isLoading: isLoadingFeatured } =
     useGetFeaturedProductsQuery({
       limit: 10,
     });
 
-  useLayoutEffect(() => {
-    if (
-      isLoadingCategories ||
-      !categoryContainerRef.current ||
-      !categories ||
-      categories.length === 0
-    ) {
-      return;
-    }
-
-    const categoryItems = Array.from(
-      categoryContainerRef.current.children
-    ).filter((child) =>
-      child.classList.contains("category-item")
-    ) as HTMLElement[];
-
-    if (categoryItems.length === 0) return;
-
-    const DURATION = 0.3;
-    const EXPAND_FLEX_GROW = 3;
-    const NORMAL_FLEX_GROW = 1;
-    const SHRINK_FLEX_GROW = 0.5;
-
-    categoryItems.forEach((item) => {
-      gsap.set(item, { flexGrow: NORMAL_FLEX_GROW }); // Initialize flexGrow
-
-      item.addEventListener("mouseenter", () => {
-        gsap.to(item, {
-          flexGrow: EXPAND_FLEX_GROW,
-          duration: DURATION,
-          ease: "power2.inOut",
-        });
-        categoryItems.forEach((otherItem) => {
-          if (otherItem !== item) {
-            gsap.to(otherItem, {
-              flexGrow: SHRINK_FLEX_GROW,
-              ease: "power2.inOut",
-            });
-          }
-        });
-      });
-
-      item.addEventListener("mouseleave", () => {
-        categoryItems.forEach((el) => {
-          gsap.to(el, {
-            flexGrow: NORMAL_FLEX_GROW,
-            duration: DURATION,
-            ease: "power2.inOut",
-          });
-        });
-      });
-    });
-
-    // Basic cleanup (more robust cleanup might be needed depending on exact usage)
-    return () => {
-      // GSAP automatically cleans up its event listeners
-    };
-  }, [isLoadingCategories, categories]);
+  // Xử lý khi click vào danh mục
+  const handleCategoryClick = (category: Category) => {
+    navigate(`/products?category=${category._id}`);
+  };
 
   useLayoutEffect(() => {
     if (
@@ -399,53 +319,13 @@ const CustomerHomePage: React.FC = () => {
         )}
       </section>
 
-      <section className="py-8 md:py-16 bg-white">
-        <div className="container mx-auto px-4">
-          <h2 className="text-2xl md:text-3xl font-bold text-center mb-8 md:mb-12">
-            Danh Mục Sản Phẩm
-          </h2>
-          <div
-            ref={categoryContainerRef}
-            className="flex flex-wrap justify-center gap-3 md:gap-4"
-          >
-            {isLoadingCategories
-              ? Array.from({ length: 6 }).map((_, i) => (
-                  <div
-                    key={i}
-                    className="flex flex-col items-center p-2"
-                    style={{ flex: `1 1 calc(100% / 6 - 1rem)` }}
-                  >
-                    <Skeleton className="w-20 h-20 md:w-24 md:h-24 rounded-xl" />
-                    <Skeleton className="h-4 w-16 md:w-20 mt-2" />
-                  </div>
-                ))
-              : (categories || []).map((category: Category) => {
-                  const iconData = categoryIcons[
-                    category.name.toUpperCase() as keyof typeof categoryIcons
-                  ] || { icon: "📦", color: "bg-gray-100" };
-                  const productCount = getCategoryProductCount(category._id);
-                  return (
-                    <Link
-                      key={category._id}
-                      to={`/products?category=${category._id}`}
-                      className={`${iconData.color} category-item rounded-xl p-3 md:p-4 text-center cursor-pointer hover:shadow-lg transition-shadow duration-200 ease-in-out flex flex-col items-center justify-center min-w-[100px] md:min-w-[120px] relative group`}
-                    >
-                      <div className="text-3xl md:text-4xl mb-2">
-                        {iconData.icon}
-                      </div>
-                      <h3 className="font-medium text-sm md:text-base line-clamp-2 h-10 md:h-12 flex items-center justify-center text-center w-full">
-                        {category.name}
-                      </h3>
-                      <div className="absolute inset-0 bg-black/60 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center">
-                        <p className="text-white font-medium">
-                          {productCount} sản phẩm
-                        </p>
-                      </div>
-                    </Link>
-                  );
-                })}
-          </div>
-        </div>
+      <section className="py-16">
+        <CategoryGrid
+          categories={categories}
+          isLoading={isLoadingCategories}
+          error={null}
+          onCategoryClick={handleCategoryClick}
+        />
       </section>
 
       <section className="container mx-auto px-4">
@@ -498,7 +378,7 @@ const CustomerHomePage: React.FC = () => {
                 >
                   <img
                     src={
-                      (feature as any).image_url ||
+                      feature.image_url ||
                       feature.photo_url ||
                       "/images/feature-placeholder.png"
                     }
