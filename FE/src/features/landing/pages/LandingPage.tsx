@@ -1,8 +1,11 @@
-import Header from "@/features/landing/components/Header";
 import { useNavigate } from "react-router-dom";
 import { useGetFeaturedProductsQuery } from "@/services/product/getFeaturedProductsQuery";
-import { Product } from "@/types/dataTypes";
+import { useGetAllCategoriesQuery } from "@/services/category/getAllCategoriesQuery";
+import { Product, Category } from "@/types/dataTypes";
 import { useState, useEffect } from "react";
+import { motion } from "framer-motion";
+import ProductCard from "@/features/components/ProductCard";
+import CategoryGrid from "@/components/share/CategoryGrid";
 
 const LandingPage: React.FC = () => {
   const navigate = useNavigate();
@@ -18,13 +21,20 @@ const LandingPage: React.FC = () => {
     }
   }, [isLoggedIn, navigate]);
 
+  // Lấy danh sách danh mục
+  const {
+    data: categories,
+    isLoading: isCategoriesLoading,
+    error: categoriesError,
+  } = useGetAllCategoriesQuery();
+
   // Nếu đã đăng nhập, không cần tải dữ liệu sản phẩm
   const {
     data: featuredProducts,
     isLoading: isProductsLoading,
     error,
   } = useGetFeaturedProductsQuery({
-    limit: 3,
+    limit: 10,
     enabled: !isLoggedIn, // Chỉ thực hiện query khi người dùng chưa đăng nhập
   });
 
@@ -34,27 +44,21 @@ const LandingPage: React.FC = () => {
     navigate("/login");
   };
 
+  // Xử lý khi người dùng click vào danh mục
+  const handleCategoryClick = (category: Category) => {
+    if (isLoggedIn) {
+      navigate("/login");
+    } else {
+      // Chuyển đến trang products với category ID
+      navigate(`/products?category=${category._id}`);
+    }
+  };
+
   useEffect(() => {
-    if (!isProductsLoading) {
+    if (!isProductsLoading && !isCategoriesLoading) {
       setIsLoading(false);
     }
-  }, [isProductsLoading]);
-
-  // Format giá tiền sang định dạng VNĐ
-  const formatPrice = (price: number): string => {
-    return new Intl.NumberFormat("vi-VN", {
-      style: "currency",
-      currency: "VND",
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(price);
-  };
-
-  // Tính giá khuyến mãi (tăng 5-10% so với giá gốc)
-  const calculateDiscountPrice = (price: number): string => {
-    const originalPrice = price * 1.07; // Tăng giá 7% để tạo hiệu ứng giảm giá
-    return formatPrice(originalPrice);
-  };
+  }, [isProductsLoading, isCategoriesLoading]);
 
   // Nếu đã đăng nhập, không hiển thị trang này
   if (isLoggedIn) {
@@ -63,7 +67,7 @@ const LandingPage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100">
-      <Header />
+      {/* <Header /> */}
 
       {/* Hero Section */}
       <section className="relative bg-blue-600 text-white">
@@ -114,111 +118,96 @@ const LandingPage: React.FC = () => {
 
       {/* Featured Categories */}
       <section className="py-16">
-        <div className="container mx-auto px-4">
-          <h2 className="text-3xl font-bold text-center mb-12">
-            Danh Mục Sản Phẩm
-          </h2>
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
-            {[
-              {
-                name: "Điện Thoại",
-                icon: "📱",
-                color: "bg-red-100",
-                category: "MOBILE",
-              },
-              {
-                name: "Laptop",
-                icon: "💻",
-                color: "bg-blue-100",
-                category: "LAPTOP",
-              },
-              {
-                name: "Đồng Hồ Thông Minh",
-                icon: "⌚",
-                color: "bg-green-100",
-                category: "WATCH",
-              },
-            ].map((category) => (
-              <div
-                key={category.name}
-                className={`${category.color} rounded-xl p-6 text-center cursor-pointer hover:shadow-md transition-shadow`}
-                onClick={() => handleActionClick()}
-              >
-                <div className="text-4xl mb-3">{category.icon}</div>
-                <h3 className="font-medium text-lg">{category.name}</h3>
-              </div>
-            ))}
-          </div>
-        </div>
+        <CategoryGrid
+          categories={categories}
+          isLoading={isCategoriesLoading}
+          error={categoriesError}
+          onCategoryClick={handleCategoryClick}
+        />
       </section>
 
       {/* Featured Products */}
-      <section className="py-16 bg-white">
+      <section className="py-16 bg-gray-50">
         <div className="container mx-auto px-4">
-          <h2 className="text-3xl font-bold text-center mb-2">
-            Sản Phẩm Nổi Bật
-          </h2>
-          <p className="text-gray-600 text-center mb-12">
-            Các sản phẩm được yêu thích nhất tại cửa hàng chúng tôi
-          </p>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="text-center mb-12"
+          >
+            <h2 className="text-3xl font-bold mb-2">Sản Phẩm Nổi Bật</h2>
+            <p className="text-gray-600">
+              Các sản phẩm được yêu thích nhất tại cửa hàng chúng tôi
+            </p>
+          </motion.div>
 
           {isLoading ? (
-            <div className="flex justify-center items-center h-64">
-              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+              {[...Array(10)].map((_, index) => (
+                <div
+                  key={index}
+                  className="bg-white rounded-lg shadow-sm p-4 space-y-4"
+                >
+                  <div className="w-full h-48 bg-gray-200 rounded-lg animate-pulse"></div>
+                  <div className="h-4 bg-gray-200 rounded w-3/4 animate-pulse"></div>
+                  <div className="h-4 bg-gray-200 rounded w-1/2 animate-pulse"></div>
+                  <div className="h-8 bg-gray-200 rounded animate-pulse"></div>
+                </div>
+              ))}
             </div>
           ) : error ? (
             <div className="text-center text-red-500">
               Đã xảy ra lỗi khi tải sản phẩm. Vui lòng thử lại sau.
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-              {featuredProducts && featuredProducts.length > 0 ? (
-                featuredProducts.map((product: Product) => (
-                  <div
-                    key={product._id}
-                    className="bg-gray-50 rounded-lg overflow-hidden hover:shadow-lg transition-shadow"
-                  >
-                    <img
-                      src={
-                        product.images && product.images.length > 0
-                          ? product.images[0]
-                          : "https://via.placeholder.com/400"
-                      }
-                      alt={product.name}
-                      className="w-full h-48 object-cover"
-                    />
-                    <div className="p-6">
-                      <h3 className="font-medium text-xl mb-2">
-                        {product.name}
-                      </h3>
-                      <p className="text-gray-600 text-sm mb-3 line-clamp-2">
-                        {product.description && product.description.length > 0
-                          ? product.description[0]
-                          : ""}
-                      </p>
-                      <div className="flex items-center gap-2 mb-4">
-                        <span className="text-lg font-bold text-blue-600">
-                          {formatPrice(product.base_price)}
-                        </span>
-                        <span className="text-sm text-gray-500 line-through">
-                          {calculateDiscountPrice(product.base_price)}
-                        </span>
-                      </div>
-                      <button
-                        className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-md transition-colors"
-                        onClick={() => handleActionClick()}
-                      >
-                        Thêm Vào Giỏ Hàng
-                      </button>
-                    </div>
+            <>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+                {featuredProducts && featuredProducts.length > 0 ? (
+                  featuredProducts.map((product: Product) => (
+                    <motion.div
+                      key={product._id}
+                      initial={{ opacity: 0, y: 20 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      viewport={{ once: true }}
+                      whileHover={{ y: -5 }}
+                    >
+                      <ProductCard product={product} />
+                    </motion.div>
+                  ))
+                ) : (
+                  <div className="col-span-full text-center text-gray-500">
+                    Không tìm thấy sản phẩm nổi bật.
                   </div>
-                ))
-              ) : (
-                <div className="col-span-3 text-center text-gray-500">
-                  Không tìm thấy sản phẩm nổi bật.
-                </div>
+                )}
+              </div>
+              {featuredProducts && featuredProducts.length > 0 && (
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  className="text-center mt-12"
+                >
+                  <button
+                    onClick={() => navigate("/products")}
+                    className="bg-blue-600 text-white px-8 py-3 rounded-md hover:bg-blue-700 transition-colors duration-300 inline-flex items-center gap-2"
+                  >
+                    Xem tất cả sản phẩm
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-5 w-5"
+                      viewBox="0 0 20 20"
+                      fill="currentColor"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z"
+                        clipRule="evenodd"
+                      />
+                    </svg>
+                  </button>
+                </motion.div>
               )}
-            </div>
+            </>
           )}
         </div>
       </section>
@@ -228,30 +217,56 @@ const LandingPage: React.FC = () => {
         <div className="container mx-auto px-4">
           <div className="flex flex-col md:flex-row items-center justify-between">
             <div className="md:w-1/2 mb-8 md:mb-0">
-              <span className="inline-block bg-yellow-500 text-black font-bold px-4 py-1 rounded-full mb-4">
-                Ưu Đãi Có Hạn
-              </span>
-              <h2 className="text-3xl md:text-4xl font-bold mb-4">
-                Giảm Đến 50% Cho Tất Cả Sản Phẩm
-              </h2>
-              <p className="text-lg mb-6">
-                Cơ hội sở hữu các thiết bị công nghệ mới nhất với giá không thể
-                tốt hơn trong đợt thanh lý cuối năm!
-              </p>
-              <button
-                className="bg-white text-gray-900 hover:bg-gray-100 px-8 py-3 rounded-md font-medium"
-                onClick={() => handleActionClick()}
+              <motion.span
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                className="inline-block bg-yellow-500 text-black font-bold px-4 py-1 rounded-full mb-4"
               >
-                Khám Phá Ngay
-              </button>
+                Ưu Đãi Có Hạn
+              </motion.span>
+              <motion.h2
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: 0.1 }}
+                className="text-3xl md:text-4xl font-bold mb-4"
+              >
+                Giảm Đến 50% Cho Tất Cả Sản Phẩm
+              </motion.h2>
+              <motion.p
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: 0.2 }}
+                className="text-gray-300 mb-8"
+              >
+                Đừng bỏ lỡ cơ hội sở hữu những sản phẩm công nghệ hàng đầu với
+                giá cực kỳ ưu đãi. Số lượng có hạn, nhanh tay đặt hàng ngay!
+              </motion.p>
+              <motion.button
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: 0.3 }}
+                onClick={() => handleActionClick()}
+                className="bg-white text-gray-900 px-8 py-3 rounded-md hover:bg-gray-100 transition-colors duration-300"
+              >
+                Khám phá ngay
+              </motion.button>
             </div>
-            <div className="md:w-2/5">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.8 }}
+              whileInView={{ opacity: 1, scale: 1 }}
+              viewport={{ once: true }}
+              className="md:w-1/2"
+            >
               <img
-                src="https://cdn2.cellphones.com.vn/x/media/catalog/product/l/a/laptop_hp_240_g9_9e5w3pt_-_1.png"
-                alt="Laptop HP 240 G9"
-                className="rounded-lg"
+                src="https://cdn2.cellphones.com.vn/x/media/catalog/product/m/a/macbook_air_m2.png"
+                alt="Promotional Banner"
+                className="rounded-lg shadow-2xl"
               />
-            </div>
+            </motion.div>
           </div>
         </div>
       </section>
@@ -323,185 +338,6 @@ const LandingPage: React.FC = () => {
           </div>
         </div>
       </section>
-
-      {/* Footer */}
-      <footer className="bg-gray-900 text-white py-12">
-        <div className="container mx-auto px-4">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-            <div>
-              <h3 className="text-xl font-bold mb-4">TechZone</h3>
-              <p className="text-gray-400">
-                Điểm đến lý tưởng cho mọi nhu cầu công nghệ của bạn.
-              </p>
-            </div>
-            <div>
-              <h4 className="font-medium mb-4">Sản Phẩm</h4>
-              <ul className="space-y-2 text-gray-400">
-                <li>
-                  <a
-                    href="#"
-                    className="hover:text-white transition-colors"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      handleActionClick();
-                    }}
-                  >
-                    Điện Thoại
-                  </a>
-                </li>
-                <li>
-                  <a
-                    href="#"
-                    className="hover:text-white transition-colors"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      handleActionClick();
-                    }}
-                  >
-                    Laptop
-                  </a>
-                </li>
-                <li>
-                  <a
-                    href="#"
-                    className="hover:text-white transition-colors"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      handleActionClick();
-                    }}
-                  >
-                    Đồng Hồ Thông Minh
-                  </a>
-                </li>
-                <li>
-                  <a
-                    href="#"
-                    className="hover:text-white transition-colors"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      handleActionClick();
-                    }}
-                  >
-                    Phụ Kiện
-                  </a>
-                </li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="font-medium mb-4">Hỗ Trợ</h4>
-              <ul className="space-y-2 text-gray-400">
-                <li>
-                  <a
-                    href="#"
-                    className="hover:text-white transition-colors"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      handleActionClick();
-                    }}
-                  >
-                    Liên Hệ
-                  </a>
-                </li>
-                <li>
-                  <a
-                    href="#"
-                    className="hover:text-white transition-colors"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      handleActionClick();
-                    }}
-                  >
-                    Câu Hỏi Thường Gặp
-                  </a>
-                </li>
-                <li>
-                  <a
-                    href="#"
-                    className="hover:text-white transition-colors"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      handleActionClick();
-                    }}
-                  >
-                    Thông Tin Vận Chuyển
-                  </a>
-                </li>
-                <li>
-                  <a
-                    href="#"
-                    className="hover:text-white transition-colors"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      handleActionClick();
-                    }}
-                  >
-                    Chính Sách Bảo Hành
-                  </a>
-                </li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="font-medium mb-4">Kết Nối</h4>
-              <ul className="space-y-2 text-gray-400">
-                <li>
-                  <a
-                    href="#"
-                    className="hover:text-white transition-colors"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      handleActionClick();
-                    }}
-                  >
-                    Facebook
-                  </a>
-                </li>
-                <li>
-                  <a
-                    href="#"
-                    className="hover:text-white transition-colors"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      handleActionClick();
-                    }}
-                  >
-                    Instagram
-                  </a>
-                </li>
-                <li>
-                  <a
-                    href="#"
-                    className="hover:text-white transition-colors"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      handleActionClick();
-                    }}
-                  >
-                    YouTube
-                  </a>
-                </li>
-                <li>
-                  <a
-                    href="#"
-                    className="hover:text-white transition-colors"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      handleActionClick();
-                    }}
-                  >
-                    Zalo
-                  </a>
-                </li>
-              </ul>
-            </div>
-          </div>
-          <div className="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400">
-            <p>
-              &copy; {new Date().getFullYear()} TechZone. Tất cả quyền được bảo
-              lưu.
-            </p>
-          </div>
-        </div>
-      </footer>
     </div>
   );
 };

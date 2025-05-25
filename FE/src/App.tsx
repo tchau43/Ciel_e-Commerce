@@ -23,6 +23,8 @@ import CustomerReviewPage from "./features/review/pages/CustomerReviewPage.tsx";
 import FaqPage from "./features/faq/pages/FaqPage";
 import ChatWidget from "./components/chat/ChatWidget";
 import AuthPage from "./features/auth/pages/AuthPage.tsx";
+import LandingLayout from "./features/landing/LandingLayout.tsx";
+import ProductLayoutWrapper from "./features/products/components/ProductLayoutWrapper.tsx";
 
 function LoadingSpinner() {
   return (
@@ -40,9 +42,17 @@ function App() {
           {/* Redirect root to landing page */}
           <Route path="/" element={<Navigate to="/landing" replace />} />
 
-          {/* Public routes */}
-          <Route path="/landing" element={<LandingPage />} />
-          <Route path="/auth" element={<AuthPage />} />
+          {/* Public routes with LandingLayout */}
+          <Route element={<LandingLayout />}>
+            <Route path="/landing" element={<LandingPage />} />
+            <Route path="/auth" element={<AuthPage />} />
+          </Route>
+
+          {/* Product routes with dynamic layout */}
+          <Route element={<ProductLayoutWrapper />}>
+            <Route path="/products/*" element={<ProductsPage />} />
+            <Route path="/product/:id/*" element={<Product />} />
+          </Route>
 
           {/* Protected customer routes */}
           <Route
@@ -56,8 +66,6 @@ function App() {
             }
           >
             <Route index element={<CustomerHomePage />} />
-            <Route path="products/*" element={<ProductsPage />} />
-            <Route path="product/:id/*" element={<Product />} />
             <Route path="cart/" element={<CartPage />} />
             <Route path="payment/" element={<PaymentPage />} />
             <Route path="payment/stripe" element={<StripePaymentPage />} />
