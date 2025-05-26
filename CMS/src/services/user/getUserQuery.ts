@@ -1,12 +1,9 @@
 import OUser from "@/repositories/user/user";
 import { User } from "@/types/dataTypes";
 import { API_ENDPOINTS } from "@/utils/api/endpoint";
-import { useMutation, useQuery, UseQueryResult } from "@tanstack/react-query";
+import { useQuery, UseQueryResult } from "@tanstack/react-query";
 
-export const useGetUserQuery = (
-  id: string,
-  options?: any
-): UseQueryResult<User, Error> => {
+export const useGetUserQuery = (id: string): UseQueryResult<User, Error> => {
   return useQuery({
     queryKey: ["userId"],
     queryFn: () => {

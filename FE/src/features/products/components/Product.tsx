@@ -7,6 +7,7 @@ import { getAuthCredentials } from "@/utils/authUtil";
 import { useAddProductToCartMutation } from "@/services/cart/addProductToCartMutation";
 import { Product as ProductType, Variant } from "@/types/dataTypes";
 import { toast } from "sonner";
+import { motion } from "framer-motion";
 
 const Product = () => {
   const navigate = useNavigate();
@@ -31,12 +32,8 @@ const Product = () => {
     enabled: !!id,
   });
 
-  // Fetch reviews for this product
-  const {
-    data: reviews,
-    isLoading: isLoadingReviews,
-    isError: isErrorReviews,
-  } = useGetProductReviewsQuery(id!, {
+  // Fetch reviews for this product - used by the Reviews component via Outlet
+  useGetProductReviewsQuery(id!, {
     enabled: !!id,
   });
 
@@ -56,16 +53,26 @@ const Product = () => {
 
   if (isLoading) {
     return (
-      <p className="text-center text-gray-600 py-10">Loading product data...</p>
+      <div className="min-h-screen pt-16 bg-ch-red-10">
+        <div className="container mx-auto px-4">
+          <p className="text-center text-gray-600 py-10">
+            Loading product data...
+          </p>
+        </div>
+      </div>
     );
   }
 
   if (isError) {
     console.error("Error fetching product:", error);
     return (
-      <p className="text-center text-red-600 py-10">
-        Error loading product. Please try again.
-      </p>
+      <div className="min-h-screen pt-16 bg-ch-red-10">
+        <div className="container mx-auto px-4">
+          <p className="text-center text-red-600 py-10">
+            Error loading product. Please try again.
+          </p>
+        </div>
+      </div>
     );
   }
 
@@ -73,7 +80,11 @@ const Product = () => {
 
   if (!typedProduct) {
     return (
-      <p className="text-center text-gray-600 py-10">Product not found.</p>
+      <div className="min-h-screen pt-16 bg-ch-red-10">
+        <div className="container mx-auto px-4">
+          <p className="text-center text-gray-600 py-10">Product not found.</p>
+        </div>
+      </div>
     );
   }
 
@@ -101,7 +112,8 @@ const Product = () => {
     const { userInfo } = getAuthCredentials();
     const userId = userInfo?._id;
     if (!userId) {
-      navigate("/login");
+      toast.error("Vui lòng đăng nhập để thêm sản phẩm vào giỏ hàng");
+      navigate("/auth");
       return;
     }
     if (quantity <= 0) return;
@@ -139,270 +151,235 @@ const Product = () => {
     ) ?? [];
 
   return (
-    <div className="min-h-screen min-w-full">
-      <p className="font-sans font-normal text-sm text-gray-500 mb-6">
-        <span
-          className="hover:text-ch-blue hover:cursor-pointer hover:underline" // Use ch-blue for link hover
-          onClick={() => navigate("/product")}
-        >
-          SẢN PHẨM
-        </span>
-        {typedProduct.category && (
-          <>
-            {` / `}
+    <div className="min-h-screen pt-16 bg-ch-red-10">
+      <div className="container mx-auto px-4">
+        {/* Breadcrumb */}
+        <nav className="py-4">
+          <p className="font-sans font-normal text-sm text-gray-500">
             <span
-              className="hover:text-ch-blue hover:cursor-pointer hover:underline" // Use ch-blue for link hover
-              onClick={() =>
-                navigate(`/product?category=${typedProduct.category?._id}`)
-              }
+              className="hover:text-ch-blue hover:cursor-pointer hover:underline"
+              onClick={() => navigate("/products")}
             >
-              {typedProduct.category.name}
+              SẢN PHẨM
             </span>
-          </>
-        )}
-        {` / `}to
-        <span className="text-gray-800">{typedProduct.name.toUpperCase()}</span>
-      </p>
-      <div className="flex flex-col md:flex-row gap-x-8 bg-ch-blue-10/50 backdrop-blur-sm m-4 px-2 pt-2 rounded-lg">
-        <div
-          ref={columnARef}
-          className={`w-full md:w-3/5 lg:flex-2 mb-8 md:mb-0`}
-        >
-          <div className="flex gap-4 mb-8 ">
-            <div className="h-[404px] 2xl:h-[600px] flex-shrink-0 w-24 flex flex-col gap-y-2 overflow-y-auto pr-2 snap-y snap-mandatory scroll-smooth custom-scrollbar">
-              {imageSources.map((imgUrl: string, index: number) => (
-                <img
-                  key={index}
-                  className={`w-20 h-20 object-cover cursor-pointer border-2 ${
-                    mainImage === imgUrl
-                      ? "border-ch-blue" // Use ch-blue for selected border
-                      : "border-transparent"
-                  } hover:border-gray-400 flex-shrink-0 snap-start`}
-                  alt={`Thumbnail ${index + 1}`}
-                  src={imgUrl}
-                  onClick={() => handleImgClick(index)}
-                  onError={(e) => {
-                    (e.target as HTMLImageElement).src = "/logo.png";
-                  }}
-                />
-              ))}
-              {imageSources.length === 0 && (
-                <img
-                  src="/logo.png"
-                  alt="Placeholder"
-                  className="w-20 h-20 object-contain opacity-50"
-                />
-              )}
-            </div>
-            <div className="h-[404px] 2xl:h-[600px] flex-grow flex justify-center items-center min-w-0">
-              <img
-                className="max-h-full max-w-full object-contain"
-                alt={typedProduct.name}
-                src={mainImage || "/logo.png"}
-                onError={(e) => {
-                  (e.target as HTMLImageElement).src = "/logo.png";
-                }}
-              />
-            </div>
-          </div>
-          <div className="mt-8 md:mt-0 ml-4">
-            {typedProduct.description &&
-              typedProduct.description.length > 0 && (
-                <div>
-                  <h2 className="text-xl font-semibold mb-4">
-                    Product Description
-                  </h2>
-                  {typedProduct.description.map(
-                    (paragraph: string, index: number) => (
-                      <p key={index} className="mb-4 last:mb-0 text-gray-700">
-                        {paragraph}
-                      </p>
-                    )
+            {typedProduct.category && (
+              <>
+                {` / `}
+                <span
+                  className="hover:text-ch-blue hover:cursor-pointer hover:underline"
+                  onClick={() =>
+                    navigate(`/products?category=${typedProduct.category?._id}`)
+                  }
+                >
+                  {typedProduct.category.name}
+                </span>
+              </>
+            )}
+            {` / `}
+            <span className="text-gray-800">{typedProduct.name}</span>
+          </p>
+        </nav>
+
+        {/* Product Content */}
+        <div className="bg-white rounded-xl shadow-sm overflow-hidden">
+          <div className="flex flex-col md:flex-row gap-8 p-6">
+            {/* Left Column - Images */}
+            <div ref={columnARef} className="w-full md:w-3/5 lg:w-3/5">
+              <div className="flex gap-4">
+                {/* Thumbnails */}
+                <div className="h-[404px] 2xl:h-[600px] flex-shrink-0 w-24 flex flex-col gap-y-2 overflow-y-auto pr-2 snap-y snap-mandatory scroll-smooth custom-scrollbar">
+                  {imageSources.map((imgUrl: string, index: number) => (
+                    <motion.img
+                      key={index}
+                      whileHover={{ scale: 1.05 }}
+                      className={`w-20 h-20 object-cover cursor-pointer border-2 rounded-lg ${
+                        mainImage === imgUrl
+                          ? "border-ch-blue"
+                          : "border-transparent"
+                      } hover:border-gray-400 flex-shrink-0 snap-start`}
+                      alt={`Thumbnail ${index + 1}`}
+                      src={imgUrl}
+                      onClick={() => handleImgClick(index)}
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).src = "/logo.png";
+                      }}
+                    />
+                  ))}
+                  {imageSources.length === 0 && (
+                    <div className="w-20 h-20 bg-gray-100 rounded-lg flex items-center justify-center">
+                      <img
+                        src="/logo.png"
+                        alt="Placeholder"
+                        className="w-12 h-12 object-contain opacity-50"
+                      />
+                    </div>
                   )}
                 </div>
-              )}
-            <div className="mt-6 mb-12 prose max-w-none">
-              <Outlet context={{ product: typedProduct, selectedVariantId }} />
-            </div>
-          </div>
-        </div>
-        <div ref={columnBRef} className={`w-full md:w-2/5 lg:flex-1 space-y-4`}>
-          <h1 className="font-semibold text-2xl lg:text-3xl text-gray-800">
-            {typedProduct.name}
-          </h1>
-          <p className="font-semibold text-xl lg:text-2xl text-ch-red min-h-[2rem]">
-            {" "}
-            {/* Use ch-red for price */}
-            {displayPrice.toLocaleString("vi-VN")} VND
-            {selectedVariant &&
-              Number(typedProduct.base_price) !== displayPrice && (
-                <span className="ml-3 text-base text-gray-500 line-through">
-                  {Number(typedProduct.base_price).toLocaleString("vi-VN")} VND
-                </span>
-              )}
-          </p>
-          {typedProduct.variants && typedProduct.variants.length > 0 && (
-            <div className="pt-2">
-              <p className="text-sm font-medium text-gray-700 mb-2">
-                Select Option:
-              </p>
-              <div className="flex flex-col gap-y-2 max-h-60 overflow-y-auto pr-2 custom-scrollbar">
-                {typedProduct.variants.map((variant: Variant) => (
-                  <button
-                    key={variant._id}
-                    onClick={() => handleVariantSelect(variant._id)}
-                    type="button"
-                    className={`w-full px-4 py-2.5 border rounded-lg text-left text-sm transition-all duration-150 ease-in-out flex-shrink-0 focus:outline-none ${
-                      selectedVariantId === variant._id
-                        ? "border-ch-blue bg-ch-blue-10 text-ch-blue font-semibold shadow-sm" // Use ch-blue theme for selected variant
-                        : "border-gray-300 bg-white text-gray-700 hover:bg-gray-50 hover:border-gray-400"
-                    }`}
-                  >
-                    {variant.types}
-                  </button>
-                ))}
+
+                {/* Main Image */}
+                <div className="h-[404px] 2xl:h-[600px] flex-grow flex justify-center items-center bg-gray-50 rounded-xl">
+                  <img
+                    className="max-h-full max-w-full object-contain p-4"
+                    alt={typedProduct.name}
+                    src={mainImage || "/logo.png"}
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).src = "/logo.png";
+                    }}
+                  />
+                </div>
+              </div>
+
+              {/* Description */}
+              <div className="mt-8">
+                {typedProduct.description &&
+                  typedProduct.description.length > 0 && (
+                    <div className="bg-gray-50 rounded-xl p-6">
+                      <h2 className="text-xl font-semibold mb-4 text-gray-800">
+                        Mô tả sản phẩm
+                      </h2>
+                      {typedProduct.description.map(
+                        (paragraph: string, index: number) => (
+                          <p
+                            key={index}
+                            className="mb-4 last:mb-0 text-gray-700"
+                          >
+                            {paragraph}
+                          </p>
+                        )
+                      )}
+                    </div>
+                  )}
               </div>
             </div>
-          )}
-          <div className="pt-2 space-y-1 text-sm border-t mt-4">
-            <p className="text-gray-600">
-              <span className="font-medium text-gray-800">Danh mục:</span>{" "}
-              {typedProduct.category?.name ?? "N/A"}
-            </p>
-            <p className="text-gray-600">
-              <span className="font-medium text-gray-800">Hãng:</span>{" "}
-              {typedProduct.brand?.name ?? "N/A"}
-            </p>
-            {typedProduct.tags && typedProduct.tags.length > 0 && (
-              <p className="text-gray-600">
-                <span className="font-medium text-gray-800">Tags:</span>{" "}
-                {typedProduct.tags.join(", ")}
-              </p>
-            )}
-          </div>
-          <div className="flex items-center gap-x-2 pt-2">
-            <span className="text-sm font-medium text-gray-700 mr-2">
-              Quantity:
-            </span>
-            <button
-              onClick={handleDecreaseQuantity}
-              disabled={quantity <= 1}
-              className="border rounded-md w-7 h-7 flex items-center justify-center text-lg font-bold disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100"
-            >
-              -
-            </button>
-            <input
-              type="number"
-              readOnly
-              value={quantity}
-              className="border-gray-300 text-center w-12 h-7 rounded-md border"
-              aria-label="Quantity"
-            />
-            <button
-              onClick={handleIncreaseQuantity}
-              className="border rounded-md w-7 h-7 flex items-center justify-center text-lg font-bold hover:bg-gray-100"
-            >
-              +
-            </button>
-          </div>
-          <div className="pt-2">
-            <button
-              onClick={handleAddToCart}
-              disabled={!selectedVariantId || isAddingToCart}
-              className={`w-full hover:cursor-pointer text-base font-semibold border rounded-lg px-5 py-3 transition ease-in-out duration-300 ${
-                !selectedVariantId
-                  ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                  : isAddingToCart
-                  ? "bg-ch-red-50 text-ch-red cursor-wait border-ch-red-100" // Use ch-red theme for adding state
-                  : "bg-ch-red text-white hover:bg-ch-red-100 border-ch-red hover:border-ch-red-100" // Use ch-red theme for Add to Cart button
-              }`}
-            >
-              {isAddingToCart ? "Thêm..." : "Thêm vào giỏ hàng"}
-            </button>
-          </div>
-        </div>
-      </div>
-      <div className="mt-12 py-8 border-t">
-        <h2 className="text-2xl font-semibold mb-6">Đánh giá sản phẩm</h2>
 
-        {isLoadingReviews ? (
-          <div className="flex justify-center">
-            <p className="text-gray-500">Đang tải đánh giá...</p>
-          </div>
-        ) : isErrorReviews ? (
-          <div className="text-center text-red-500">
-            <p>Không thể tải đánh giá. Vui lòng thử lại sau.</p>
-          </div>
-        ) : reviews && reviews.length > 0 ? (
-          <div className="space-y-6">
-            {reviews.map((review) => (
-              <div
-                key={review._id}
-                className="border rounded-lg p-4 bg-white shadow-sm"
-              >
-                <div className="flex items-center gap-3 mb-3">
-                  <div className="w-10 h-10 bg-gray-200 rounded-full overflow-hidden flex-shrink-0">
-                    {review.user.image ? (
-                      <img
-                        src={review.user.image}
-                        alt={review.user.name}
-                        className="w-full h-full object-cover"
-                      />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center text-gray-400">
-                        {review.user.name.charAt(0).toUpperCase()}
-                      </div>
-                    )}
-                  </div>
-                  <div>
-                    <p className="font-medium">{review.user.name}</p>
-                    <p className="text-sm text-gray-500">
-                      {new Date(review.createdAt).toLocaleDateString("vi-VN", {
-                        year: "numeric",
-                        month: "long",
-                        day: "numeric",
-                      })}
+            {/* Right Column - Product Info */}
+            <div ref={columnBRef} className="w-full md:w-2/5 lg:w-2/5">
+              <div className="sticky top-24">
+                <h1 className="text-2xl lg:text-3xl font-bold text-gray-800 mb-4">
+                  {typedProduct.name}
+                </h1>
+
+                <div className="space-y-6">
+                  {/* Price */}
+                  <div className="bg-gray-50 p-4 rounded-lg">
+                    <p className="text-2xl lg:text-3xl font-bold text-ch-red">
+                      {displayPrice.toLocaleString("vi-VN")} VND
+                      {selectedVariant &&
+                        Number(typedProduct.base_price) !== displayPrice && (
+                          <span className="ml-3 text-base text-gray-500 line-through">
+                            {Number(typedProduct.base_price).toLocaleString(
+                              "vi-VN"
+                            )}{" "}
+                            VND
+                          </span>
+                        )}
                     </p>
                   </div>
-                </div>
 
-                <div className="flex items-center mb-3">
-                  {[...Array(5)].map((_, i) => (
-                    <span
-                      key={i}
-                      className={`text-xl ${
-                        i < review.rating ? "text-yellow-400" : "text-gray-300"
-                      }`}
-                    >
-                      ★
-                    </span>
-                  ))}
-                  {review.variant && (
-                    <span className="ml-3 text-sm bg-blue-100 text-blue-800 px-2 py-1 rounded-full">
-                      {review.variant.types}
-                    </span>
-                  )}
-                </div>
+                  {/* Variants */}
+                  {typedProduct.variants &&
+                    typedProduct.variants.length > 0 && (
+                      <div className="space-y-3">
+                        <p className="font-medium text-gray-700">
+                          Chọn phiên bản:
+                        </p>
+                        <div className="grid grid-cols-1 gap-2">
+                          {typedProduct.variants.map((variant: Variant) => (
+                            <button
+                              key={variant._id}
+                              onClick={() => handleVariantSelect(variant._id)}
+                              className={`w-full px-4 py-3 rounded-lg text-left transition-all duration-200 ${
+                                selectedVariantId === variant._id
+                                  ? "bg-ch-blue text-white"
+                                  : "bg-gray-50 hover:bg-gray-100 text-gray-700"
+                              }`}
+                            >
+                              <span className="font-medium">
+                                {variant.types}
+                              </span>
+                              <span className="block text-sm opacity-80">
+                                {variant.price.toLocaleString("vi-VN")} VND
+                              </span>
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
 
-                {review.comment && (
-                  <p className="text-gray-700">{review.comment}</p>
-                )}
+                  {/* Quantity */}
+                  <div className="space-y-3">
+                    <p className="font-medium text-gray-700">Số lượng:</p>
+                    <div className="flex items-center gap-3">
+                      <button
+                        onClick={handleDecreaseQuantity}
+                        className="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center hover:bg-gray-200 transition-colors"
+                      >
+                        -
+                      </button>
+                      <input
+                        type="number"
+                        value={quantity}
+                        readOnly
+                        className="w-20 h-10 text-center border rounded-lg"
+                      />
+                      <button
+                        onClick={handleIncreaseQuantity}
+                        className="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center hover:bg-gray-200 transition-colors"
+                      >
+                        +
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Add to Cart Button */}
+                  <button
+                    onClick={handleAddToCart}
+                    disabled={isAddingToCart || !selectedVariantId}
+                    className={`w-full py-4 rounded-lg font-medium transition-all duration-200 ${
+                      isAddingToCart || !selectedVariantId
+                        ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                        : "bg-ch-blue text-white hover:bg-ch-blue-600"
+                    }`}
+                  >
+                    {isAddingToCart
+                      ? "Đang thêm..."
+                      : !selectedVariantId
+                      ? "Vui lòng chọn phiên bản"
+                      : "Thêm vào giỏ hàng"}
+                  </button>
+
+                  {/* Product Info */}
+                  <div className="bg-gray-50 p-4 rounded-lg space-y-2">
+                    {typedProduct.category && (
+                      <p className="text-gray-600">
+                        <span className="font-medium">Danh mục:</span>{" "}
+                        {typedProduct.category.name}
+                      </p>
+                    )}
+                    {typedProduct.brand && (
+                      <p className="text-gray-600">
+                        <span className="font-medium">Thương hiệu:</span>{" "}
+                        {typedProduct.brand.name}
+                      </p>
+                    )}
+                  </div>
+                </div>
               </div>
-            ))}
+            </div>
           </div>
-        ) : (
-          <div className="text-center py-8 bg-gray-50 rounded-lg">
-            <p className="text-gray-500">Sản phẩm này chưa có đánh giá nào.</p>
-            <p className="text-gray-400 text-sm mt-2">
-              Hãy là người đầu tiên đánh giá!
-            </p>
-          </div>
-        )}
-      </div>
-      <div className="mt-12">
-        {typedProduct.category?._id && (
-          <ProductByCategory category={typedProduct.category._id} />
-        )}
+        </div>
+
+        {/* Reviews Section */}
+        <div className="mt-8">
+          <Outlet context={{ product: typedProduct, selectedVariantId }} />
+        </div>
+
+        {/* Related Products */}
+        <div className="mt-12">
+          {typedProduct.category?._id && (
+            <ProductByCategory category={typedProduct.category._id} />
+          )}
+        </div>
       </div>
     </div>
   );

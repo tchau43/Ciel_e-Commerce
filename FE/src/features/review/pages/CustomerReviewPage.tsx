@@ -3,7 +3,7 @@ import { useGetUserDeliveredProductsQuery } from "@/services/user/getUserDeliver
 import { useAuth } from "@/auth/AuthContext";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import DeliveredProduct from "../components/DeliveredProduct";
+import DeliveredProduct from "../components/ReviewProductCard";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import ReviewForm from "../components/ReviewForm";
 import {

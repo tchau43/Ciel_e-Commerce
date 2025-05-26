@@ -177,7 +177,7 @@ const Navbar: React.FC<NavbarProps> = ({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/30 z-40"
+            className="fixed inset-0 bg-black/30 z-[998]"
             onClick={() => {
               setIsExpanded(false);
               setIsProductHovered(false);
@@ -188,7 +188,7 @@ const Navbar: React.FC<NavbarProps> = ({
 
       <motion.nav
         className={cn(
-          "fixed left-0 top-0 h-screen z-50",
+          "fixed left-0 top-0 h-screen z-[999]",
           "bg-white dark:bg-ch-gray-900 shadow-lg overflow-hidden"
         )}
         initial={false}
