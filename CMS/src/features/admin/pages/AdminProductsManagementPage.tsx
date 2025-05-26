@@ -11,7 +11,6 @@ const AdminProductsManagementPage = () => {
     data: productsList = [], // Default to empty array
     isLoading,
     isError,
-    error, // Get error object
   } = useGetAllProductsQuery(); // Removed options object for simplicity, add back if needed
 
   if (isLoading) {

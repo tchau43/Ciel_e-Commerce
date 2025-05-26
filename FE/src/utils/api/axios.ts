@@ -32,13 +32,10 @@ instance.interceptors.response.use(
     if (error?.response?.status === 401) {
       console.log("Token expired, logging out...");
       // Clear stored authentication tokens and user info
-      clearAuthCredentials(); //
+      clearAuthCredentials();
 
-      // Redirect to login page using standard browser API
-      window.location.href = "/login"; // <-- Use this for redirection
-
-      // It's usually better to stop processing here and let the redirect happen
-      // return Promise.reject(new Error("Session expired. Please login again."));
+      // Redirect to landing page instead of login
+      window.location.href = "/landing";
     }
 
     // For other errors, reject the promise as before

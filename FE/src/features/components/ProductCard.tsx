@@ -112,102 +112,103 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, className }) => {
   };
 
   return (
-    <CardBorder // Use the wrapper for the border and tilt effect
-      className={cn("h-full", className)} // Ensure border wrapper takes full height
+    <CardBorder
+      className={cn("h-full group/card", className)}
       style={{
         transform: `perspective(1000px) rotateX(${rotate.x / 4}deg) rotateY(${
           rotate.y / 4
         }deg) scale3d(1, 1, 1)`,
         transformStyle: "preserve-3d",
-        transition: "transform 0.1s ease-out",
+        transition: "all 0.3s ease-out",
       }}
-      onClick={handleCardClick} // <-- Add onClick handler to the outer border wrapper
+      onClick={handleCardClick}
     >
-      <Card // The main card content, gets background/mouse events
-        ref={cardRef} // Attach ref here for coordinate calculation
+      <Card
+        ref={cardRef}
         className={cn(
-          "group relative overflow-hidden hover:cursor-pointer", // group for hover effects
-          "h-full" // Ensure inner card takes full height of border wrapper
+          "group relative overflow-hidden hover:cursor-pointer border-0",
+          "h-full bg-gradient-to-br from-white via-slate-50/50 to-slate-100/50",
+          "hover:shadow-xl hover:shadow-blue-100/50 transition-all duration-500",
+          "dark:from-slate-900 dark:via-slate-800 dark:to-slate-900"
         )}
         onMouseMove={handleMouseMove}
         onMouseLeave={handleMouseLeave}
-        // Remove onClick from here if CardBorder handles it
       >
         {/* Image Section */}
-        <div className="relative aspect-square overflow-hidden">
+        <div className="relative aspect-[4/3] sm:aspect-square overflow-hidden bg-gradient-to-br from-slate-100 to-white dark:from-slate-800 dark:to-slate-900">
           <img
             src={imageUrl}
             alt={product.name}
-            className="object-cover w-full h-full transition-transform duration-300 ease-in-out group-hover:scale-105"
+            className="object-cover w-full h-full transition-all duration-700 ease-in-out group-hover:scale-110"
+            onError={(e) => {
+              (e.target as HTMLImageElement).src = "/placeholder-image.png";
+            }}
           />
-          {/* Tag */}
+          {/* Tag with shimmer effect */}
           {product.tags?.[0] && (
-            <span className="absolute top-2 left-2 bg-ch-red text-white text-[10px] sm:text-xs font-semibold px-1.5 sm:px-2 py-0.5 sm:py-1 rounded z-10 shadow-sm">
-              {product.tags[0]} {/* Responsive text/padding */}
+            <span className="absolute top-2 left-2 bg-gradient-to-r from-red-500 to-rose-500 text-white text-[10px] sm:text-xs font-semibold px-2 sm:px-3 py-1 rounded-full z-10 shadow-lg shadow-red-500/20 animate-shimmer">
+              {product.tags[0]}
             </span>
           )}
-          {/* Overlay */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-          {/* Cart Icon - Slides from right */}
+          {/* Enhanced Overlay with gradient */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+          {/* Cart Button with enhanced animation */}
           <button
-            onClick={handleAddToCartClick} // Ensure this stops propagation
+            onClick={handleAddToCartClick}
             aria-label={`Add ${product.name} to cart`}
             className={cn(
-              "absolute top-1/2 right-2 z-20 transform -translate-y-1/2",
-              "p-1.5 sm:p-2 rounded-md shadow-md", // Responsive padding
-              "bg-ch-blue text-white",
-              "opacity-0 translate-x-4 group-hover:opacity-100 group-hover:translate-x-0",
-              "transition-all duration-300 ease-in-out",
-              "hover:bg-ch-blue-900 scale-100 hover:scale-110"
+              "absolute bottom-4 right-4 z-20",
+              "p-2 sm:p-3 rounded-full shadow-lg",
+              "bg-gradient-to-r from-blue-500 to-indigo-500 text-white",
+              "opacity-0 translate-y-4 group-hover:opacity-100 group-hover:translate-y-0",
+              "transition-all duration-500 ease-out",
+              "hover:from-blue-600 hover:to-indigo-600 hover:scale-110 hover:rotate-3",
+              "focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
             )}
           >
-            <IoCartOutline className="w-4 h-4 sm:w-5 sm:h-5" />
-            {/* Responsive icon */}
+            <IoCartOutline className="w-5 h-5 sm:w-6 sm:h-6" />
           </button>
         </div>
 
-        {/* Content Section */}
-        <div className="flex flex-col flex-grow p-3 sm:p-4">
+        {/* Content Section with enhanced spacing and animations */}
+        <div className="flex flex-col flex-grow p-4 sm:p-5">
           {/* Header */}
-          <CardHeader className="p-0 pb-1 sm:pb-2">
-            <CardTitle className="group-hover:text-ch-blue-50 dark:group-hover:text-ch-blue-light transition-colors duration-200">
+          <CardHeader className="p-0 space-y-2">
+            <CardTitle className="text-base sm:text-lg font-semibold line-clamp-2 min-h-[2.5rem] sm:min-h-[3rem] group-hover:text-blue-600 transition-colors duration-300">
               {product.name}
             </CardTitle>
             {product.category?.name && (
-              <CardDescription className="mb-1 mt-0.5 sm:mt-1">
+              <CardDescription className="text-xs sm:text-sm text-slate-500 dark:text-slate-400">
                 {product.category.name}
               </CardDescription>
             )}
           </CardHeader>
 
-          {/* Content */}
-          <CardContent className="p-0 pb-1 sm:pb-2 flex-grow">
-            <p
-              className={cn(
-                "font-bold text-ch-red dark:text-ch-red-light",
-                "text-lg sm:text-xl mb-1 sm:mb-2"
-              )}
-            >
-              {formatPrice(product.base_price)} {/* Now displays in VND */}
-            </p>
-            {/* Placeholders */}
-            <div
-              className={cn(
-                "flex flex-wrap items-center gap-x-2 sm:gap-x-3 mt-1",
-                "text-[10px] sm:text-xs"
-              )}
-            >
-              <span className="flex items-center whitespace-nowrap text-gray-400 dark:text-gray-500">
-                <StarIcon className="w-3 h-3 sm:w-4 sm:h-4 mr-0.5 sm:mr-1 text-yellow-400" />
-                {/* You might want to replace these with actual data if available */}
-                <span>
-                  {product.averageRating?.toFixed(1) || "N/A"} (
-                  {product.numberOfReviews || 0})
+          {/* Content with enhanced price display */}
+          <CardContent className="p-0 mt-3 sm:mt-4 flex-grow">
+            <div className="flex items-end gap-2 mb-3">
+              <p className="font-bold text-lg sm:text-xl bg-gradient-to-r from-red-600 to-rose-600 bg-clip-text text-transparent">
+                {formatPrice(product.base_price)}
+              </p>
+              {product.base_price &&
+                product.base_price > product.base_price && (
+                  <p className="text-sm text-slate-400 line-through">
+                    {formatPrice(product.base_price)}
+                  </p>
+                )}
+            </div>
+
+            {/* Stats with enhanced design */}
+            <div className="flex flex-wrap items-center gap-3 mt-2">
+              <span className="flex items-center bg-yellow-50 dark:bg-yellow-500/10 text-yellow-700 dark:text-yellow-500 rounded-full px-2 py-1 text-xs">
+                <StarIcon className="w-3.5 h-3.5 mr-1 text-yellow-400" />
+                <span>{product.averageRating?.toFixed(1) || "N/A"}</span>
+                <span className="text-slate-400 dark:text-slate-500 ml-1">
+                  ({product.numberOfReviews || 0})
                 </span>
               </span>
-              <span className="flex items-center whitespace-nowrap text-gray-400 dark:text-gray-500">
-                <BagIcon className="w-3 h-3 sm:w-4 sm:h-4 mr-0.5 sm:mr-1" />
-                {/* Replace with actual sales data if available */}
+              <span className="flex items-center bg-blue-50 dark:bg-blue-500/10 text-blue-700 dark:text-blue-500 rounded-full px-2 py-1 text-xs">
+                <BagIcon className="w-3.5 h-3.5 mr-1" />
                 <span>
                   {formatPurchaseQuantity(product.purchasedQuantity || 0)} đã
                   bán
