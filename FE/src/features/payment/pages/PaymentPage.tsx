@@ -103,14 +103,14 @@ const PaymentPage = () => {
     createInvoice(
       {
         variables: {
+          userId: userId,
           shippingAddress: shippingAddress,
-          // SỬA LỖI: Map dữ liệu từ CartItem sang InvoiceItemInput
           productsList: cartItems.map((item: CartItem) => ({
             productId: item.productId,
             quantity: item.quantity,
-            variantId: item.variantId || null, // Lấy variantId trực tiếp
+            variantId: item.variantId || null,
           })),
-          paymentMethod: selectedPaymentMethod, // Sử dụng enum PaymentMethod đã chọn
+          paymentMethod: selectedPaymentMethod,
         },
       },
       {

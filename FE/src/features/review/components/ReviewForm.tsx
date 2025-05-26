@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { useCreateReviewMutation } from "@/services/review/createReviewMutation";
 import { toast } from "sonner";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface ReviewFormProps {
   productId: string;
@@ -33,7 +34,6 @@ const ReviewForm = ({
         duration: 5000,
       });
 
-      // Slight delay before calling onSuccess to allow user to see the success state
       setTimeout(() => {
         if (onSuccess) onSuccess();
       }, 1500);
@@ -63,6 +63,35 @@ const ReviewForm = ({
       rating,
       comment: comment.trim() || undefined,
     });
+  };
+
+  const starVariants = {
+    initial: { scale: 0, rotate: -180 },
+    animate: (i: number) => ({
+      scale: 1,
+      rotate: 0,
+      transition: {
+        type: "spring",
+        stiffness: 260,
+        damping: 20,
+        delay: i * 0.1,
+      },
+    }),
+    hover: { scale: 1.2, rotate: 15 },
+    tap: { scale: 0.9 },
+  };
+
+  const containerVariants = {
+    hidden: { opacity: 0, y: 50 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: {
+        type: "spring",
+        stiffness: 100,
+        damping: 15,
+      },
+    },
   };
 
   if (isSubmitSuccess) {
@@ -103,20 +132,37 @@ const ReviewForm = ({
   }
 
   return (
-    <div className="bg-white p-4 rounded-lg shadow">
-      <h3 className="text-lg font-semibold mb-4">Đánh giá sản phẩm</h3>
+    <motion.div
+      variants={containerVariants}
+      initial="hidden"
+      animate="visible"
+      className="bg-white rounded-lg p-6 max-w-2xl mx-auto"
+    >
+      <form onSubmit={handleSubmit} className="space-y-6">
+        <div className="text-center">
+          <h3 className="text-2xl font-bold mb-2 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+            Đánh giá sản phẩm
+          </h3>
+          <p className="text-gray-500">
+            Chia sẻ trải nghiệm của bạn để giúp người khác có quyết định tốt hơn
+          </p>
+        </div>
 
-      <form onSubmit={handleSubmit}>
-        <div className="mb-4">
-          <p className="mb-2 font-medium">Đánh giá của bạn</p>
-          <div className="flex items-center mb-2">
+        <div className="flex flex-col items-center space-y-4">
+          <div className="flex gap-1">
             {[...Array(5)].map((_, i) => {
               const ratingValue = i + 1;
               return (
-                <button
+                <motion.button
                   type="button"
                   key={i}
-                  className={`text-3xl cursor-pointer focus:outline-none transition-colors ${
+                  variants={starVariants}
+                  initial="initial"
+                  animate="animate"
+                  whileHover="hover"
+                  whileTap="tap"
+                  custom={i}
+                  className={`text-4xl cursor-pointer focus:outline-none transition-colors duration-200 ${
                     ratingValue <= (hover || rating)
                       ? "text-yellow-400"
                       : "text-gray-300"
@@ -126,19 +172,40 @@ const ReviewForm = ({
                   onMouseLeave={() => setHover(0)}
                 >
                   ★
-                </button>
+                </motion.button>
               );
             })}
           </div>
-          <p className="text-sm text-gray-500">
-            {rating > 0
-              ? `Bạn đã chọn ${rating} sao`
-              : "Hãy chọn số sao để đánh giá"}
-          </p>
+          <AnimatePresence>
+            <motion.p
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className={`text-sm ${
+                rating > 0 ? "text-green-600" : "text-gray-500"
+              }`}
+            >
+              {rating > 0
+                ? `Bạn đã chọn ${rating} sao - ${
+                    rating === 5
+                      ? "Tuyệt vời!"
+                      : rating === 4
+                      ? "Rất tốt!"
+                      : rating === 3
+                      ? "Bình thường"
+                      : rating === 2
+                      ? "Không hài lòng"
+                      : "Rất tệ"
+                  }`
+                : "Hãy chọn số sao để đánh giá"}
+            </motion.p>
+          </AnimatePresence>
         </div>
 
-        <div className="mb-4">
-          <label htmlFor="comment" className="block mb-2 font-medium">
+        <div className="space-y-2">
+          <label
+            htmlFor="comment"
+            className="block text-sm font-medium text-gray-700"
+          >
             Nhận xét của bạn (không bắt buộc)
           </label>
           <Textarea
@@ -147,22 +214,46 @@ const ReviewForm = ({
             value={comment}
             onChange={(e) => setComment(e.target.value)}
             rows={4}
-            className="w-full"
+            className="w-full transition-all duration-200 focus:ring-2 focus:ring-blue-500"
           />
         </div>
 
-        <div className="flex justify-end gap-2">
+        <div className="flex justify-end gap-3">
           {onCancel && (
-            <Button type="button" variant="outline" onClick={onCancel}>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={onCancel}
+              className="hover:bg-gray-100 transition-colors duration-200"
+            >
               Hủy
             </Button>
           )}
-          <Button type="submit" disabled={isPending || rating === 0}>
-            {isPending ? "Đang gửi..." : "Gửi đánh giá"}
+          <Button
+            type="submit"
+            disabled={isPending || rating === 0}
+            className={`bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white transition-all duration-300 transform hover:-translate-y-0.5 ${
+              isPending ? "opacity-50 cursor-not-allowed" : ""
+            }`}
+          >
+            {isPending ? (
+              <div className="flex items-center">
+                <motion.div
+                  animate={{ rotate: 360 }}
+                  transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                  className="mr-2"
+                >
+                  ⭕
+                </motion.div>
+                Đang gửi...
+              </div>
+            ) : (
+              "Gửi đánh giá"
+            )}
           </Button>
         </div>
       </form>
-    </div>
+    </motion.div>
   );
 };
 
