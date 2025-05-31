@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
+import { Pagination } from "antd";
 import CategoriesList from "@/features/category/components/CategoriesList";
 import ProductsList from "@/features/products/components/ProductsList";
 import { useGetAllCategoriesQuery } from "@/services/category/getAllCategoriesQuery";
@@ -30,10 +31,52 @@ const ProductsPage = () => {
   const location = useLocation();
   const [queryParams, setQueryParams] = useState<string>("");
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
+
+  useEffect(() => {
+    const updateItemsPerPage = () => {
+      const width = window.innerWidth;
+      if (width >= 1536) {
+        // 2xl
+        setItemsPerPage(15);
+      } else if (width >= 1280) {
+        // xl
+        setItemsPerPage(10);
+      } else if (width >= 1024) {
+        // lg
+        setItemsPerPage(8);
+      } else if (width >= 768) {
+        // md
+        setItemsPerPage(6);
+      } else if (width >= 640) {
+        // sm
+        setItemsPerPage(4);
+      } else {
+        // xs
+        setItemsPerPage(4);
+      }
+    };
+
+    const debouncedHandler = () => {
+      clearTimeout(timeoutId);
+      timeoutId = setTimeout(updateItemsPerPage, 200);
+    };
+
+    let timeoutId: NodeJS.Timeout;
+    updateItemsPerPage();
+    window.addEventListener("resize", debouncedHandler);
+
+    return () => {
+      clearTimeout(timeoutId);
+      window.removeEventListener("resize", debouncedHandler);
+    };
+  }, []);
 
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     setQueryParams(params.toString());
+    setCurrentPage(1); // Reset page when filters change
   }, [location.search]);
 
   const {
@@ -47,6 +90,25 @@ const ProductsPage = () => {
     isError: productsError,
     isLoading: productsLoading,
   } = useGetProductBySearchQuery(queryParams);
+
+  // Pagination calculations
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const paginatedProducts = products.slice(
+    startIndex,
+    startIndex + itemsPerPage
+  );
+  const totalPages = Math.ceil(products.length / itemsPerPage);
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const handlePageSizeChange = (_: number, size: number) => {
+    setItemsPerPage(size);
+    setCurrentPage(1);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
 
   if (categoriesLoading) {
     return (
@@ -65,7 +127,7 @@ const ProductsPage = () => {
   }
 
   return (
-    <div className="min-h-screen pt-16 bg-gradient-to-br from-ch-red-10/80 to-ch-red-10">
+    <div className=" pt-20 ">
       <div className="container mx-auto px-4">
         <div className="flex flex-col md:flex-row gap-8">
           {/* Filter Button for Mobile */}
@@ -156,7 +218,7 @@ const ProductsPage = () => {
                   {products && products.length > 0 ? (
                     <div className="space-y-6">
                       <div className="grid grid-cols-1 xs:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-4 lg:gap-5">
-                        {products.map((p) => (
+                        {paginatedProducts.map((p) => (
                           <div
                             key={p._id}
                             className="w-full flex justify-center"
@@ -166,7 +228,20 @@ const ProductsPage = () => {
                         ))}
                       </div>
 
-                      {/* Pagination section if needed */}
+                      {totalPages > 1 && (
+                        <div className="flex justify-center mt-8">
+                          <Pagination
+                            current={currentPage}
+                            pageSize={itemsPerPage}
+                            total={products.length}
+                            onChange={handlePageChange}
+                            onShowSizeChange={handlePageSizeChange}
+                            showSizeChanger
+                            pageSizeOptions={[4, 6, 8, 10, 15, 20]}
+                            showQuickJumper
+                          />
+                        </div>
+                      )}
                     </div>
                   ) : (
                     <div className="text-center py-10">
