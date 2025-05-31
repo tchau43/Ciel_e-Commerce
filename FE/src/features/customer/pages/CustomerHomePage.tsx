@@ -261,7 +261,7 @@ const CustomerHomePage: React.FC = () => {
               <CarouselContent>
                 {featuredProducts.map((product) => (
                   <CarouselItem key={product._id}>
-                    <div className="relative w-full h-[35vh] md:h-[55vh] lg:h-[70vh] bg-cover bg-center flex items-center">
+                    <div className="relative w-full h-[35vh] bg-cover bg-center flex items-center">
                       <img
                         src={product.images[0] || "/images/default-banner.jpg"}
                         alt={product.name}
