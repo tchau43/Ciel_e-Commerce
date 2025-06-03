@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
 import { Pagination } from "antd";
 import CategoriesList from "@/features/category/components/CategoriesList";
-import ProductsList from "@/features/products/components/ProductsList";
 import { useGetAllCategoriesQuery } from "@/services/category/getAllCategoriesQuery";
 import { useGetProductBySearchQuery } from "@/services/product/getProductBySearchQuery";
 import { Product, Category } from "@/types/dataTypes";
