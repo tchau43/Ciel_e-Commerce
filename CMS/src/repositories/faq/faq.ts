@@ -15,7 +15,7 @@ interface FAQItem {
   updatedAt: string;
 }
 
-export interface FAQResponse {
+interface FAQResponse {
   success: boolean;
   faqs: FAQItem[];
   totalFaqs: number;
@@ -32,14 +32,18 @@ interface RateHelpfulnessResponse {
   };
 }
 
+interface RateHelpfulnessInput {
+  isHelpful: boolean;
+}
+
 class FAQ extends Base {
   /**
    * Get all FAQs with optional filtering
    * @param url API endpoint for getting all FAQs
    * @returns List of FAQs
    */
-  getAllFaqs = async (url: string): Promise<FAQResponse> => {
-    return this.http(url, "get");
+  getAllFaqs = async (url: string) => {
+    return this.http<FAQResponse>(url, "get");
   };
 
   /**
@@ -47,10 +51,8 @@ class FAQ extends Base {
    * @param url API endpoint for getting a FAQ by ID
    * @returns FAQ object
    */
-  getFaqById = async (
-    url: string
-  ): Promise<{ success: boolean; data: FAQItem }> => {
-    return this.http(url, "get");
+  getFaqById = async (url: string) => {
+    return this.http<{ success: boolean; data: FAQItem }>(url, "get");
   };
 
   /**
@@ -58,8 +60,8 @@ class FAQ extends Base {
    * @param url API endpoint for getting FAQs by category
    * @returns List of FAQs in the category
    */
-  getFaqsByCategory = async (url: string): Promise<FAQResponse> => {
-    return this.http(url, "get");
+  getFaqsByCategory = async (url: string) => {
+    return this.http<FAQResponse>(url, "get");
   };
 
   /**
@@ -67,8 +69,8 @@ class FAQ extends Base {
    * @param url API endpoint for searching FAQs
    * @returns List of matching FAQs
    */
-  searchFaqs = async (url: string): Promise<FAQResponse> => {
-    return this.http(url, "get");
+  searchFaqs = async (url: string) => {
+    return this.http<FAQResponse>(url, "get");
   };
 
   /**
@@ -76,8 +78,8 @@ class FAQ extends Base {
    * @param url API endpoint for getting popular FAQs
    * @returns List of popular FAQs
    */
-  getPopularFaqs = async (url: string): Promise<FAQResponse> => {
-    return this.http(url, "get");
+  getPopularFaqs = async (url: string) => {
+    return this.http<FAQResponse>(url, "get");
   };
 
   /**
@@ -86,11 +88,8 @@ class FAQ extends Base {
    * @param isHelpful Whether the FAQ was helpful
    * @returns Updated helpfulness counts
    */
-  rateFaqHelpfulness = async (
-    url: string,
-    isHelpful: boolean
-  ): Promise<RateHelpfulnessResponse> => {
-    return this.http(url, "post", { isHelpful });
+  rateFaqHelpfulness = async (url: string, isHelpful: boolean) => {
+    return this.http<RateHelpfulnessResponse>(url, "post", { isHelpful });
   };
 }
 
