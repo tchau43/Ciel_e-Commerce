@@ -8,38 +8,35 @@ type RecommendationsResponse = ProductType[];
 
 class ProductRepository extends Base {
   // Renamed class for clarity
-  getAllProducts = (url: string): Promise<ProductType[]> => {
+  getAllProducts = async (url: string) => {
     return this.http<ProductType[]>(url, "get");
   };
 
-  getProductByCategory = (url: string): Promise<ProductType[]> => {
+  getProductByCategory = async (url: string) => {
     // Corrected generic type argument from <string>
     return this.http<ProductType[]>(url, "get");
   };
 
-  getProductById = (url: string): Promise<ProductType> => {
+  getProductById = async (url: string) => {
     return this.http<ProductType>(url, "get");
   };
 
-  updateProduct = (url: string, variables: FormData): Promise<any> => {
+  updateProduct = async (url: string, variables: FormData) => {
     // Adjust <any> if specific response type is known
     return this.http<any>(url, "put", variables);
   };
 
-  getProductBySearch = (url: string): Promise<ProductType[]> => {
+  getProductBySearch = async (url: string) => {
     return this.http<ProductType[]>(url, "get");
   };
 
-  getRecommendations = (
-    url: string,
-    userId: string
-  ): Promise<RecommendationsResponse> => {
+  getRecommendations = async (url: string, userId: string) => {
     const queryParams = new URLSearchParams({ userId });
     return this.http<RecommendationsResponse>(`${url}?${queryParams}`, "get");
   };
 
   // Thêm phương thức lấy sản phẩm nổi bật
-  getFeaturedProducts = (url: string): Promise<ProductType[]> => {
+  getFeaturedProducts = async (url: string) => {
     return this.http<ProductType[]>(url, "get");
   };
 }
