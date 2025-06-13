@@ -27,7 +27,7 @@ const Card = React.forwardRef<HTMLDivElement, CardProps>(
         // Base structure & theme adaptability (you might adjust dark mode classes)
         "rounded-lg border text-card-foreground shadow-md transition-shadow duration-300 ease-in-out",
         "hover:shadow-xl", // Enhance shadow on hover
-        "bg-gray-800 dark:bg-white", // Or use dark:bg-gray-50 if you prefer off-white
+        "bg-gray-50 dark:bg-gray-800", // Or use dark:bg-gray-50 if you prefer off-white
         "flex flex-col h-full", // Ensure cards in a grid have consistent height
         className
       )}

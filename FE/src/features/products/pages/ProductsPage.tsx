@@ -24,25 +24,15 @@ const FilterIcon = ({ className }: { className?: string }) => (
     />{" "}
   </svg>
 );
+
 const ProductsPage = () => {
   const location = useLocation();
-  // Re-introduce queryParams state to pass down
   const [queryParams, setQueryParams] = useState<string>("");
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
-  // Re-introduce useEffect to sync URL changes to queryParams state
   useEffect(() => {
     const params = new URLSearchParams(location.search);
-    // Optional: Define relevant keys if needed, otherwise use all params
-    // const relevantKeys = ['category', 'searchText', 'brand', 'sort', 'page', 'minPrice', 'maxPrice'];
-    // const relevantParams = new URLSearchParams();
-    // relevantKeys.forEach(key => {
-    //     if (params.has(key)) {
-    //         relevantParams.set(key, params.get(key)!);
-    //     }
-    // });
-    // setQueryParams(relevantParams.toString());
-    setQueryParams(params.toString()); // Simpler: use all params from URL
+    setQueryParams(params.toString());
   }, [location.search]);
 
   const {
@@ -55,86 +45,109 @@ const ProductsPage = () => {
     data: products = [] as Product[],
     isError: productsError,
     isLoading: productsLoading,
-    // Pass the state variable to the query hook
   } = useGetProductBySearchQuery(queryParams);
 
   if (categoriesLoading) {
-    return <p className="text-center text-gray-600 p-10">Đang tải bộ lọc...</p>;
+    return (
+      <div className="min-h-screen pt-16 bg-ch-red-10">
+        <p className="text-center text-gray-600 p-10">Đang tải bộ lọc...</p>
+      </div>
+    );
   }
+
   if (categoriesError) {
-    return <p className="text-center text-ch-red p-10">Lỗi khi tải bộ lọc.</p>;
+    return (
+      <div className="min-h-screen pt-16 bg-ch-red-10">
+        <p className="text-center text-ch-red p-10">Lỗi khi tải bộ lọc.</p>
+      </div>
+    );
   }
 
   return (
-    <div className="flex flex-col md:flex-row bg-ch-red-10">
-      <button
-        onClick={() => setIsSidebarOpen(true)}
-        className="md:hidden fixed bottom-4 right-4 z-50 p-3 bg-ch-blue text-white rounded-full shadow-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-ch-blue"
-        aria-label="Mở bộ lọc"
-      >
-        <FilterIcon />
-      </button>
+    <div className="min-h-screen pt-16 bg-ch-red-10">
+      <div className="container mx-auto">
+        <div className="flex flex-col md:flex-row gap-6">
+          {/* Filter Button for Mobile */}
+          <button
+            onClick={() => setIsSidebarOpen(true)}
+            className="md:hidden fixed bottom-4 right-4 z-50 p-3 bg-ch-blue text-white rounded-full shadow-lg hover:bg-ch-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-ch-blue transition-colors duration-200"
+            aria-label="Mở bộ lọc"
+          >
+            <FilterIcon />
+          </button>
 
-      {isSidebarOpen && (
-        <div
-          onClick={() => setIsSidebarOpen(false)}
-          className="fixed inset-0 bg-black/30 z-40 md:hidden"
-          aria-hidden="true"
-        ></div>
-      )}
+          {/* Overlay for Mobile Sidebar */}
+          {isSidebarOpen && (
+            <div
+              onClick={() => setIsSidebarOpen(false)}
+              className="fixed inset-0 bg-black/30 z-40 md:hidden"
+              aria-hidden="true"
+            />
+          )}
 
-      <div
-        className={cn(
-          "bg-white h-44",
-          "fixed inset-y-0 left-0  w-64 sm:w-72 transform transition-transform duration-300 ease-in-out",
-          isSidebarOpen ? "translate-x-0" : "-translate-x-full",
-          "md:static md:translate-x-0 md:w-64 lg:w-72 md:flex-shrink-0 md:flex md:flex-col",
-          "border-r border-gray-200 "
-        )}
-      >
-        <div className="p-4 flex-grow overflow-y-auto">
-          <h3 className="text-base sm:text-lg font-semibold mb-3 text-gray-800">
-            Danh mục
-          </h3>
-          {/* Pass required props to CategoriesList */}
-          <CategoriesList
-            data={categoriesData}
-            queryParams={queryParams}
-            setQueryParams={setQueryParams}
-          />
+          {/* Sidebar */}
+          <aside
+            className={cn(
+              "bg-white p-6 rounded-lg shadow-sm",
+              "fixed inset-y-0 left-0 w-64 sm:w-72 transform transition-transform duration-300 ease-in-out z-50",
+              isSidebarOpen ? "translate-x-0" : "-translate-x-full",
+              "md:static md:translate-x-0 md:w-72 md:flex-shrink-0 md:block"
+            )}
+          >
+            <div className="sticky top-20">
+              <h3 className="text-xl font-semibold mb-6 text-gray-800">
+                Danh mục sản phẩm
+              </h3>
+              <CategoriesList
+                data={categoriesData}
+                queryParams={queryParams}
+                setQueryParams={setQueryParams}
+              />
+            </div>
+          </aside>
+
+          {/* Main Content */}
+          <main className="flex-1">
+            <div className="bg-white p-6 rounded-lg shadow-sm">
+              {productsLoading && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                  {[...Array(8)].map((_, i) => (
+                    <div
+                      key={i}
+                      className="h-[400px] bg-gray-100 rounded-lg animate-pulse"
+                    />
+                  ))}
+                </div>
+              )}
+
+              {productsError && !productsLoading && (
+                <div className="text-center py-10">
+                  <p className="text-ch-red text-lg">
+                    Không thể tải sản phẩm. Vui lòng thử lại sau.
+                  </p>
+                </div>
+              )}
+
+              {!productsLoading && !productsError && (
+                <>
+                  {products && products.length > 0 ? (
+                    <ProductsList data={products} />
+                  ) : (
+                    <div className="text-center py-10">
+                      <p className="text-gray-500 text-lg">
+                        Không tìm thấy sản phẩm phù hợp với tiêu chí của bạn.
+                      </p>
+                      <p className="text-gray-400 mt-2">
+                        Vui lòng thử với bộ lọc khác.
+                      </p>
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
+          </main>
         </div>
       </div>
-
-      <main className="flex-1 p-4 sm:p-6 lg:p-8 bg-ch-red-10 min-h-screen">
-        {productsLoading && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {[...Array(8)].map((_, i) => (
-              <div
-                key={i}
-                className="h-[400px] bg-gray-200 rounded-lg animate-pulse"
-              ></div>
-            ))}
-          </div>
-        )}
-        {productsError && !productsLoading && (
-          <p className="text-center text-ch-red p-10">
-            Không thể tải sản phẩm.
-          </p>
-        )}
-        {!productsLoading && !productsError && (
-          <>
-            {products && products.length > 0 ? (
-              <ProductsList data={products} />
-            ) : (
-              <div className="text-center text-gray-500 mt-10">
-                <p className="text-lg">
-                  Không tìm thấy sản phẩm phù hợp với tiêu chí của bạn.
-                </p>
-              </div>
-            )}
-          </>
-        )}
-      </main>
     </div>
   );
 };

@@ -1,7 +1,7 @@
 // src/features/customer/pages/CustomerHomePage.tsx
 
 import React, { useState, useEffect, useRef, useLayoutEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
@@ -22,24 +22,17 @@ import ProductCard from "@/features/components/ProductCard";
 import { gsap } from "gsap";
 import { useGetFeaturedProductsQuery } from "@/services/product/getFeaturedProductsQuery";
 import { formatCurrency } from "@/utils/formatCurrency";
+import { ExpandableSection } from "@/components/ui/expandable-section";
+import { Package } from "lucide-react";
+import { CategoryShowcase } from "@/components/shared/CategoryShowcase";
 
 const CustomerHomePage: React.FC = () => {
+  const navigate = useNavigate();
   const [userId, setUserId] = useState<string | undefined>(undefined);
   const [currentSlide, setCurrentSlide] = useState(0);
   const [api, setApi] = useState<CarouselApi>();
   const MAX_PRODUCTS_TO_SHOW = 8;
-  const categoryContainerRef = useRef<HTMLDivElement>(null);
   const featuresContainerRef = useRef<HTMLDivElement>(null);
-
-  // Add category icons mapping
-  const categoryIcons: { [key: string]: { icon: string; color: string } } = {
-    MOBILE: { icon: "📱", color: "bg-red-100" },
-    LAPTOP: { icon: "💻", color: "bg-blue-100" },
-    WATCH: { icon: "⌚", color: "bg-green-100" },
-    TABLET: { icon: "📱", color: "bg-purple-100" }, // Consider a different icon for Tablet if desired
-    ACCESSORY: { icon: "🎧", color: "bg-yellow-100" },
-    OTHER: { icon: "📦", color: "bg-gray-100" },
-  };
 
   useEffect(() => {
     const credentials = getAuthCredentials();
@@ -76,89 +69,33 @@ const CustomerHomePage: React.FC = () => {
     enabled: Boolean(enableFallback),
   });
 
-  const { data: categoriesData, isLoading: isLoadingCategories } =
+  const { data: categories, isLoading: isLoadingCategories } =
     useGetAllCategoriesQuery({ limit: 6 });
-  const categories: Category[] | undefined = Array.isArray(categoriesData)
-    ? categoriesData
-    : (categoriesData as any)?.data;
-
-  // Lấy tất cả sản phẩm để đếm số lượng cho mỗi danh mục
-  const { data: allProducts } = useGetAllProductsQuery({ limit: 1000 });
-
-  // Tính số lượng sản phẩm cho mỗi danh mục
-  const getCategoryProductCount = (categoryId: string) => {
-    if (!allProducts?.length) return 0;
-    return allProducts.filter((product: Product) => {
-      if (typeof product.category === "string") {
-        return product.category === categoryId;
-      }
-      return product.category?._id === categoryId;
-    }).length;
-  };
 
   const { data: featuredProducts, isLoading: isLoadingFeatured } =
     useGetFeaturedProductsQuery({
       limit: 10,
     });
 
-  useLayoutEffect(() => {
-    if (
-      isLoadingCategories ||
-      !categoryContainerRef.current ||
-      !categories ||
-      categories.length === 0
-    ) {
-      return;
-    }
+  const { data: allProducts } = useGetAllProductsQuery({});
 
-    const categoryItems = Array.from(
-      categoryContainerRef.current.children
-    ).filter((child) =>
-      child.classList.contains("category-item")
-    ) as HTMLElement[];
+  // Tính toán số lượng sản phẩm cho mỗi danh mục
+  const categoryProductCounts = React.useMemo(() => {
+    if (!allProducts) return {};
 
-    if (categoryItems.length === 0) return;
+    return allProducts.reduce((acc: { [key: string]: number }, product) => {
+      const categoryId = product.category?._id;
+      if (categoryId) {
+        acc[categoryId] = (acc[categoryId] || 0) + 1;
+      }
+      return acc;
+    }, {});
+  }, [allProducts]);
 
-    const DURATION = 0.3;
-    const EXPAND_FLEX_GROW = 3;
-    const NORMAL_FLEX_GROW = 1;
-    const SHRINK_FLEX_GROW = 0.5;
-
-    categoryItems.forEach((item) => {
-      gsap.set(item, { flexGrow: NORMAL_FLEX_GROW }); // Initialize flexGrow
-
-      item.addEventListener("mouseenter", () => {
-        gsap.to(item, {
-          flexGrow: EXPAND_FLEX_GROW,
-          duration: DURATION,
-          ease: "power2.inOut",
-        });
-        categoryItems.forEach((otherItem) => {
-          if (otherItem !== item) {
-            gsap.to(otherItem, {
-              flexGrow: SHRINK_FLEX_GROW,
-              ease: "power2.inOut",
-            });
-          }
-        });
-      });
-
-      item.addEventListener("mouseleave", () => {
-        categoryItems.forEach((el) => {
-          gsap.to(el, {
-            flexGrow: NORMAL_FLEX_GROW,
-            duration: DURATION,
-            ease: "power2.inOut",
-          });
-        });
-      });
-    });
-
-    // Basic cleanup (more robust cleanup might be needed depending on exact usage)
-    return () => {
-      // GSAP automatically cleans up its event listeners
-    };
-  }, [isLoadingCategories, categories]);
+  // Xử lý khi click vào danh mục
+  const handleCategoryClick = (category: Category) => {
+    navigate(`/products?category=${category._id}`);
+  };
 
   useLayoutEffect(() => {
     if (
@@ -399,52 +336,29 @@ const CustomerHomePage: React.FC = () => {
         )}
       </section>
 
-      <section className="py-8 md:py-16 bg-white">
+      <section className="py-16">
         <div className="container mx-auto px-4">
-          <h2 className="text-2xl md:text-3xl font-bold text-center mb-8 md:mb-12">
+          <h2 className="text-xl md:text-2xl font-semibold text-center mb-6 md:mb-8">
             Danh Mục Sản Phẩm
           </h2>
-          <div
-            ref={categoryContainerRef}
-            className="flex flex-wrap justify-center gap-3 md:gap-4"
-          >
-            {isLoadingCategories
-              ? Array.from({ length: 6 }).map((_, i) => (
-                  <div
-                    key={i}
-                    className="flex flex-col items-center p-2"
-                    style={{ flex: `1 1 calc(100% / 6 - 1rem)` }}
-                  >
-                    <Skeleton className="w-20 h-20 md:w-24 md:h-24 rounded-xl" />
-                    <Skeleton className="h-4 w-16 md:w-20 mt-2" />
-                  </div>
-                ))
-              : (categories || []).map((category: Category) => {
-                  const iconData = categoryIcons[
-                    category.name.toUpperCase() as keyof typeof categoryIcons
-                  ] || { icon: "📦", color: "bg-gray-100" };
-                  const productCount = getCategoryProductCount(category._id);
-                  return (
-                    <Link
-                      key={category._id}
-                      to={`/products?category=${category._id}`}
-                      className={`${iconData.color} category-item rounded-xl p-3 md:p-4 text-center cursor-pointer hover:shadow-lg transition-shadow duration-200 ease-in-out flex flex-col items-center justify-center min-w-[100px] md:min-w-[120px] relative group`}
-                    >
-                      <div className="text-3xl md:text-4xl mb-2">
-                        {iconData.icon}
-                      </div>
-                      <h3 className="font-medium text-sm md:text-base line-clamp-2 h-10 md:h-12 flex items-center justify-center text-center w-full">
-                        {category.name}
-                      </h3>
-                      <div className="absolute inset-0 bg-black/60 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center">
-                        <p className="text-white font-medium">
-                          {productCount} sản phẩm
-                        </p>
-                      </div>
-                    </Link>
-                  );
-                })}
-          </div>
+          {isLoadingCategories ? (
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+              {Array.from({ length: 6 }).map((_, i) => (
+                <Skeleton key={i} className="h-[200px] rounded-lg" />
+              ))}
+            </div>
+          ) : categories && categories.length > 0 ? (
+            <CategoryShowcase
+              categories={categories}
+              onCategoryClick={handleCategoryClick}
+              categoryProductCounts={categoryProductCounts}
+            />
+          ) : (
+            <div className="text-center py-8">
+              <Package className="w-12 h-12 mx-auto mb-3 text-gray-400" />
+              <p className="text-gray-500">Không có danh mục nào.</p>
+            </div>
+          )}
         </div>
       </section>
 
@@ -487,44 +401,18 @@ const CustomerHomePage: React.FC = () => {
             <h2 className="text-xl md:text-2xl font-semibold text-center mb-6 md:mb-8">
               Ưu đãi Đặc biệt
             </h2>
-            <div
-              ref={featuresContainerRef}
-              className="flex flex-row gap-4 md:gap-6 h-[300px] w-full"
-            >
-              {homePageData.features.map((feature: HomePageItem) => (
-                <div
-                  key={feature._id}
-                  className="relative bg-gray-100 rounded-lg overflow-hidden flex-1 cursor-pointer"
-                >
-                  <img
-                    src={
-                      (feature as any).image_url ||
-                      feature.photo_url ||
-                      "/images/feature-placeholder.png"
-                    }
-                    alt={feature.title || "Promotion"}
-                    className="absolute inset-0 w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent"></div>
-                  <div className="feature-content relative z-10 h-full flex flex-col justify-end p-6">
-                    <h3 className="text-lg md:text-xl font-semibold text-white mb-2">
-                      {feature.title}
-                    </h3>
-                    <p className="feature-description text-sm md:text-base text-white/90 mb-4">
-                      {feature.description}
-                    </p>
-                    <Button
-                      variant="secondary"
-                      size="sm"
-                      className="feature-button self-start bg-white text-black hover:bg-white/80 content-center"
-                      asChild
-                    >
-                      <Link to={"#"}> Xem ngay </Link>
-                    </Button>
-                  </div>
-                </div>
-              ))}
-            </div>
+            <ExpandableSection
+              items={homePageData.features.map((feature) => ({
+                id: feature._id,
+                title: feature.title || "Ưu đãi đặc biệt",
+                description: feature.description,
+                imageUrl:
+                  feature.image_url ||
+                  feature.photo_url ||
+                  "/images/feature-placeholder.png",
+                link: "#",
+              }))}
+            />
           </section>
         )}
 
