@@ -65,8 +65,9 @@ const Header: React.FC = () => {
   return (
     <div
       className={cn(
-        "w-full bg-gradient-to-r from-ch-red-50 to-ch-blue-50 dark:bg-ch-gray-900 shadow-md px-4 sm:px-6 lg:px-8 py-3",
-        "flex justify-between items-center"
+        "w-auto bg-gradient-to-r from-ch-pink-50 to-ch-blue-50 dark:bg-ch-gray-900 shadow-md px-4 sm:px-6 lg:px-8 py-3",
+        "flex justify-between items-center",
+        "fixed left-[4rem] top-0 right-0 z-50"
       )}
     >
       {/* Logo */}
@@ -123,7 +124,7 @@ const Header: React.FC = () => {
             {/* Có thể thay span trên bằng một Dropdown Menu cho tài khoản */}
             <button
               onClick={handleLogout}
-              className="flex items-center text-sm font-medium text-gray-600 hover:text-ch-red dark:text-gray-300 dark:hover:text-ch-red transition-colors duration-200 p-1"
+              className="flex items-center text-sm font-medium text-gray-600 hover:text-ch-pink dark:text-gray-300 dark:hover:text-ch-pink transition-colors duration-200 p-1"
               aria-label="Logout"
             >
               <LogOut className="w-5 h-5 sm:w-6 sm:h-6" /> {/* Icon Logout */}

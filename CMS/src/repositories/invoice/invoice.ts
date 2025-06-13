@@ -18,26 +18,26 @@ type InitiatePaymentVariables = {
 
 class InvoiceRepository extends Base {
   // Existing method for COD/Manual invoice creation
-  createInvoice = (url: string, variables: CreateInvoiceInput) => {
+  createInvoice = async (url: string, variables: CreateInvoiceInput) => {
     // Use corrected type
     // Adjust <any> to the actual expected response type
     return this.http<any>(url, "post", variables);
   };
 
   // Existing method to get invoices for a SPECIFIC user
-  getInvoicesForUser = (url: string) => {
+  getInvoicesForUser = async (url: string) => {
     return this.http<Invoice[]>(url, "get");
   };
 
   // Method for getting ALL invoices (Admin) - ĐÃ CÓ SẴN
-  getAllInvoices = (url: string, params?: Record<string, any>) => {
+  getAllInvoices = async (url: string, params?: Record<string, any>) => {
     // Thêm params tùy chọn
     // params sẽ chứa các query như searchTerm, page, limit...
     return this.http<Invoice[]>(url, "get", undefined, { params }); // Truyền params vào config axios
   };
 
   // Existing method for Stripe Initiation
-  initiateStripePayment = (
+  initiateStripePayment = async (
     url: string,
     variables: InitiatePaymentVariables
   ) => {
@@ -49,7 +49,10 @@ class InvoiceRepository extends Base {
   };
 
   // Method for updating invoice status (Admin)
-  updateInvoiceStatus = (url: string, variables: UpdateInvoiceStatusInput) => {
+  updateInvoiceStatus = async (
+    url: string,
+    variables: UpdateInvoiceStatusInput
+  ) => {
     // Adjust <any> if a specific response type is known for status updates
     return this.http<any>(url, "patch", variables);
   };
