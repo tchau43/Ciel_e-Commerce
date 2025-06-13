@@ -23,7 +23,7 @@ const CustomerLayout: React.FC = () => {
         <div className="flex w-full flex-1 justify-center items-start">
           {/* Bỏ p-4 ở đây nếu muốn padding chỉ áp dụng cho content bên trong */}
           {/* Container giới hạn chiều rộng nội dung */}
-          <div className="min-h-full w-full max-w-screen-2xl p-4">
+          <div className="min-h-full w-full max-w-screen-2xl p-4 pt-24">
             {/* Thêm p-4 vào đây */}
             <Outlet />
           </div>

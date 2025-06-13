@@ -8,6 +8,7 @@ import { useAddProductToCartMutation } from "@/services/cart/addProductToCartMut
 import { Product as ProductType, Variant } from "@/types/dataTypes";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
+import ProductReviews from "./ProductReviews";
 
 const Product = () => {
   const navigate = useNavigate();
@@ -151,7 +152,7 @@ const Product = () => {
     ) ?? [];
 
   return (
-    <div className="min-h-screen pt-16 bg-ch-pink-10">
+    <div className="min-h-screen">
       <div className="container mx-auto px-4">
         {/* Breadcrumb */}
         <nav className="py-4">
@@ -367,6 +368,7 @@ const Product = () => {
               </div>
             </div>
           </div>
+          <ProductReviews productId={typedProduct._id} />
         </div>
 
         {/* Reviews Section */}
