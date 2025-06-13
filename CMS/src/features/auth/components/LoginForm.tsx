@@ -114,7 +114,7 @@ const LoginForm: React.FC = () => {
           ></div>
           <div
             aria-hidden="true"
-            className="absolute -bottom-28 -right-40 h-[350px] w-[350px] bg-[radial-gradient(circle,var(--color-ch-red-100)_2%,transparent_50%)] blur-[80px] -z-0 dark:opacity-30"
+            className="absolute -bottom-28 -right-40 h-[350px] w-[350px] bg-[radial-gradient(circle,var(--color-ch-pink-100)_2%,transparent_50%)] blur-[80px] -z-0 dark:opacity-30"
           ></div>
           {/* Form element */}
           <form

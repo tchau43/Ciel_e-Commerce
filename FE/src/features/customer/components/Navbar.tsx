@@ -104,9 +104,9 @@ const Navbar: React.FC<NavbarProps> = ({
     : (categoriesData as any)?.data;
 
   const linkBaseClasses = "text-sm font-medium transition-colors duration-200";
-  const linkHoverClasses = "hover:text-ch-red";
+  const linkHoverClasses = "hover:text-ch-pink";
   const lightModeText = "text-gray-700 dark:text-gray-300";
-  const activeClass = "!text-ch-red font-semibold";
+  const activeClass = "!text-ch-pink font-semibold";
 
   const isProductsActive = location.pathname.startsWith("/product");
 

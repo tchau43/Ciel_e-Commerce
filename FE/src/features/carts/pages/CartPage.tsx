@@ -89,7 +89,7 @@ const CartPage = () => {
         <h1 className="text-2xl md:text-3xl font-semibold text-gray-800 mb-6">
           Giỏ hàng của bạn
         </h1>
-        <p className="text-center text-ch-red py-10">
+        <p className="text-center text-ch-pink py-10">
           Lỗi tải giỏ hàng. Vui lòng thử lại.
         </p>
       </div>
@@ -149,7 +149,7 @@ const CartPage = () => {
                 <Button
                   onClick={handleCheckout}
                   disabled={isEmpty}
-                  className="mt-6 w-full px-6 py-3 bg-ch-red text-white font-semibold rounded-md hover:bg-ch-red-dark transition duration-200 disabled:bg-gray-400 disabled:cursor-not-allowed"
+                  className="mt-6 w-full px-6 py-3 bg-ch-pink text-white font-semibold rounded-md hover:bg-ch-pink-dark transition duration-200 disabled:bg-gray-400 disabled:cursor-not-allowed"
                   size="lg"
                 >
                   Tiến hành thanh toán
