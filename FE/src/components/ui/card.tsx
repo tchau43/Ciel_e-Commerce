@@ -8,7 +8,7 @@ const CardBorder = React.forwardRef<HTMLDivElement, CardBorderProps>(
     <div
       ref={ref}
       className={cn(
-        "p-[1px] bg-gradient-to-br from-ch-red to-ch-blue rounded-lg", // Ensure cards in a grid have consistent height
+        "p-[1px] bg-gradient-to-br from-ch-pink to-ch-blue rounded-lg", // Ensure cards in a grid have consistent height
         className
       )}
       {...props}

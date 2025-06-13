@@ -1,43 +1,11 @@
 import { clearAuthCredentials } from "@/utils/authUtil";
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { NavLink } from "react-router-dom";
 import { motion } from "framer-motion";
 import CLogo from "./CLogo";
-import Color from "color";
 
 const Header: React.FC = () => {
   const isLAuth = localStorage.getItem("access_token") !== null;
-  const [isScrolled, setIsScrolled] = useState(false);
-  const [textColor, setTextColor] = useState("text-white");
-  const [bgColor, setBgColor] = useState("transparent");
-
-  const handleLogout = () => {
-    clearAuthCredentials();
-  };
-
-  useEffect(() => {
-    const handleScroll = () => {
-      const scrolled = window.scrollY > 20;
-      setIsScrolled(scrolled);
-
-      // Update background color based on scroll
-      const newBgColor = scrolled
-        ? Color("white").alpha(0.8).string()
-        : "transparent";
-      setBgColor(newBgColor);
-
-      // Calculate text color based on background
-      const backgroundColor = scrolled
-        ? Color("white").alpha(0.8)
-        : Color("transparent");
-      const isDark = backgroundColor.isDark();
-      setTextColor(isDark ? "text-white" : "text-gray-800");
-    };
-
-    window.addEventListener("scroll", handleScroll);
-    handleScroll(); // Initial calculation
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
 
   const navLinkVariants = {
     initial: { y: -20, opacity: 0 },
@@ -63,9 +31,13 @@ const Header: React.FC = () => {
   };
 
   const getNavLinkStyle = ({ isActive }: { isActive: boolean }) => {
-    return `text-lg font-medium transition-all duration-300 ${textColor} ${
+    return `text-lg font-medium transition-all duration-300 text-gray-800 ${
       isActive ? "text-blue-500" : `hover:text-blue-500`
     }`;
+  };
+
+  const handleLogout = () => {
+    clearAuthCredentials();
   };
 
   return (
@@ -73,11 +45,7 @@ const Header: React.FC = () => {
       initial={{ y: -100 }}
       animate={{ y: 0 }}
       transition={{ type: "spring", stiffness: 100 }}
-      className="fixed w-full z-50 transition-all duration-300"
-      style={{
-        backgroundColor: bgColor,
-        backdropFilter: isScrolled ? "blur(8px)" : "none",
-      }}
+      className="fixed w-full z-50 transition-all duration-300 bg-white/95 backdrop-blur-sm border-b border-gray-200"
     >
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16">

@@ -2,8 +2,8 @@ import { StripeData } from "@/types/dataTypes";
 import Base from "../base";
 
 class Stripe extends Base {
-  createStripe = (url: string, variables: StripeData) => {
-    return this.http(url, "post", variables);
+  createStripe = async (url: string, variables: StripeData) => {
+    return this.http<StripeData>(url, "post", variables);
   };
 }
 
