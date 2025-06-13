@@ -141,7 +141,7 @@ const CartItem: React.FC<CartItemProps> = ({ item }) => {
       <button
         onClick={handleRemoveProduct}
         disabled={isUpdating}
-        className="text-gray-400 hover:text-ch-red ml-2 sm:ml-4 flex-shrink-0 disabled:opacity-50 disabled:cursor-not-allowed" // Theme color
+        className="text-gray-400 hover:text-ch-pink ml-2 sm:ml-4 flex-shrink-0 disabled:opacity-50 disabled:cursor-not-allowed" // Theme color
         title="Remove item"
         aria-label="Remove item"
       >
