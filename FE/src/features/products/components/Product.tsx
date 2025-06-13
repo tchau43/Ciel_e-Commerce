@@ -53,7 +53,7 @@ const Product = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen pt-16 bg-ch-red-10">
+      <div className="min-h-screen pt-16 bg-ch-pink-10">
         <div className="container mx-auto px-4">
           <p className="text-center text-gray-600 py-10">
             Loading product data...
@@ -66,7 +66,7 @@ const Product = () => {
   if (isError) {
     console.error("Error fetching product:", error);
     return (
-      <div className="min-h-screen pt-16 bg-ch-red-10">
+      <div className="min-h-screen pt-16 bg-ch-pink-10">
         <div className="container mx-auto px-4">
           <p className="text-center text-red-600 py-10">
             Error loading product. Please try again.
@@ -80,7 +80,7 @@ const Product = () => {
 
   if (!typedProduct) {
     return (
-      <div className="min-h-screen pt-16 bg-ch-red-10">
+      <div className="min-h-screen pt-16 bg-ch-pink-10">
         <div className="container mx-auto px-4">
           <p className="text-center text-gray-600 py-10">Product not found.</p>
         </div>
@@ -151,7 +151,7 @@ const Product = () => {
     ) ?? [];
 
   return (
-    <div className="min-h-screen pt-16 bg-ch-red-10">
+    <div className="min-h-screen pt-16 bg-ch-pink-10">
       <div className="container mx-auto px-4">
         {/* Breadcrumb */}
         <nav className="py-4">
@@ -262,7 +262,7 @@ const Product = () => {
                 <div className="space-y-6">
                   {/* Price */}
                   <div className="bg-gray-50 p-4 rounded-lg">
-                    <p className="text-2xl lg:text-3xl font-bold text-ch-red">
+                    <p className="text-2xl lg:text-3xl font-bold text-ch-pink">
                       {displayPrice.toLocaleString("vi-VN")} VND
                       {selectedVariant &&
                         Number(typedProduct.base_price) !== displayPrice && (
