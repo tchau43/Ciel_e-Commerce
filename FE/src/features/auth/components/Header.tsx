@@ -48,7 +48,9 @@ const Header: React.FC = () => {
       animate={{ y: 0 }}
       transition={{ type: "spring", stiffness: 100 }}
       className={`fixed w-full z-50 transition-all duration-300 ${
-        isScrolled ? "bg-white/80 backdrop-blur-md shadow-lg" : "bg-transparent"
+        isScrolled
+          ? "bg-white/95 dark:bg-gray-900/95 backdrop-blur-md shadow-lg"
+          : "bg-transparent"
       }`}
     >
       <div className="container mx-auto px-4">
@@ -77,9 +79,13 @@ const Header: React.FC = () => {
             >
               <NavLink
                 to="/landing"
-                className={`text-lg font-medium transition-all duration-300 ${
-                  isScrolled ? "text-gray-800" : "text-white"
-                } hover:text-blue-500`}
+                className={({ isActive }) =>
+                  `text-lg font-medium transition-all duration-300 ${
+                    isScrolled
+                      ? "text-gray-800 dark:text-gray-100"
+                      : "text-gray-900"
+                  } ${isActive ? "text-blue-600" : ""}`
+                }
               >
                 Trang chủ
               </NavLink>
@@ -94,7 +100,7 @@ const Header: React.FC = () => {
               {!isLAuth ? (
                 <NavLink
                   to="/auth"
-                  className={`relative inline-flex items-center px-6 py-2 overflow-hidden font-medium transition-all bg-blue-500 rounded-lg hover:bg-blue-600 group`}
+                  className="relative inline-flex items-center px-6 py-2 overflow-hidden font-medium transition-all bg-blue-600 rounded-lg hover:bg-blue-700 group"
                 >
                   <span className="absolute right-0 w-8 h-32 -mt-12 transition-all duration-1000 transform translate-x-12 bg-white opacity-10 rotate-12 group-hover:-translate-x-40 ease"></span>
                   <span className="relative text-white">
@@ -105,7 +111,7 @@ const Header: React.FC = () => {
                 <NavLink
                   to="/landing"
                   onClick={handleLogout}
-                  className={`relative inline-flex items-center px-6 py-2 overflow-hidden font-medium transition-all bg-red-500 rounded-lg hover:bg-red-600 group`}
+                  className="relative inline-flex items-center px-6 py-2 overflow-hidden font-medium transition-all bg-red-600 rounded-lg hover:bg-red-700 group"
                 >
                   <span className="absolute right-0 w-8 h-32 -mt-12 transition-all duration-1000 transform translate-x-12 bg-white opacity-10 rotate-12 group-hover:-translate-x-40 ease"></span>
                   <span className="relative text-white">Đăng xuất</span>

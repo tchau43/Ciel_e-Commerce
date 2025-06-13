@@ -28,7 +28,7 @@ const FaqCategories = ({
         variant={activeCategory === "all" ? "default" : "outline"}
         className={cn(
           "rounded-full",
-          activeCategory === "all" ? "bg-ch-red text-white" : ""
+          activeCategory === "all" ? "bg-ch-pink text-white" : ""
         )}
         onClick={() => onCategoryChange("all")}
       >
@@ -41,7 +41,7 @@ const FaqCategories = ({
           variant={activeCategory === category ? "default" : "outline"}
           className={cn(
             "rounded-full",
-            activeCategory === category ? "bg-ch-red text-white" : ""
+            activeCategory === category ? "bg-ch-pink text-white" : ""
           )}
           onClick={() => onCategoryChange(category)}
         >
