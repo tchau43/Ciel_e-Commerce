@@ -14,29 +14,17 @@ const CategoriesList = ({
   queryParams,
 }: CategoriesListProps) => {
   const navigate = useNavigate();
-  const [checkedCate, setCheckedCate] = useState<string[]>([]);
+  const [selectedCate, setSelectedCate] = useState<string | null>(null);
 
-  // When a checkbox is toggled, update checkedCate and update the URL accordingly.
-  const handleCheckboxChange = (cateId: string) => {
-    setCheckedCate((prev) => {
-      const newCheckedCate = prev.includes(cateId)
-        ? prev.filter((id) => id !== cateId)
-        : [...prev, cateId];
-      changeCateParams(newCheckedCate);
-      return newCheckedCate;
-    });
+  const handleRadioChange = (cateId: string | null) => {
+    setSelectedCate(cateId);
+    changeCateParams(cateId ? [cateId] : []);
   };
 
   const changeCateParams = (cateList: string[]) => {
     const params = new URLSearchParams(queryParams || "");
-
-    // Clear existing categories first
     params.delete("category");
-
-    // Add new categories
     cateList.forEach((c) => params.append("category", c));
-
-    // Preserve search text
     const newParams = params.toString();
     setQueryParams(newParams);
     navigate(`?${newParams}`, { replace: true });
@@ -45,60 +33,54 @@ const CategoriesList = ({
   useEffect(() => {
     const params = new URLSearchParams(queryParams || "");
     const newCheckedCate = params.getAll("category");
-    setCheckedCate(newCheckedCate);
+    if (newCheckedCate.length === 0) {
+      setSelectedCate(null);
+    } else {
+      setSelectedCate(newCheckedCate[0]);
+    }
   }, [queryParams]);
 
-  const handleSelectAll = () => {
-    if (checkedCate.length === data.length) {
-      setCheckedCate([]);
-      changeCateParams([]);
-    } else {
-      const allIds = data.map((c) => c._id);
-      setCheckedCate(allIds);
-      changeCateParams(allIds);
-    }
-  };
-
   return (
-    <div className="w-[20vh] 2xl:w-[200px] pl-4">
+    <div className="flex flex-row items-center gap-2 overflow-x-auto w-full pl-0 py-1 scrollbar-thin scrollbar-thumb-ch-blue/30 scrollbar-track-transparent">
       <input
-        type="checkbox"
+        type="radio"
         id="category-all"
+        name="category-radio"
         className="hidden"
-        checked={checkedCate.length === data.length}
-        onChange={handleSelectAll}
+        checked={selectedCate === null}
+        onChange={() => handleRadioChange(null)}
       />
       <label
         htmlFor="category-all"
-        // className={
-        //   checkedCate.length === data.length
-        //     ? "text-[rgba(213,106,54,1)]"
-        //     : "text-white" + "hover:cursor-pointer"
-        // }
-        className={`${
-          checkedCate.length === data.length
-            ? "text-[rgba(213,106,54,1)]"
-            : "text-black"
-        } hover:cursor-pointer`}
+        className={`px-3 py-1 rounded-full border-2 border-blue-600 bg-white text-base font-semibold whitespace-nowrap transition-colors duration-200 cursor-pointer mr-1
+          ${
+            selectedCate === null
+              ? "text-pink-600 border-pink-600 bg-pink-50"
+              : "text-blue-800 hover:text-pink-600 hover:border-pink-600 hover:bg-pink-50"
+          }
+        `}
       >
         ALL
       </label>
       {data.map((cate) => (
-        <div key={cate._id}>
+        <div key={cate._id} className="inline-block">
           <input
-            type="checkbox"
+            type="radio"
             id={`category-${cate._id}`}
-            checked={checkedCate.includes(cate._id)}
-            onChange={() => handleCheckboxChange(cate._id)}
+            name="category-radio"
+            checked={selectedCate === cate._id}
+            onChange={() => handleRadioChange(cate._id)}
             className="hidden"
           />
           <label
             htmlFor={`category-${cate._id}`}
-            className={`${
-              checkedCate.includes(cate._id)
-                ? "text-[rgba(213,106,54,1)]"
-                : "text-black" + "hover:cursor-pointer"
-            } hover:cursor-pointer`}
+            className={`px-3 py-1 rounded-full border-2 border-blue-600 bg-white text-base font-semibold whitespace-nowrap transition-colors duration-200 cursor-pointer mr-1
+              ${
+                selectedCate === cate._id
+                  ? "text-pink-600 border-pink-600 bg-pink-50"
+                  : "text-blue-800 hover:text-pink-600 hover:border-pink-600 hover:bg-pink-50"
+              }
+            `}
           >
             {cate.name.toUpperCase()}
           </label>
