@@ -111,7 +111,7 @@ const ProductsPage = () => {
 
   if (categoriesLoading) {
     return (
-      <div className="min-h-screen pt-16 bg-gradient-to-br from-ch-red-10/80 to-ch-red-10">
+      <div className="min-h-screen pt-16 bg-gradient-to-br from-ch-pink-10/80 to-ch-pink-10">
         <p className="text-center text-gray-600 p-10">Đang tải bộ lọc...</p>
       </div>
     );
@@ -119,8 +119,8 @@ const ProductsPage = () => {
 
   if (categoriesError) {
     return (
-      <div className="min-h-screen pt-16 bg-gradient-to-br from-ch-red-10/80 to-ch-red-10">
-        <p className="text-center text-ch-red p-10">Lỗi khi tải bộ lọc.</p>
+      <div className="min-h-screen pt-16 bg-gradient-to-br from-ch-pink-10/80 to-ch-pink-10">
+        <p className="text-center text-ch-pink p-10">Lỗi khi tải bộ lọc.</p>
       </div>
     );
   }
@@ -206,7 +206,7 @@ const ProductsPage = () => {
 
               {productsError && !productsLoading && (
                 <div className="text-center py-10">
-                  <p className="text-ch-red text-lg font-medium">
+                  <p className="text-ch-pink text-lg font-medium">
                     Không thể tải sản phẩm. Vui lòng thử lại sau.
                   </p>
                 </div>

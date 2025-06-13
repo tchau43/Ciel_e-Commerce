@@ -132,7 +132,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, className }) => {
           />
           {/* Tag */}
           {product.tags?.[0] && (
-            <span className="absolute top-2 left-2 bg-ch-red text-white text-[10px] sm:text-xs font-semibold px-1.5 sm:px-2 py-0.5 sm:py-1 rounded z-10 shadow-sm">
+            <span className="absolute top-2 left-2 bg-ch-pink text-white text-[10px] sm:text-xs font-semibold px-1.5 sm:px-2 py-0.5 sm:py-1 rounded z-10 shadow-sm">
               {product.tags[0]} {/* Responsive text/padding */}
             </span>
           )}
@@ -174,7 +174,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, className }) => {
           <CardContent className="p-0 pb-1 sm:pb-2 flex-grow">
             <p
               className={cn(
-                "font-bold text-ch-red dark:text-ch-red-light",
+                "font-bold text-ch-pink dark:text-ch-pink-light",
                 "text-lg sm:text-xl mb-1 sm:mb-2"
               )}
             >
