@@ -12,7 +12,10 @@ interface UpdateUserProfileData {
 export const useUpdateUserProfileMutation = () => {
   return useMutation({
     mutationFn: (variables: UpdateUserProfileData) => {
-      return OUser.updateProfile(API_ENDPOINTS.USER_PROFILE_UPDATE, variables);
+      return OUser.updateProfile(
+        API_ENDPOINTS.USER_PROFILE_UPDATE,
+        variables as any
+      );
     },
   });
 };
