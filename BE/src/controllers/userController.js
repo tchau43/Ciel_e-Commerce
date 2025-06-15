@@ -7,9 +7,12 @@ const {
   updateUserbyIdService,
   getUserByIdService,
   getUsersPurchasedDetailService,
+  changePasswordService,
 } = require("../services/userService"); // Your provided service imports
 const { getInvoiceService } = require("../services/invoiceService"); // Keep if getUserPurchased uses it directly
 const mongoose = require('mongoose'); // For ObjectId validation
+const User = require('../models/user'); // Assuming you have a User model
+const { updateUserProfileService } = require('../services/utilsService');
 
 const createUser = async (req, res) => {
   const { name, email, password, address, phoneNumber } = req.body; // Include optional fields
@@ -250,6 +253,71 @@ const getUsersPurchasedDetail = async (req, res) => {
   }
 };
 
+const updateUserProfile = async (req, res) => {
+  try {
+    const userId = req.user._id; // Get authenticated user's ID
+    const updateData = req.body;
+
+    const updatedUser = await updateUserProfileService(userId, updateData);
+
+    res.status(200).json({
+      message: "Profile updated successfully",
+      user: updatedUser
+    });
+
+  } catch (error) {
+    console.error('Error in updateUserProfile:', error);
+    if (error.name === 'ValidationError') {
+      return res.status(400).json({ message: `Validation error: ${error.message}` });
+    }
+    // Handle specific error messages from service
+    if (error.message.includes("Invalid") || error.message.includes("No valid fields")) {
+      return res.status(400).json({ message: error.message });
+    }
+    if (error.message === "User not found.") {
+      return res.status(404).json({ message: error.message });
+    }
+    res.status(500).json({ message: "Failed to update profile." });
+  }
+};
+
+const changePassword = async (req, res) => {
+  try {
+    const userId = req.user._id; // Get user ID from authenticated token
+    const { oldPassword, newPassword } = req.body;
+
+    // Basic validation
+    if (!oldPassword || !newPassword) {
+      return res.status(400).json({
+        message: "Vui lòng cung cấp mật khẩu cũ và mới."
+      });
+    }
+
+    await changePasswordService(userId, oldPassword, newPassword);
+
+    res.status(200).json({
+      message: "Đổi mật khẩu thành công."
+    });
+
+  } catch (error) {
+    console.error("Error in changePassword controller:", error);
+
+    // Handle specific errors
+    if (error.message.includes("không chính xác") ||
+      error.message.includes("ít nhất 6 ký tự")) {
+      return res.status(400).json({ message: error.message });
+    }
+
+    if (error.message.includes("Không tìm thấy")) {
+      return res.status(404).json({ message: error.message });
+    }
+
+    res.status(500).json({
+      message: "Có lỗi xảy ra khi đổi mật khẩu."
+    });
+  }
+};
+
 module.exports = {
   createUser,
   userLogin,
@@ -257,5 +325,7 @@ module.exports = {
   getUserById,
   updateUserbyId,
   getUserPurchased,
-  getUsersPurchasedDetail
+  getUsersPurchasedDetail,
+  updateUserProfile,
+  changePassword,
 };
