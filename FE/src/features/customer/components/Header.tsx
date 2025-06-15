@@ -65,7 +65,8 @@ const Header: React.FC = () => {
   return (
     <div
       className={cn(
-        "w-auto bg-gradient-to-r from-ch-pink-50 to-ch-blue-50 dark:bg-ch-gray-900 shadow-md px-4 sm:px-6 lg:px-8 py-3",
+        "w-auto bg-gradient-to-r from-ch-pink-50/80 to-ch-blue-50/80 dark:bg-ch-gray-900/80 ",
+        "shadow-md px-4 sm:px-6 lg:px-8 py-3 backdrop-blur-md",
         "flex justify-between items-center",
         "fixed left-[4rem] top-0 right-0 z-50"
       )}
@@ -118,10 +119,12 @@ const Header: React.FC = () => {
         {token ? (
           // Nếu đã đăng nhập: Hiển thị tên user và nút logout
           <>
-            <span className="text-sm font-medium text-gray-700 dark:text-gray-300 hidden sm:inline">
+            <NavLink
+              to="/profile"
+              className="text-sm font-medium text-gray-700 hover:text-ch-blue dark:text-gray-300 dark:hover:text-ch-blue hidden sm:inline transition-colors duration-200"
+            >
               Chào, {userInfo?.name || "bạn"}! {/* Hiển thị tên user nếu có */}
-            </span>
-            {/* Có thể thay span trên bằng một Dropdown Menu cho tài khoản */}
+            </NavLink>
             <button
               onClick={handleLogout}
               className="flex items-center text-sm font-medium text-gray-600 hover:text-ch-pink dark:text-gray-300 dark:hover:text-ch-pink transition-colors duration-200 p-1"
