@@ -196,6 +196,42 @@ const getUsersPurchasedDetailService = async () => {
   return purchases;
 }
 
+const changePasswordService = async (userId, oldPassword, newPassword) => {
+  try {
+    // Validate input
+    if (!oldPassword || !newPassword) {
+      throw new Error("Vui lòng cung cấp mật khẩu cũ và mới.");
+    }
+
+    if (newPassword.length < 6) {
+      throw new Error("Mật khẩu mới phải có ít nhất 6 ký tự.");
+    }
+
+    // Find user
+    const user = await User.findById(userId);
+    if (!user) {
+      throw new Error("Không tìm thấy người dùng.");
+    }
+
+    // Verify old password
+    const isValidPassword = await bcrypt.compare(oldPassword, user.password);
+    if (!isValidPassword) {
+      throw new Error("Mật khẩu cũ không chính xác.");
+    }
+
+    // Hash new password
+    const hashPassword = await bcrypt.hash(newPassword, saltRounds);
+
+    // Update password
+    await User.findByIdAndUpdate(userId, { password: hashPassword });
+
+    return true;
+  } catch (error) {
+    console.error("Error in changePasswordService:", error);
+    throw error;
+  }
+};
+
 module.exports = {
   createUserService,
   userLoginService,
@@ -203,4 +239,5 @@ module.exports = {
   updateUserbyIdService,
   getUserByIdService,
   getUsersPurchasedDetailService,
+  changePasswordService,
 };
