@@ -18,6 +18,8 @@ const {
   updateUserbyId,
   getUserPurchased,
   getUsersPurchasedDetail,
+  updateUserProfile,
+  changePassword,
 } = require("../controllers/userController");
 
 const {
@@ -163,6 +165,8 @@ routerAPI.post("/openai-chat", handleOpenAIChat);
 routerAPI.use('/openai', openaiAssistantRoutes);
 
 // --- User Routes (Authenticated) ---
+routerAPI.put("/user/profile", updateUserProfile); // Allow users to update their own profile
+routerAPI.put("/user/change-password", changePassword); // Add new route for password change
 routerAPI.get("/user/:id", getUserById); // Get own or other user's public profile? Check service logic
 routerAPI.get("/user/:userId/purchased-products", getUserPurchased); // Likely needs userId check against req.user.id
 routerAPI.get("/user/:userId/delivered-products", getDeliveredProducts); // Get products eligible for review
