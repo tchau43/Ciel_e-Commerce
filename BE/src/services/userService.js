@@ -148,16 +148,14 @@ const getUserByIdService = async (id) => {
   }
 };
 
-const updateUserbyIdService = async (id, name, email, status, role) => {
+const updateUserbyIdService = async (id, updateData) => {
   try {
     // --- Add { new: true } here ---
-    const user = await User.findByIdAndUpdate(id, {
-      name,
-      // email, // Avoid updating email directly here - needs verification flow
-      status,
-      role,
-    }, { new: true, runValidators: true }).select("-password"); // Exclude password
-    // --- End Add { new: true } ---
+    const user = await User.findByIdAndUpdate(
+      id,
+      updateData,
+      { new: true, runValidators: true }
+    ).select("-password"); // Exclude password
 
     // Check if a user was found and updated
     if (!user) {

@@ -10,6 +10,7 @@ export const API_ENDPOINTS = {
 
   // --- User ---
   USER: (id: string) => `${VITE_API_VERSION}/user/${id}`, // GET (Auth required)
+  UPDATE_USER: (id: string) => `${VITE_API_VERSION}/admin/updateUserById/${id}`, // PUT (Admin required)
   USER_PURCHASES: (userId: string) =>
     `${VITE_API_VERSION}/user/${userId}/purchased-products`, // GET (Auth required)
   USER_DELIVERED_PRODUCTS: (userId: string) =>
@@ -75,8 +76,6 @@ export const API_ENDPOINTS = {
 
   // --- Admin: User Management ---
   ADMIN_USERS: `${VITE_API_VERSION}/admin/users`, // GET (Admin required)
-  ADMIN_UPDATE_USER: (id: string) =>
-    `${VITE_API_VERSION}/admin/updateUserById/${id}`, // PUT (Admin required)
   ADMIN_USER_PURCHASES_DETAIL: `${VITE_API_VERSION}/admin/users/purchases`, // GET (Admin required)
 
   // --- Admin: Product & Variant Management ---
