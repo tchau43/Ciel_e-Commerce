@@ -9,7 +9,9 @@ export const API_ENDPOINTS = {
   // LOGOUT: `${VITE_API_VERSION}/users/logout`, // No BE route, handled client-side
 
   // --- User ---
-  USER: (id: string) => `${VITE_API_VERSION}/user/${id}`, // GET (Auth required)
+  USER_BY_ID: (id: string) => `${VITE_API_VERSION}/user/${id}`, // GET (Auth required)
+  USER_PROFILE_UPDATE: `${VITE_API_VERSION}/user/profile`, // PUT (Auth required)
+  USER_CHANGE_PASSWORD: `${VITE_API_VERSION}/user/change-password`, // PUT (Auth required)
   USER_PURCHASES: (userId: string) =>
     `${VITE_API_VERSION}/user/${userId}/purchased-products`, // GET (Auth required)
   USER_DELIVERED_PRODUCTS: (userId: string) =>
