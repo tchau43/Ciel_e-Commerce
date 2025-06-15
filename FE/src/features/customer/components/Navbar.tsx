@@ -25,7 +25,9 @@ import {
   Speaker,
   Cable,
   Gamepad,
+  LogOut,
 } from "lucide-react";
+import { clearAuthCredentials } from "@/utils/authUtil";
 
 const categoryIcons: { [key: string]: React.ReactNode } = {
   "ĐIỆN THOẠI DI ĐỘNG": <Phone className="w-5 h-5" />,
@@ -102,9 +104,9 @@ const Navbar: React.FC<NavbarProps> = ({
     : (categoriesData as any)?.data;
 
   const linkBaseClasses = "text-sm font-medium transition-colors duration-200";
-  const linkHoverClasses = "hover:text-ch-red";
+  const linkHoverClasses = "hover:text-ch-pink";
   const lightModeText = "text-gray-700 dark:text-gray-300";
-  const activeClass = "!text-ch-red font-semibold";
+  const activeClass = "!text-ch-pink font-semibold";
 
   const isProductsActive = location.pathname.startsWith("/product");
 
@@ -168,6 +170,10 @@ const Navbar: React.FC<NavbarProps> = ({
     setIsProductHovered(false);
   };
 
+  const handleLogout = () => {
+    clearAuthCredentials();
+  };
+
   return (
     <>
       {/* Dark Overlay */}
@@ -200,7 +206,7 @@ const Navbar: React.FC<NavbarProps> = ({
           setIsProductHovered(false);
         }}
       >
-        <div className="h-full py-4 w-72">
+        <div className="h-full py-4 w-72 flex flex-col">
           {/* Logo Section */}
           <div className="px-4 mb-8">
             <div className="flex items-center gap-3">
@@ -221,7 +227,7 @@ const Navbar: React.FC<NavbarProps> = ({
           </div>
 
           {/* Navigation Items */}
-          <div className="space-y-2 px-2">
+          <div className="space-y-2 px-2 flex-1">
             {menuItems.map((item) => (
               <div key={item.path}>
                 {item.hasSubmenu ? (
@@ -353,6 +359,36 @@ const Navbar: React.FC<NavbarProps> = ({
               </div>
             ))}
           </div>
+
+          {/* Logout Button */}
+          <NavLink
+            to="/login"
+            className="px-2 mt-auto border-t border-gray-200 dark:border-gray-700 pt-4"
+          >
+            <button
+              onClick={handleLogout}
+              className={cn(
+                "w-full h-10 px-3 flex items-center gap-3",
+                linkBaseClasses,
+                lightModeText,
+                linkHoverClasses,
+                "hover:bg-gray-100 dark:hover:bg-ch-gray-800 rounded-md",
+                "text-red-500 hover:text-red-600 dark:text-red-400 dark:hover:text-red-300"
+              )}
+            >
+              <span className="flex items-center justify-center flex-shrink-0">
+                <LogOut className="w-5 h-5" />
+              </span>
+              <motion.span
+                initial={{ opacity: 0 }}
+                animate={{ opacity: isExpanded ? 1 : 0 }}
+                transition={{ duration: 0.2 }}
+                className="whitespace-nowrap"
+              >
+                ĐĂNG XUẤT
+              </motion.span>
+            </button>
+          </NavLink>
         </div>
       </motion.nav>
     </>

@@ -8,10 +8,10 @@
 
 @theme {
   /* red */
-  --color-ch-red-10: rgb(255, 230, 230);
-  --color-ch-red-50: rgb(255, 205, 205);
-  --color-ch-red-100: rgb(255, 77, 77);
-  --color-ch-red: rgb(255, 0, 0);
+  --color-ch-pink-10: rgb(255, 230, 230);
+  --color-ch-pink-50: rgb(255, 205, 205);
+  --color-ch-pink-100: rgb(255, 77, 77);
+  --color-ch-pink: rgb(255, 0, 0);
 
   /* blue */
   --color-ch-blue-10: rgb(245, 245, 255);

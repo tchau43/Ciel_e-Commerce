@@ -16,7 +16,7 @@ const CustomerLayout: React.FC = () => {
 
   return (
     <NavbarWrapper>
-      <div className="flex flex-col min-h-screen w-full items-center bg-ch-red-10">
+      <div className="flex flex-col min-h-screen w-full items-center">
         {/* <Topbar /> */}
         <Header />
         {/* Vùng nội dung chính: flex-1 sẽ đẩy Footer xuống */}
