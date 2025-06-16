@@ -9,6 +9,7 @@ import {
   Invoice,
 } from "@/types/dataTypes";
 import Base from "../base";
+import { AdminInvoiceQueryResult } from "@/services/invoice/getAllInvoicesQuery";
 
 type InitiatePaymentVariables = {
   userId: string;
@@ -29,11 +30,11 @@ class InvoiceRepository extends Base {
     return this.http<Invoice[]>(url, "get");
   };
 
-  // Method for getting ALL invoices (Admin) - ĐÃ CÓ SẴN
+  // Method for getting ALL invoices (Admin)
   getAllInvoices = async (url: string, params?: Record<string, any>) => {
-    // Thêm params tùy chọn
-    // params sẽ chứa các query như searchTerm, page, limit...
-    return this.http<Invoice[]>(url, "get", undefined, { params }); // Truyền params vào config axios
+    return this.http<AdminInvoiceQueryResult>(url, "get", undefined, {
+      params,
+    });
   };
 
   // Existing method for Stripe Initiation

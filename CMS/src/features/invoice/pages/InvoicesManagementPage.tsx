@@ -177,19 +177,6 @@ const InvoicesManagementPage = () => {
               className="pl-10 bg-input/90 dark:bg-input/80 border-input/20 dark:border-input/10 text-foreground/90 dark:text-foreground/80 placeholder:text-muted-foreground/50 dark:placeholder:text-muted-foreground/40"
             />
           </div>
-          <Button
-            variant="outline"
-            size="sm"
-            className="flex items-center gap-2"
-            onClick={() => setShowFilterPanel(!showFilterPanel)}
-          >
-            {showFilterPanel ? (
-              <X className="h-4 w-4" />
-            ) : (
-              <Filter className="h-4 w-4" />
-            )}
-            {showFilterPanel ? "Ẩn bộ lọc" : "Hiện bộ lọc"}
-          </Button>
         </div>
       </div>
 

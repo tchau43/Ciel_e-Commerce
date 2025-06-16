@@ -21,7 +21,7 @@ export const API_ENDPOINTS = {
   PRODUCTS: `${VITE_API_VERSION}/products`, // GET
   PRODUCT_BY_ID: (id: string) => `${VITE_API_VERSION}/product/${id}`, // GET
   PRODUCTS_BY_CATEGORY: `${VITE_API_VERSION}/productsByCategory`, // GET (Query params expected)
-  PRODUCTS_BY_SEARCH_NAME: `${VITE_API_VERSION}/product/searchName`, // GET (Query param 'name')
+  PRODUCTS_BY_SEARCH_NAME: `${VITE_API_VERSION}/product/search`, // GET (Query param 'name')
   PRODUCTS_BY_SEARCH_TERM: `${VITE_API_VERSION}/productsBySearch`, // GET (Query param 'searchTerm')
   PRODUCTS_BATCH: `${VITE_API_VERSION}/products/batch`, // POST (Auth required, expects { ids: [...] } in body)
   FEATURED_PRODUCTS: `${VITE_API_VERSION}/products/featured`, // GET (Optional query param 'limit')
