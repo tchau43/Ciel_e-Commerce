@@ -25,6 +25,8 @@ import ChatWidget from "./components/chat/ChatWidget";
 import AuthPage from "./features/auth/pages/AuthPage.tsx";
 import LandingLayout from "./features/landing/LandingLayout.tsx";
 import ProductLayoutWrapper from "./features/products/components/ProductLayoutWrapper.tsx";
+import TestPage2 from "./features/pages/TestPage2.tsx";
+import Profile from "./features/customer/pages/Profile.tsx";
 
 function LoadingSpinner() {
   return (
@@ -70,6 +72,7 @@ function App() {
             <Route path="payment/" element={<PaymentPage />} />
             <Route path="payment/stripe" element={<StripePaymentPage />} />
             <Route path="invoice/" element={<InvoicePage />} />
+            <Route path="profile/" element={<Profile />} />
             <Route
               path="recommendations/"
               element={<RecommendedProductsPage />}
@@ -79,7 +82,8 @@ function App() {
           </Route>
 
           {/* Test route */}
-          <Route path="test/" element={<TestPage />} />
+          <Route path="test/:id" element={<TestPage />} />
+          <Route path="test2/:id" element={<TestPage2 />} />
         </Routes>
         <Toaster position="top-right" richColors />
         <ChatWidget />

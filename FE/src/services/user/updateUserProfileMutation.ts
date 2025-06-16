@@ -1,30 +1,12 @@
 import OUser from "@/repositories/user/user.ts";
-import { User, Address } from "@/types/dataTypes";
 import { API_ENDPOINTS } from "@/utils/api/endpoint";
 import { useMutation } from "@tanstack/react-query";
 
 interface UpdateUserProfileData {
   name?: string;
   phoneNumber?: number;
-  address?: Address;
+  address?: string | { street: string };
 }
-
-interface UpdateProfileResponse {
-  message: string;
-  user: User;
-}
-
-// For admin updates
-export const useUpdateUserByIdMutation = () => {
-  return useMutation({
-    mutationFn: ({ id, variables }: { id: string; variables: User }) => {
-      return OUser.updateUserById(
-        API_ENDPOINTS.ADMIN_UPDATE_USER(id),
-        variables
-      );
-    },
-  });
-};
 
 // For user self-profile updates
 export const useUpdateUserProfileMutation = () => {
