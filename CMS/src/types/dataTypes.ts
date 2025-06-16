@@ -118,12 +118,19 @@ export type Brand = BaseDoc & {
 export type BrandReference = BaseReference; // ID và name là đủ
 
 // --- Variant ---
-export type Variant = BaseDoc & {
-  types: string; // Ví dụ: "Màu:Đỏ, Size:XL"
+export interface Variant {
+  _id: string;
+  product: {
+    _id: string;
+    name: string;
+  };
+  types: string;
   price: number;
   stock: number;
-  product: string; // ID sản phẩm cha
-};
+  createdAt: string;
+  updatedAt: string;
+  __v: number;
+}
 export type VariantReference = Pick<
   Variant,
   "_id" | "types" | "price" | "stock"
