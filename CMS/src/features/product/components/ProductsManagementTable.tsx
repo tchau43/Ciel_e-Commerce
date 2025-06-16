@@ -1,6 +1,6 @@
 // src/features/admin/components/ProductsManagementTable.tsx
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"; // For product images
 import { Button } from "@/components/ui/button";
@@ -121,20 +121,25 @@ const ProductsManagementTable = ({ data }: ProductsManagementTableProps) => {
     );
   };
 
+  // Reset page when data changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [data]);
+
   return (
-    <Card className="border bg-card rounded-lg overflow-hidden">
+    <Card className="border border-border/10 dark:border-border/20 bg-card/95 dark:bg-card/90 backdrop-blur-sm">
       {/* Optional Title outside or via prop */}
       {/* <h2 className="text-xl font-semibold p-4">{title}</h2> */}
 
       <CardContent className="p-0">
         <Table>
-          <TableHeader className="border-b bg-muted/30">
+          <TableHeader className="border-b border-border/10 dark:border-border/20 bg-muted/30 dark:bg-muted/20">
             <TableRow>
-              <TableHead className="w-16 pl-6 text-muted-foreground">
+              <TableHead className="w-16 pl-6 text-muted-foreground/70 dark:text-muted-foreground/60">
                 Ảnh
               </TableHead>
               <TableHead
-                className="cursor-pointer text-muted-foreground hover:text-foreground transition-colors"
+                className="cursor-pointer text-muted-foreground/70 dark:text-muted-foreground/60 hover:text-foreground/90 dark:hover:text-foreground/80 transition-colors"
                 onClick={() => handleSort("name")}
               >
                 <div className="flex items-center">
@@ -142,7 +147,7 @@ const ProductsManagementTable = ({ data }: ProductsManagementTableProps) => {
                 </div>
               </TableHead>
               <TableHead
-                className="cursor-pointer text-muted-foreground hover:text-foreground transition-colors w-[120px]" // Fixed width for price
+                className="cursor-pointer text-muted-foreground/70 dark:text-muted-foreground/60 hover:text-foreground/90 dark:hover:text-foreground/80 transition-colors w-[120px]"
                 onClick={() => handleSort("base_price")}
               >
                 <div className="flex items-center">
@@ -150,7 +155,7 @@ const ProductsManagementTable = ({ data }: ProductsManagementTableProps) => {
                 </div>
               </TableHead>
               <TableHead
-                className="cursor-pointer text-muted-foreground hover:text-foreground transition-colors w-[150px]" // Fixed width
+                className="cursor-pointer text-muted-foreground/70 dark:text-muted-foreground/60 hover:text-foreground/90 dark:hover:text-foreground/80 transition-colors w-[150px]"
                 onClick={() => handleSort("category.name")}
               >
                 <div className="flex items-center">
@@ -158,7 +163,7 @@ const ProductsManagementTable = ({ data }: ProductsManagementTableProps) => {
                 </div>
               </TableHead>
               <TableHead
-                className="cursor-pointer text-muted-foreground hover:text-foreground transition-colors w-[150px]" // Fixed width
+                className="cursor-pointer text-muted-foreground/70 dark:text-muted-foreground/60 hover:text-foreground/90 dark:hover:text-foreground/80 transition-colors w-[150px]"
                 onClick={() => handleSort("brand.name")}
               >
                 <div className="flex items-center">
@@ -168,7 +173,7 @@ const ProductsManagementTable = ({ data }: ProductsManagementTableProps) => {
               {/* Add other sortable columns like quantity if needed */}
               {/* <TableHead className="text-center text-muted-foreground w-[100px]">Tồn kho</TableHead> */}
               {/* <TableHead className="text-center text-muted-foreground w-[100px]">Trạng thái</TableHead> */}
-              <TableHead className="text-right w-20 pr-6 text-muted-foreground">
+              <TableHead className="text-right w-20 pr-6 text-muted-foreground/70 dark:text-muted-foreground/60">
                 Sửa
               </TableHead>
             </TableRow>
@@ -178,43 +183,36 @@ const ProductsManagementTable = ({ data }: ProductsManagementTableProps) => {
               paginatedData.map((product) => (
                 <TableRow
                   key={product._id}
-                  className="hover:bg-muted/50 dark:hover:bg-muted/40 transition-colors border-b last:border-b-0"
+                  className="hover:bg-muted/30 dark:hover:bg-muted/20 transition-colors border-b border-border/10 dark:border-border/20 last:border-b-0"
                 >
                   <TableCell className="pl-6 py-2">
-                    {" "}
-                    {/* Adjusted padding */}
-                    <Avatar className="h-10 w-10 rounded-md">
-                      {" "}
-                      {/* Square avatar for products */}
+                    <Avatar className="h-10 w-10 rounded-md ring-1 ring-border/10 dark:ring-border/20">
                       <AvatarImage
-                        src={product.images?.[0] || "/placeholder-product.png"} // Use first image or placeholder
+                        src={product.images?.[0] || "/placeholder-product.png"}
                         alt={product.name}
                         className="object-cover"
                         onError={(e) => {
                           const target = e.target as HTMLImageElement;
                           target.onerror = null;
-                          target.src = "/placeholder-product.png"; // Fallback placeholder
+                          target.src = "/placeholder-product.png";
                         }}
                       />
-                      <AvatarFallback className="rounded-md text-xs">
-                        {product.name?.[0]?.toUpperCase() || "P"}
+                      <AvatarFallback className="rounded-md text-xs bg-muted/40 dark:bg-muted/30">
+                        {product.name?.[0]?.toUpperCase() || "SP"}
                       </AvatarFallback>
                     </Avatar>
                   </TableCell>
                   <TableCell className="font-medium text-foreground/90 dark:text-foreground/80 py-2 align-top">
-                    {" "}
-                    {/* Align top */}
                     {product.name}
                   </TableCell>
-                  <TableCell className="text-muted-foreground py-2 align-top">
+                  <TableCell className="text-muted-foreground/70 dark:text-muted-foreground/60 py-2 align-top">
                     {formatCurrency(product.base_price)}
                   </TableCell>
-                  <TableCell className="text-muted-foreground py-2 align-top">
-                    {product.category?.name || "N/A"}
+                  <TableCell className="text-muted-foreground/70 dark:text-muted-foreground/60 py-2 align-top">
+                    {product.category?.name || "Chưa phân loại"}
                   </TableCell>
-                  <TableCell className="text-muted-foreground py-2 align-top">
-                    {product.brand?.name || "N/A"}{" "}
-                    {/* Handle potentially missing brand */}
+                  <TableCell className="text-muted-foreground/70 dark:text-muted-foreground/60 py-2 align-top">
+                    {product.brand?.name || "Chưa phân loại"}
                   </TableCell>
                   {/* Add other cells like quantity, status if needed */}
                   {/* <TableCell className="text-center text-muted-foreground py-2 align-top">{product.variants.reduce((sum, v) => sum + v.stock, 0)}</TableCell> */}
@@ -227,7 +225,7 @@ const ProductsManagementTable = ({ data }: ProductsManagementTableProps) => {
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="h-8 w-8 text-muted-foreground hover:text-primary"
+                      className="h-8 w-8 text-muted-foreground/70 hover:text-primary/90 dark:text-muted-foreground/60 dark:hover:text-primary/80"
                       onClick={() => handleEdit(product._id)}
                     >
                       <Pencil className="h-4 w-4" />
@@ -240,9 +238,14 @@ const ProductsManagementTable = ({ data }: ProductsManagementTableProps) => {
               <TableRow>
                 <TableCell
                   colSpan={6}
-                  className="h-24 text-center text-muted-foreground"
+                  className="h-24 text-center text-muted-foreground/70 dark:text-muted-foreground/60"
                 >
-                  Không tìm thấy sản phẩm nào.
+                  <div className="flex flex-col items-center justify-center gap-2">
+                    <p className="text-base">Không tìm thấy sản phẩm nào.</p>
+                    <p className="text-sm text-muted-foreground/60 dark:text-muted-foreground/50">
+                      Thử tìm kiếm với từ khóa khác hoặc xóa bộ lọc.
+                    </p>
+                  </div>
                 </TableCell>
               </TableRow>
             )}
@@ -250,8 +253,8 @@ const ProductsManagementTable = ({ data }: ProductsManagementTableProps) => {
         </Table>
       </CardContent>
       {totalPages > 1 && (
-        <CardFooter className="flex items-center justify-between border-t pt-4 pb-4">
-          <div className="text-xs text-muted-foreground">
+        <CardFooter className="flex items-center justify-between border-t border-border/10 dark:border-border/20 pt-4 pb-4">
+          <div className="text-xs text-muted-foreground/70 dark:text-muted-foreground/60">
             Trang {currentPage} / {totalPages} (Tổng: {data.length} sản phẩm)
           </div>
           <div className="flex items-center space-x-1">
@@ -260,7 +263,7 @@ const ProductsManagementTable = ({ data }: ProductsManagementTableProps) => {
               size="sm"
               onClick={() => handlePageChange(currentPage - 1)}
               disabled={currentPage === 1}
-              className="h-8 w-8 p-0"
+              className="h-8 w-8 p-0 border-border/20 dark:border-border/10 hover:bg-muted/30 dark:hover:bg-muted/20"
             >
               <span className="sr-only">Trang trước</span>
               <ChevronLeft className="h-4 w-4" />
@@ -270,7 +273,7 @@ const ProductsManagementTable = ({ data }: ProductsManagementTableProps) => {
               size="sm"
               onClick={() => handlePageChange(currentPage + 1)}
               disabled={currentPage === totalPages}
-              className="h-8 w-8 p-0"
+              className="h-8 w-8 p-0 border-border/20 dark:border-border/10 hover:bg-muted/30 dark:hover:bg-muted/20"
             >
               <span className="sr-only">Trang sau</span>
               <ChevronRight className="h-4 w-4" />

@@ -1,12 +1,28 @@
-import OUser from "@/repositories/user/user.ts";
-import { User } from "@/types/dataTypes";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { API_ENDPOINTS } from "@/utils/api/endpoint";
-import { useMutation } from "@tanstack/react-query";
+import userRepository from "@/repositories/user/user";
+import { Address } from "@/types/dataTypes";
 
-export const useUpdateUserByIdMutation = () => {
+interface UpdateUserData {
+  id: string;
+  name?: string;
+  status?: boolean;
+  role?: string;
+  address?: Address;
+  phoneNumber?: string;
+  oldPassword?: string;
+  newPassword?: string;
+}
+
+export const useUpdateUserMutation = () => {
+  const queryClient = useQueryClient();
+
   return useMutation({
-    mutationFn: ({ id, variables }: { id: string; variables: User }) => {
-      return OUser.updateUserById(API_ENDPOINTS.USER(id), variables);
+    mutationFn: ({ id, ...data }: UpdateUserData) =>
+      userRepository.updateUser(API_ENDPOINTS.UPDATE_USER(id), data),
+    onSuccess: () => {
+      // Invalidate and refetch user data
+      queryClient.invalidateQueries({ queryKey: ["users"] });
     },
   });
 };

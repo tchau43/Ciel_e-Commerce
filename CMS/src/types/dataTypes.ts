@@ -95,7 +95,7 @@ export type User = BaseDoc & {
   status: boolean;
   image?: string;
   address?: Address; // Sử dụng lại Address type
-  phoneNumber?: number; // Cân nhắc đổi thành string nếu có thể chứa ký tự đặc biệt (+, -, space)
+  phoneNumber?: number;
 };
 
 export type UserReference = Pick<User, "_id" | "name" | "email"> & {
@@ -257,7 +257,15 @@ export type RegisterInput = LoginInput & {
 };
 
 // --- User Update (Admin) ---
-export type UpdateUserInput = Partial<Pick<User, "name" | "status" | "role">>; // Chỉ cho phép cập nhật các trường này
+export type UpdateUserInput = {
+  name?: string;
+  status?: boolean;
+  role?: Role;
+  phoneNumber?: string;
+  address?: Address;
+  oldPassword?: string;
+  newPassword?: string;
+};
 
 // --- Category/Brand Create/Update ---
 export type CategoryInput = Pick<Category, "name" | "description">;
