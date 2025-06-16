@@ -19,7 +19,6 @@ import { useNavigate } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import VariantList from "./VariantList";
-const VITE_BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
 interface ProductUpdateFormProps {
   product: Product;
@@ -128,9 +127,13 @@ const ProductUpdateForm = ({ product }: ProductUpdateFormProps) => {
     ? imageSources
     : imageSources.slice(0, 4);
   const hasMoreImages = imageSources.length > 4;
-
   useEffect(() => {
-    setFormData({ ...product });
+    setFormData((prev) => ({
+      ...prev,
+      ...product,
+      description: product.description || [],
+      tags: product.tags || [],
+    }));
   }, [product]);
 
   const handleChange = (

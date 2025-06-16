@@ -26,7 +26,9 @@ const UserManagementPage: React.FC = () => {
       email: user.email,
       phoneNumber: user.phoneNumber || "",
       role: user.role.toLowerCase(),
-    }).some((value) => value.toLowerCase().includes(searchTerm.toLowerCase()))
+    }).some((value) =>
+      String(value).toLowerCase().includes(searchTerm.toLowerCase())
+    )
   );
 
   if (isLoading) {
