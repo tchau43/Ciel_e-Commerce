@@ -19,6 +19,12 @@ instance.interceptors.request.use(
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
+
+    // Handle FormData
+    if (config.data instanceof FormData) {
+      config.headers["Content-Type"] = "multipart/form-data";
+    }
+
     return config;
   },
   (error) => Promise.reject(error)
@@ -41,8 +47,10 @@ instance.interceptors.response.use(
       // return Promise.reject(new Error("Session expired. Please login again."));
     }
 
-    // For other errors, reject the promise as before
-    return Promise.reject(error?.response?.data ?? error);
+    // For other errors, reject the promise with error details
+    const errorMessage =
+      error?.response?.data?.message || error?.message || "An error occurred";
+    return Promise.reject(new Error(errorMessage));
   }
 );
 
