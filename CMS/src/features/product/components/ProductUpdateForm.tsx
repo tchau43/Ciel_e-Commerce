@@ -62,7 +62,7 @@ const ProductUpdateForm = ({ product }: ProductUpdateFormProps) => {
       { productId: formData._id, variables: formDataToSend },
       {
         onSuccess: () => {
-          setMessage("Product updated successfully!");
+          setMessage("Cập nhật sản phẩm thành công!");
           setTimeout(() => navigate("/products"), 1000);
         },
         onError: (error) => {
@@ -111,54 +111,66 @@ const ProductUpdateForm = ({ product }: ProductUpdateFormProps) => {
 
   return (
     <div>
-      <Card className="p-6 max-w-lg mx-auto mt-10 border rounded-lg shadow-lg">
-        <h2 className="text-xl font-bold mb-4">Update Product</h2>
+      <Card className="p-6 max-w-lg mx-auto mt-10 border border-border/10 dark:border-border/20 bg-card/95 dark:bg-card/90 backdrop-blur-sm">
+        <h2 className="text-xl font-bold mb-4 text-foreground/90 dark:text-foreground/80">
+          Cập nhật Sản phẩm
+        </h2>
 
         {message && (
           <div
-            className={`p-2 rounded-md mb-4 text-white ${
-              message.includes("Error") ? "bg-red-500" : "bg-green-500"
+            className={`p-2 rounded-md mb-4 ${
+              message.includes("Error")
+                ? "bg-destructive/20 text-destructive-foreground dark:bg-destructive/30"
+                : "bg-emerald-500/20 text-emerald-700 dark:bg-emerald-500/30 dark:text-emerald-400"
             }`}
           >
-            {message}
+            {message.includes("Error")
+              ? "Có lỗi xảy ra khi cập nhật sản phẩm"
+              : "Cập nhật sản phẩm thành công!"}
           </div>
         )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
           {/* Name Input */}
           <div>
-            <label className="block text-sm font-medium">Name:</label>
+            <label className="block text-sm font-medium text-foreground/90 dark:text-foreground/80">
+              Tên sản phẩm:
+            </label>
             <input
               type="text"
               name="name"
               value={formData.name ?? ""}
               onChange={handleChange}
-              className="w-full border p-2 rounded"
-              placeholder="Enter name"
+              className="w-full border border-input/20 dark:border-input/10 bg-input/90 dark:bg-input/80 p-2 rounded text-foreground/90 dark:text-foreground/80"
+              placeholder="Nhập tên sản phẩm"
             />
           </div>
 
           {/* Price Input */}
           <div>
-            <label className="block text-sm font-medium">Price:</label>
+            <label className="block text-sm font-medium text-foreground/90 dark:text-foreground/80">
+              Giá:
+            </label>
             <input
               type="number"
               name="price"
               value={formData.base_price}
               onChange={handleChange}
-              className="w-full border p-2 rounded"
-              placeholder="Enter price"
+              className="w-full border border-input/20 dark:border-input/10 bg-input/90 dark:bg-input/80 p-2 rounded text-foreground/90 dark:text-foreground/80"
+              placeholder="Nhập giá sản phẩm"
             />
           </div>
 
           {/* Category Selection */}
           <div>
-            <label className="block text-sm font-medium">Category:</label>
+            <label className="block text-sm font-medium text-foreground/90 dark:text-foreground/80">
+              Danh mục:
+            </label>
             <select
               name="category"
-              value={formData.category._id} // Use _id instead of name
+              value={formData.category._id}
               onChange={handleCategoryChange}
-              className="border rounded-md w-full px-1 py-2"
+              className="w-full border border-input/20 dark:border-input/10 bg-input/90 dark:bg-input/80 px-2 py-2 rounded text-foreground/90 dark:text-foreground/80"
             >
               {categories.map((c) => (
                 <option key={c._id} value={c._id}>
@@ -170,66 +182,52 @@ const ProductUpdateForm = ({ product }: ProductUpdateFormProps) => {
 
           {/* Description Input */}
           <div>
-            <label className="block text-sm font-medium">Description:</label>
+            <label className="block text-sm font-medium text-foreground/90 dark:text-foreground/80">
+              Mô tả:
+            </label>
             <input
               type="text"
               name="description"
               value={formData.description}
               onChange={handleChange}
-              className="w-full border p-2 rounded"
-              placeholder="Enter description"
+              className="w-full border border-input/20 dark:border-input/10 bg-input/90 dark:bg-input/80 p-2 rounded text-foreground/90 dark:text-foreground/80"
+              placeholder="Nhập mô tả sản phẩm"
             />
           </div>
 
           {/* Existing Images */}
           <div>
-            <label className="block text-sm font-medium mb-2">Images:</label>
+            <label className="block text-sm font-medium mb-2 text-foreground/90 dark:text-foreground/80">
+              Hình ảnh hiện tại:
+            </label>
             <div className="flex flex-wrap gap-2">
               {imageSources.map((i) => (
                 <img
-                  className="w-20 h-20 object-cover border rounded"
-                  alt=""
+                  className="w-20 h-20 object-cover border border-border/10 dark:border-border/20 rounded"
+                  alt="Hình ảnh sản phẩm"
                   src={i}
                 />
               ))}
             </div>
           </div>
 
-          {/* New Image URL Input */}
-          {/* <div className="mt-4">
-            <label className="block text-sm font-medium">
-              Add New Image URL:
-            </label>
-            <div className="flex items-center space-x-2">
-              <input
-                type="text"
-                value={newImageUrl}
-                onChange={(e) => setNewImageUrl(e.target.value)}
-                placeholder="Enter image URL"
-                className="w-full border p-2 rounded"
-              />
-              <Button type="button" onClick={handleAddImage}>
-                Add Image
-              </Button>
-            </div>
-          </div> */}
-
+          {/* Upload New Image */}
           <div className="mt-4">
-            <label className="block text-sm font-medium">
-              Upload New Image:
+            <label className="block text-sm font-medium text-foreground/90 dark:text-foreground/80">
+              Tải lên hình ảnh mới:
             </label>
             <div className="flex items-center space-x-2">
               <input
                 type="file"
                 accept="image/*"
                 onChange={handleFileChange}
-                className="w-full border p-2 rounded"
+                className="w-full border border-input/20 dark:border-input/10 bg-input/90 dark:bg-input/80 p-2 rounded text-foreground/90 dark:text-foreground/80"
               />
               {imagePreviewUrl && (
                 <img
                   src={imagePreviewUrl}
-                  alt="Preview"
-                  className="w-20 h-20 object-cover border rounded"
+                  alt="Xem trước"
+                  className="w-20 h-20 object-cover border border-border/10 dark:border-border/20 rounded"
                 />
               )}
             </div>
@@ -238,20 +236,25 @@ const ProductUpdateForm = ({ product }: ProductUpdateFormProps) => {
           {/* Action Buttons */}
           <div className="flex justify-between mt-4">
             <Button
-              variant="secondary"
+              variant="outline"
               onClick={() => navigate("/products")}
               disabled={loading}
+              className="border-border/20 dark:border-border/10 hover:bg-muted/80 dark:hover:bg-muted/20"
             >
-              Cancel
+              Hủy
             </Button>
-            <Button type="submit" disabled={loading}>
+            <Button
+              type="submit"
+              disabled={loading}
+              className="bg-primary/90 dark:bg-primary/80 hover:bg-primary/100 dark:hover:bg-primary/90"
+            >
               {loading ? (
                 <>
                   <Loader className="w-4 h-4 mr-2 animate-spin" />
-                  Saving...
+                  Đang lưu...
                 </>
               ) : (
-                "Save Changes"
+                "Lưu thay đổi"
               )}
             </Button>
           </div>
