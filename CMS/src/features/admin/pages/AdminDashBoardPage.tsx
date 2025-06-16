@@ -32,7 +32,45 @@ import {
 } from "date-fns";
 import { vi } from "date-fns/locale";
 
-const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#8884D8"];
+// Cập nhật bảng màu cho dark mode
+const COLORS = {
+  light: [
+    "rgba(79, 70, 229, 1)",
+    "rgba(16, 185, 129, 1)",
+    "rgba(245, 158, 11, 1)",
+    "rgba(239, 68, 68, 1)",
+    "rgba(139, 92, 246, 1)",
+  ],
+  dark: [
+    "rgba(129, 140, 248, 1)",
+    "rgba(52, 211, 153, 1)",
+    "rgba(252, 211, 77, 1)",
+    "rgba(248, 113, 113, 1)",
+    "rgba(167, 139, 250, 1)",
+  ],
+};
+
+// Thêm một số màu gradient cho biểu đồ
+const CHART_COLORS = {
+  light: {
+    primary: "rgba(79, 70, 229, 1)",
+    success: "rgba(16, 185, 129, 1)",
+    warning: "rgba(245, 158, 11, 1)",
+    error: "rgba(239, 68, 68, 1)",
+    purple: "rgba(139, 92, 246, 1)",
+    gradientFrom: "rgba(79, 70, 229, 1)",
+    gradientTo: "rgba(129, 140, 248, 1)",
+  },
+  dark: {
+    primary: "rgba(129, 140, 248, 1)",
+    success: "rgba(52, 211, 153, 1)",
+    warning: "rgba(252, 211, 77, 1)",
+    error: "rgba(248, 113, 113, 1)",
+    purple: "rgba(167, 139, 250, 1)",
+    gradientFrom: "rgba(129, 140, 248, 1)",
+    gradientTo: "rgba(199, 210, 254, 1)",
+  },
+};
 
 // Add interface definition at the top
 interface Invoice {
@@ -210,9 +248,11 @@ const AdminDashboardPage = () => {
   };
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-6 space-y-6 bg-gray-50 dark:bg-gray-900">
       <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold">Dashboard</h1>
+        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+          Dashboard
+        </h1>
         <Tabs value={period} onValueChange={setPeriod} className="w-[400px]">
           <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="weekly">Tuần này</TabsTrigger>
@@ -224,15 +264,17 @@ const AdminDashboardPage = () => {
 
       {/* Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <Card>
+        <Card className="bg-white dark:bg-gray-800 shadow-lg hover:shadow-xl transition-shadow duration-200">
           <CardHeader className="pb-2">
-            <CardDescription>Tổng doanh thu</CardDescription>
-            <CardTitle className="text-3xl">
+            <CardDescription className="text-gray-600 dark:text-gray-400">
+              Tổng doanh thu
+            </CardDescription>
+            <CardTitle className="text-3xl text-indigo-600 dark:text-indigo-400">
               {formatCurrency(totalRevenue)}
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-xs text-muted-foreground">
+            <p className="text-xs text-gray-500 dark:text-gray-400">
               Tổng doanh thu{" "}
               {period === "weekly"
                 ? "tuần này"
@@ -243,27 +285,33 @@ const AdminDashboardPage = () => {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="bg-white dark:bg-gray-800 shadow-lg hover:shadow-xl transition-shadow duration-200">
           <CardHeader className="pb-2">
-            <CardDescription>Doanh thu hôm nay</CardDescription>
-            <CardTitle className="text-3xl">
+            <CardDescription className="text-gray-600 dark:text-gray-400">
+              Doanh thu hôm nay
+            </CardDescription>
+            <CardTitle className="text-3xl text-emerald-600 dark:text-emerald-400">
               {formatCurrency(todayRevenue)}
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-xs text-muted-foreground">
+            <p className="text-xs text-gray-500 dark:text-gray-400">
               Tính từ 00:00 hôm nay
             </p>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="bg-white dark:bg-gray-800 shadow-lg hover:shadow-xl transition-shadow duration-200">
           <CardHeader className="pb-2">
-            <CardDescription>Số đơn hàng</CardDescription>
-            <CardTitle className="text-3xl">{orderCount}</CardTitle>
+            <CardDescription className="text-gray-600 dark:text-gray-400">
+              Số đơn hàng
+            </CardDescription>
+            <CardTitle className="text-3xl text-amber-600 dark:text-amber-400">
+              {orderCount}
+            </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-xs text-muted-foreground">
+            <p className="text-xs text-gray-500 dark:text-gray-400">
               Số đơn hàng{" "}
               {period === "weekly"
                 ? "tuần này"
@@ -277,16 +325,29 @@ const AdminDashboardPage = () => {
 
       {/* Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card>
+        <Card className="bg-white dark:bg-gray-800 shadow-lg">
           <CardHeader>
-            <CardTitle>Doanh thu theo thời gian</CardTitle>
+            <CardTitle className="text-gray-800 dark:text-white">
+              Doanh thu theo thời gian
+            </CardTitle>
           </CardHeader>
           <CardContent className="h-80">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={revenueData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="date" />
-                <YAxis />
+                <CartesianGrid
+                  strokeDasharray="3 3"
+                  stroke="rgba(229, 231, 235, 1)"
+                  className="dark:stroke-gray-700"
+                />
+                <XAxis
+                  dataKey="date"
+                  stroke="rgba(107, 114, 128, 1)"
+                  className="dark:stroke-gray-400"
+                />
+                <YAxis
+                  stroke="rgba(107, 114, 128, 1)"
+                  className="dark:stroke-gray-400"
+                />
                 <Tooltip
                   formatter={(value) => {
                     if (typeof value === "number") {
@@ -294,30 +355,86 @@ const AdminDashboardPage = () => {
                     }
                     return value;
                   }}
+                  contentStyle={{
+                    backgroundColor:
+                      "var(--tooltip-bg, rgba(255, 255, 255, 1))",
+                    borderRadius: "8px",
+                    border:
+                      "1px solid var(--tooltip-border, rgba(229, 231, 235, 1))",
+                    color: "var(--tooltip-color, currentColor)",
+                    background: "var(--tooltip-bg, rgba(255, 255, 255, 1))",
+                  }}
                 />
+                <defs>
+                  <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
+                    <stop
+                      offset="5%"
+                      stopColor="rgba(79, 70, 229, 0.8)"
+                      stopOpacity={0.8}
+                      className="dark:stop-color-indigo-400"
+                    />
+                    <stop
+                      offset="95%"
+                      stopColor="rgba(129, 140, 248, 0)"
+                      stopOpacity={0}
+                      className="dark:stop-color-indigo-500"
+                    />
+                  </linearGradient>
+                </defs>
                 <Line
                   type="monotone"
                   dataKey="revenue"
-                  stroke="#8884d8"
-                  strokeWidth={2}
+                  stroke="var(--chart-primary, rgba(79, 70, 229, 1))"
+                  strokeWidth={3}
+                  dot={{ fill: "var(--chart-primary, rgba(79, 70, 229, 1))" }}
+                  activeDot={{ r: 8 }}
+                  className="dark:stroke-indigo-400 dark:fill-indigo-400"
                 />
               </LineChart>
             </ResponsiveContainer>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="bg-white dark:bg-gray-800 shadow-lg">
           <CardHeader>
-            <CardTitle>Top 5 sản phẩm bán chạy</CardTitle>
+            <CardTitle className="text-gray-800 dark:text-white">
+              Top 5 sản phẩm bán chạy
+            </CardTitle>
           </CardHeader>
           <CardContent className="h-80">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={productData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="name" />
-                <YAxis />
-                <Tooltip />
-                <Bar dataKey="sales" fill="#82ca9d" />
+                <CartesianGrid
+                  strokeDasharray="3 3"
+                  stroke="rgba(229, 231, 235, 1)"
+                  className="dark:stroke-gray-700"
+                />
+                <XAxis
+                  dataKey="name"
+                  stroke="rgba(107, 114, 128, 1)"
+                  className="dark:stroke-gray-400"
+                />
+                <YAxis
+                  stroke="rgba(107, 114, 128, 1)"
+                  className="dark:stroke-gray-400"
+                />
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor:
+                      "var(--tooltip-bg, rgba(255, 255, 255, 1))",
+                    borderRadius: "8px",
+                    border:
+                      "1px solid var(--tooltip-border, rgba(229, 231, 235, 1))",
+                    color: "var(--tooltip-color, currentColor)",
+                    background: "var(--tooltip-bg, rgba(255, 255, 255, 1))",
+                  }}
+                />
+                <Bar
+                  dataKey="sales"
+                  fill="var(--chart-success, rgba(16, 185, 129, 1))"
+                  radius={[4, 4, 0, 0]}
+                  className="dark:fill-emerald-400"
+                />
               </BarChart>
             </ResponsiveContainer>
           </CardContent>
@@ -325,9 +442,11 @@ const AdminDashboardPage = () => {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card>
+        <Card className="bg-white dark:bg-gray-800 shadow-lg">
           <CardHeader>
-            <CardTitle>Trạng thái đơn hàng</CardTitle>
+            <CardTitle className="text-gray-800 dark:text-white">
+              Trạng thái đơn hàng
+            </CardTitle>
           </CardHeader>
           <CardContent className="h-80">
             <ResponsiveContainer width="100%" height="100%">
@@ -339,7 +458,6 @@ const AdminDashboardPage = () => {
                   cx="50%"
                   cy="50%"
                   outerRadius={100}
-                  fill="#8884d8"
                   label={({ name, percent }) =>
                     `${name}: ${(percent * 100).toFixed(0)}%`
                   }
@@ -347,26 +465,52 @@ const AdminDashboardPage = () => {
                   {orderStatusData.map((_, index) => (
                     <Cell
                       key={`cell-${index}`}
-                      fill={COLORS[index % COLORS.length]}
+                      fill={COLORS.light[index % COLORS.light.length]}
+                      className={`dark:fill-${
+                        COLORS.dark[index % COLORS.dark.length]
+                      }`}
                     />
                   ))}
                 </Pie>
-                <Tooltip />
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor:
+                      "var(--tooltip-bg, rgba(255, 255, 255, 1))",
+                    borderRadius: "8px",
+                    border:
+                      "1px solid var(--tooltip-border, rgba(229, 231, 235, 1))",
+                    color: "var(--tooltip-color, currentColor)",
+                    background: "var(--tooltip-bg, rgba(255, 255, 255, 1))",
+                  }}
+                />
               </PieChart>
             </ResponsiveContainer>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="bg-white dark:bg-gray-800 shadow-lg">
           <CardHeader>
-            <CardTitle>Doanh thu theo ngày</CardTitle>
+            <CardTitle className="text-gray-800 dark:text-white">
+              Doanh thu theo ngày
+            </CardTitle>
           </CardHeader>
           <CardContent className="h-80">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={revenueData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="date" />
-                <YAxis />
+                <CartesianGrid
+                  strokeDasharray="3 3"
+                  stroke="rgba(229, 231, 235, 1)"
+                  className="dark:stroke-gray-700"
+                />
+                <XAxis
+                  dataKey="date"
+                  stroke="rgba(107, 114, 128, 1)"
+                  className="dark:stroke-gray-400"
+                />
+                <YAxis
+                  stroke="rgba(107, 114, 128, 1)"
+                  className="dark:stroke-gray-400"
+                />
                 <Tooltip
                   formatter={(value) => {
                     if (typeof value === "number") {
@@ -374,8 +518,22 @@ const AdminDashboardPage = () => {
                     }
                     return value;
                   }}
+                  contentStyle={{
+                    backgroundColor:
+                      "var(--tooltip-bg, rgba(255, 255, 255, 1))",
+                    borderRadius: "8px",
+                    border:
+                      "1px solid var(--tooltip-border, rgba(229, 231, 235, 1))",
+                    color: "var(--tooltip-color, currentColor)",
+                    background: "var(--tooltip-bg, rgba(255, 255, 255, 1))",
+                  }}
                 />
-                <Bar dataKey="revenue" fill="#8884d8" />
+                <Bar
+                  dataKey="revenue"
+                  fill="var(--chart-purple, rgba(139, 92, 246, 1))"
+                  radius={[4, 4, 0, 0]}
+                  className="dark:fill-purple-400"
+                />
               </BarChart>
             </ResponsiveContainer>
           </CardContent>
