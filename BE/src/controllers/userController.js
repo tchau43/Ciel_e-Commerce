@@ -13,6 +13,8 @@ const { getInvoiceService } = require("../services/invoiceService"); // Keep if 
 const mongoose = require('mongoose'); // For ObjectId validation
 const User = require('../models/user'); // Assuming you have a User model
 const { updateUserProfileService } = require('../services/utilsService');
+const bcrypt = require('bcrypt');
+const saltRounds = 10;
 
 const createUser = async (req, res) => {
   const { name, email, password, address, phoneNumber } = req.body; // Include optional fields
@@ -131,7 +133,7 @@ const getUserById = async (req, res) => {
 const updateUserbyId = async (req, res) => {
   // NOTE: This route is ADMIN only based on router setup
   const { id } = req.params; // ID of user to update
-  const updateData = req.body; // Contains fields to update { name?, status?, role? }
+  const updateData = req.body; // Contains fields to update
 
   try {
     if (!mongoose.Types.ObjectId.isValid(id)) {
@@ -140,29 +142,81 @@ const updateUserbyId = async (req, res) => {
 
     // --- Sanitize & Validate updateData ---
     const sanitizedData = {};
+
+    // Handle basic fields
     if (updateData.name !== undefined) {
       if (typeof updateData.name === 'string' && updateData.name.trim().length > 0) {
         sanitizedData.name = updateData.name.trim();
-      } else { return res.status(400).json({ message: "Invalid name provided." }); }
+      } else {
+        return res.status(400).json({ message: "Invalid name provided." });
+      }
     }
-    // **DO NOT UPDATE EMAIL HERE** - requires verification flow usually
-    // if (updateData.email ... ) { ... }
 
+    // Handle status
     if (updateData.status !== undefined) {
       if (typeof updateData.status === 'boolean') {
         sanitizedData.status = updateData.status;
-      } else { return res.status(400).json({ message: "Status must be true or false." }); }
+      } else {
+        return res.status(400).json({ message: "Status must be true or false." });
+      }
     }
+
+    // Handle role
     if (updateData.role !== undefined) {
-      const allowedRoles = ['CUSTOMER', 'ADMIN']; // Update if you have more roles
+      const allowedRoles = ['CUSTOMER', 'ADMIN'];
       if (allowedRoles.includes(updateData.role)) {
         sanitizedData.role = updateData.role;
-      } else { return res.status(400).json({ message: `Invalid role. Allowed: ${allowedRoles.join(', ')}` }); }
+      } else {
+        return res.status(400).json({ message: `Invalid role. Allowed: ${allowedRoles.join(', ')}` });
+      }
     }
-    // Exclude password explicitly
-    delete sanitizedData.password;
+
+    // Handle phone number
+    if (updateData.phoneNumber !== undefined) {
+      if (typeof updateData.phoneNumber === 'string' && updateData.phoneNumber.trim().length > 0) {
+        sanitizedData.phoneNumber = updateData.phoneNumber.trim();
+      } else {
+        return res.status(400).json({ message: "Invalid phone number format." });
+      }
+    }
+
+    // Handle address
+    if (updateData.address !== undefined) {
+      if (typeof updateData.address === 'object' && updateData.address !== null) {
+        sanitizedData.address = {
+          street: updateData.address.street || "",
+          city: updateData.address.city || "",
+          state: updateData.address.state || "",
+          country: updateData.address.country || "",
+          zipCode: updateData.address.zipCode || ""
+        };
+      } else {
+        return res.status(400).json({ message: "Invalid address format." });
+      }
+    }
+
+    // Handle password change if provided
+    if (updateData.oldPassword && updateData.newPassword) {
+      const user = await User.findById(id);
+      if (!user) {
+        return res.status(404).json({ message: "User not found." });
+      }
+
+      const isValidPassword = await bcrypt.compare(updateData.oldPassword, user.password);
+      if (!isValidPassword) {
+        return res.status(400).json({ message: "Old password is incorrect." });
+      }
+
+      if (updateData.newPassword.length < 6) {
+        return res.status(400).json({ message: "New password must be at least 6 characters long." });
+      }
+
+      sanitizedData.password = await bcrypt.hash(updateData.newPassword, saltRounds);
+    }
+
+    // Exclude sensitive fields
+    delete sanitizedData.email; // Email cannot be changed
     delete sanitizedData._id;
-    // --- End Sanitization ---
 
     if (Object.keys(sanitizedData).length === 0) {
       return res.status(400).json({ message: "No valid fields provided for update." });
