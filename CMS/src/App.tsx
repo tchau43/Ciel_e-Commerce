@@ -12,6 +12,7 @@ import EditProduct from "./features/product/components/EditProduct.tsx";
 import InvoicesManagementPage from "./features/invoice/pages/InvoicesManagementPage.tsx";
 import { Toaster } from "sonner";
 import EditUserPage from "./features/user/pages/EditUserPage.tsx";
+import CouponsManagementPage from "./features/coupon/pages/CouponsManagementPage.tsx";
 
 function LoadingSpinner() {
   return (
@@ -47,6 +48,7 @@ function App() {
             <Route path="products/" element={<ProductsManagementPage />} />
             <Route path="editProduct/:id/" element={<EditProduct />} />
             <Route path="invoices/" element={<InvoicesManagementPage />} />
+            <Route path="coupons/" element={<CouponsManagementPage />} />
           </Route>
         </Routes>
         <Toaster position="top-right" richColors />

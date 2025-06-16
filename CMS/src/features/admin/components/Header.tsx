@@ -20,6 +20,7 @@ const Header: React.FC = () => {
     { to: "/users", label: "Người dùng" }, // Translated
     { to: "/products", label: "Sản phẩm" }, // Translated
     { to: "/invoices", label: "Đơn hàng" }, // Translated
+    { to: "/coupons", label: "Mã giảm giá" }, // Added Coupon Management
     // Add more admin links here if needed
   ];
 
