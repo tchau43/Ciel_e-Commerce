@@ -24,7 +24,6 @@ import {
   ArrowUp,
   ArrowDown,
 } from "lucide-react";
-import { Input } from "@/components/ui/input";
 
 interface UserManagementTableProps {
   data: User[];

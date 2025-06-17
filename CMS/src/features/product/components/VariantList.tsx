@@ -8,7 +8,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { useDeleteVariantMutation } from "@/services/product/deleteVariantMutation";
 import { Variant, VariantInput } from "@/types/dataTypes";
 import { Pencil, Trash2, Plus } from "lucide-react";
 import { useState } from "react";

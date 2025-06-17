@@ -32,10 +32,6 @@ interface RateHelpfulnessResponse {
   };
 }
 
-interface RateHelpfulnessInput {
-  isHelpful: boolean;
-}
-
 class FAQ extends Base {
   /**
    * Get all FAQs with optional filtering

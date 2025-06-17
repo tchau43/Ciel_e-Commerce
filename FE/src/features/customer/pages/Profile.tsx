@@ -8,8 +8,7 @@ import { Loader2, Eye, EyeOff } from "lucide-react";
 import { useUpdateUserProfileMutation } from "@/services/user/updateUserByIdMutation";
 import { useUpdateUserPasswordMutation } from "@/services/user/updateUserPasswordMutation";
 import { useCurrentUserQuery } from "@/services/user/getCurrentUserQuery";
-import { User, Address } from "@/types/dataTypes";
-import axios from "axios";
+import { Address } from "@/types/dataTypes";
 
 interface UserProfile {
   name: string;

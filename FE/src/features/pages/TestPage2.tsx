@@ -1,14 +1,12 @@
 import { useGetProductByIdQuery } from "@/services/product/getProductByIdQuery";
 import { useGetProductReviewsQuery } from "@/services/review/getProductReviewsQuery";
-import { Outlet, useNavigate, useParams } from "react-router-dom";
-import ProductByCategory from "../products/components/ProductByCategory";
+import { useNavigate, useParams } from "react-router-dom";
 import { useEffect, useState, useRef } from "react";
 import { getAuthCredentials } from "@/utils/authUtil";
 import { useAddProductToCartMutation } from "@/services/cart/addProductToCartMutation";
 import { Product as ProductType, Variant } from "@/types/dataTypes";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
-import ProductReviews from "../products/components/ProductReviews";
 
 const TestPage2 = () => {
   const navigate = useNavigate();
