@@ -31,11 +31,7 @@ cd BE
 # Cài đặt các gói phụ thuộc
 npm install
 
-# Tạo file .env với các biến môi trường sau:
-# PORT=5000
-# MONGODB_URI=đường_dẫn_mongodb_của_bạn
-# JWT_SECRET=mã_bí_mật_jwt_của_bạn
-# OPENAI_API_KEY=khóa_api_openai_của_bạn (cho tính năng chatbot)
+# Tạo file .env
 
 # Khởi động máy chủ
 npm run dev
@@ -50,8 +46,7 @@ cd FE
 # Cài đặt các gói phụ thuộc
 npm install
 
-# Tạo file .env với:
-# VITE_API_URL=http://localhost:5000/api
+# Tạo file .env
 
 # Khởi động máy chủ phát triển
 npm run dev
@@ -67,7 +62,6 @@ cd CMS
 npm install
 
 # Tạo file .env với:
-# VITE_API_URL=http://localhost:5000/api
 
 # Khởi động máy chủ phát triển
 npm run dev
@@ -82,6 +76,9 @@ cd recommendation-service
 # Tạo và kích hoạt môi trường ảo (không bắt buộc nhưng được khuyến nghị)
 python -m venv venv
 source venv/bin/activate  # Trên Windows sử dụng: venv\Scripts\activate
+
+# Vào môi trường ảo - thoát
+.\env\Scripts\activate - deactivate
 
 # Cài đặt các gói phụ thuộc
 pip install -r requirements.txt
@@ -104,7 +101,7 @@ python app.py
 - `npm run build` - Build cho môi trường production
 - `npm run preview` - Xem trước bản build production
 
-## Tính Năng
+## Tính Năng Của Hệ Thống
 
 - Xác thực và phân quyền người dùng
 - Danh mục sản phẩm với các danh mục và thương hiệu
@@ -116,19 +113,3 @@ python app.py
 - Tích hợp thanh toán với Stripe
 - Hệ thống FAQ
 - Hệ thống đánh giá và xếp hạng
-
-## Tài Liệu API
-
-Tài liệu API có sẵn tại `http://localhost:5000/api-docs` khi máy chủ backend đang chạy.
-
-## Đóng Góp
-
-1. Fork dự án
-2. Tạo nhánh tính năng của bạn (`git checkout -b feature/tính-năng-mới`)
-3. Commit các thay đổi (`git commit -m 'Thêm một tính năng mới'`)
-4. Push lên nhánh (`git push origin feature/tính-năng-mới`)
-5. Tạo một Pull Request
-
-## Giấy Phép
-
-Dự án này được cấp phép theo Giấy phép MIT.
