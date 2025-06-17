@@ -343,8 +343,14 @@ export type LoginResponse = {
 };
 
 // --- Stripe ---
-export type StripeInitiateResponse = {
-  clientSecret: string | null; // Có thể null nếu lỗi
+export type InitiatePaymentVariables = {
+  userId: string;
+  productsList: InvoiceItemInput[];
+  shippingAddress: Address;
+};
+
+export type InitiatePaymentResponse = {
+  clientSecret: string;
   invoiceId: string;
   totalAmount: number;
 };

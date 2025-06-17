@@ -1,14 +1,14 @@
-import { LoginInput, RegisterInput } from "../types/dataTypes";
+import { LoginInput, RegisterInput, LoginResponse } from "../types/dataTypes";
 import Base from "./base";
 
-class User extends Base{
+class User extends Base {
   register = async (url: string, variables: RegisterInput) => {
     return this.http<RegisterInput>(url, "post", variables);
   };
 
   login = async (url: string, variables: LoginInput) => {
-    return this.http<LoginInput>(url, "post", variables);
+    return this.http<LoginResponse>(url, "post", variables);
   };
-};
+}
 
 export default new User();

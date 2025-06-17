@@ -23,7 +23,7 @@ interface UpdatePasswordResponse {
 
 class User extends Base {
   getUserById = async (url: string) => {
-    return this.http(url, "get");
+    return this.http<UserType>(url, "get");
   };
 
   updateUserById = async (url: string, variables: UserType) => {
