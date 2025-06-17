@@ -12,7 +12,7 @@ import CustomerLayout from "./features/customer/CustomerLayout.tsx";
 import CustomerHomePage from "./features/customer/pages/CustomerHomePage.tsx";
 import ProductsPage from "./features/products/pages/ProductsPage.tsx";
 import CartPage from "./features/carts/pages/CartPage.tsx";
-import PaymentPage from "./features/payment/pages/PaymentPage.tsx";
+import CheckoutPage from "./features/payment/pages/CheckoutPage.tsx";
 import StripePaymentPage from "./features/payment/pages/StripePaymentPage.tsx";
 import InvoicePage from "./features/invoices/pages/InvoicePage.tsx";
 import TestPage from "./features/pages/TestPage.tsx";
@@ -27,6 +27,7 @@ import LandingLayout from "./features/landing/LandingLayout.tsx";
 import ProductLayoutWrapper from "./features/products/components/ProductLayoutWrapper.tsx";
 import TestPage2 from "./features/pages/TestPage2.tsx";
 import Profile from "./features/customer/pages/Profile.tsx";
+import PaymentPage from "./features/payment/pages/PaymentPage.tsx";
 
 function LoadingSpinner() {
   return (
@@ -69,6 +70,7 @@ function App() {
           >
             <Route index element={<CustomerHomePage />} />
             <Route path="cart/" element={<CartPage />} />
+            <Route path="checkout/" element={<CheckoutPage />} />
             <Route path="payment/" element={<PaymentPage />} />
             <Route path="payment/stripe" element={<StripePaymentPage />} />
             <Route path="invoice/" element={<InvoicePage />} />

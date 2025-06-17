@@ -45,7 +45,7 @@ interface CouponData {
   isActive: boolean;
   createdAt: string;
   updatedAt: string;
-  __v: number;
+  __v?: number;
 }
 
 interface CouponsManagementTableProps {

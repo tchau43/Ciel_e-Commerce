@@ -40,13 +40,7 @@ import {
 import { format } from "date-fns";
 
 // Icons and Types
-import {
-  AlertCircle,
-  Search,
-  Calendar as CalendarIcon,
-  Filter,
-  X,
-} from "lucide-react";
+import { AlertCircle, Search, Calendar as CalendarIcon } from "lucide-react";
 import {
   UpdateInvoiceStatusInput,
   OrderStatus,
@@ -63,7 +57,7 @@ const InvoicesManagementPage = () => {
   });
 
   const [searchTerm, setSearchTerm] = useState("");
-  const [showFilterPanel, setShowFilterPanel] = useState(false);
+  const [showFilterPanel] = useState(false);
   const [debouncedSearchTerm] = useDebounce(searchTerm, 500);
 
   // Update filters with debounced search term

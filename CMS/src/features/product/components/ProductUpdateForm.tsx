@@ -6,13 +6,7 @@ import { useDeleteProductMutation } from "@/services/product/deleteProductMutati
 import { useAddVariantMutation } from "@/services/product/addVariantMutation";
 import { useDeleteVariantMutation } from "@/services/product/deleteVariantMutation";
 import { useUpdateVariantMutation } from "@/services/product/updateVariantMutation";
-import {
-  Product,
-  Variant,
-  VariantInput,
-  CategoryReference,
-  BrandReference,
-} from "@/types/dataTypes";
+import { Product, VariantInput, BrandReference } from "@/types/dataTypes";
 import { Loader, Eye, Trash2, Plus } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -109,7 +103,6 @@ const ProductUpdateForm = ({ product }: ProductUpdateFormProps) => {
   const queryClient = useQueryClient();
   const [loading, setLoading] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [imagePreviewUrl, setImagePreviewUrl] = useState("");
   const [showAllImages, setShowAllImages] = useState(false);
 
   const { data: categories = [] } = useGetAllCategoriesQuery();
@@ -160,11 +153,6 @@ const ProductUpdateForm = ({ product }: ProductUpdateFormProps) => {
     const file = e.target.files?.[0];
     if (file) {
       setSelectedFile(file);
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setImagePreviewUrl(reader.result as string);
-      };
-      reader.readAsDataURL(file);
     }
   };
 

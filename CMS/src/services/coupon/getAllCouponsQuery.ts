@@ -9,7 +9,7 @@ export const useGetAllCouponsQuery = () => {
       const response = await couponRepository.getAllCoupons(
         API_ENDPOINTS.ADMIN_GET_ALL_COUPONS
       );
-      return response;
+      return response.coupons;
     },
   });
 };
