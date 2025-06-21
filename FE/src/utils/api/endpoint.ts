@@ -122,6 +122,8 @@ export const API_ENDPOINTS = {
   ADMIN_UPDATE_FAQ: (id: string) => `${VITE_API_VERSION}/admin/faqs/${id}`, // PUT (Admin required)
   ADMIN_DELETE_FAQ: (id: string) => `${VITE_API_VERSION}/admin/faqs/${id}`, // DELETE (Admin required)
 
-  // --- Admin: Reviews ---
-  // ADMIN_ALL_REVIEWS: `${VITE_API_VERSION}/admin/all-comments`, // Path '/admin/all-comments' not found in api.js
+  // --- Delivery ---
+  DELIVERY: {
+    CALCULATE_FEE: `${VITE_API_VERSION}/delivery/calculate`, // POST
+  },
 };

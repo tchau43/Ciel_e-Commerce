@@ -96,7 +96,7 @@ const processItemsAndCalculateSubtotal = async (productsList, session) => {
 
 // --- CREATE INVOICE ---
 /**
- * Creates an invoice, validates items/stock, applies coupon, calculates delivery,
+ * Creates an invoice, validates items/stock, applies coupon,
  * updates stock/coupon usage, and triggers confirmation email.
  * Uses a transaction for atomicity with retry logic.
  */
@@ -105,11 +105,15 @@ const createInvoiceService = async (
     productsList, // Expect: [{ productId, variantId, quantity }]
     paymentMethod,
     shippingAddress,
-    couponCodeInput = null, // Optional coupon code from request
-    paymentStatus = 'pending' // Add default payment status
+    deliveryFee = 0,
+    couponCodeInput = null,
+    paymentStatus = 'pending'
 ) => {
     let retryCount = 0;
     let lastError = null;
+
+    // Convert deliveryFee to number if it's a string
+    deliveryFee = typeof deliveryFee === 'string' ? parseFloat(deliveryFee) : deliveryFee;
 
     while (retryCount < MAX_RETRIES) {
         const session = await mongoose.startSession();
@@ -132,6 +136,10 @@ const createInvoiceService = async (
             if (!Invoice.schema.path('paymentStatus').enumValues.includes(paymentStatus)) {
                 throw new Error("Invalid payment status provided.");
             }
+            // Enhanced deliveryFee validation
+            if (isNaN(deliveryFee) || deliveryFee < 0) {
+                throw new Error("Invalid delivery fee. Must be a non-negative number.");
+            }
 
             // --- 2. Process Items & Calculate Subtotal ---
             const { items, subtotal } = await processItemsAndCalculateSubtotal(productsList, session);
@@ -153,17 +161,9 @@ const createInvoiceService = async (
                 );
             }
 
-            // --- 4. Calculate Delivery Fee ---
-            let deliveryFee = 0;
-            try {
-                deliveryFee = await getDeliveryFeeService(shippingAddress);
-                deliveryFee = Math.max(0, Math.round(deliveryFee));
-            } catch (error) {
-                console.warn("Failed to calculate delivery fee:", error);
-            }
-
-            // --- 5. Create and Save Invoice ---
-            const finalTotalAmount = Math.max(0, subtotal - discountAmount + deliveryFee);
+            // --- 4. Calculate Final Total ---
+            const roundedDeliveryFee = Math.round(deliveryFee);
+            const finalTotalAmount = Math.max(0, subtotal - discountAmount + roundedDeliveryFee);
 
             // Determine order status based on payment status
             let orderStatus = 'processing';
@@ -177,7 +177,7 @@ const createInvoiceService = async (
                 subtotal,
                 couponCode: appliedCoupon?.code || null,
                 discountAmount,
-                deliveryFee,
+                deliveryFee: roundedDeliveryFee,
                 totalAmount: finalTotalAmount,
                 paymentMethod,
                 shippingAddress,
@@ -188,11 +188,11 @@ const createInvoiceService = async (
 
             const savedInvoice = await invoice.save({ session });
 
-            // --- 6. Commit Transaction ---
+            // --- 5. Commit Transaction ---
             await session.commitTransaction();
             console.log(`SERVICE: Invoice ${savedInvoice._id} created successfully with status ${paymentStatus}.`);
 
-            // --- 7. Send Email for non-CARD payments or if payment is already completed ---
+            // --- 6. Send Email for non-CARD payments or if payment is already completed ---
             if (paymentMethod !== 'CARD' || paymentStatus === 'paid') {
                 triggerOrderConfirmationEmail(savedInvoice)
                     .catch(error => console.error(`Failed to send confirmation email for Invoice ${savedInvoice._id}:`, error));
