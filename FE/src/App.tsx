@@ -28,6 +28,7 @@ import ProductLayoutWrapper from "./features/products/components/ProductLayoutWr
 import TestPage2 from "./features/pages/TestPage2.tsx";
 import Profile from "./features/customer/pages/Profile.tsx";
 import PaymentPage from "./features/payment/pages/PaymentPage.tsx";
+import SuccessPage from "./features/payment/pages/SuccessPage.tsx";
 
 function LoadingSpinner() {
   return (
@@ -81,6 +82,7 @@ function App() {
             />
             <Route path="reviews/" element={<CustomerReviewPage />} />
             <Route path="faq/" element={<FaqPage />} />
+            <Route path="order-success/:id" element={<SuccessPage />} />
           </Route>
 
           {/* Test route */}
