@@ -1,12 +1,11 @@
 // pages/CheckoutPage.tsx
-import { useState, ChangeEvent } from "react"; // Import React
+import { useState } from "react"; // Import React
 import { useLocation, useNavigate } from "react-router-dom";
 // SỬA LỖI: Import đúng types từ dataTypes.ts
 import { CartItem, Address } from "@/types/dataTypes";
 import { getAuthCredentials } from "@/utils/authUtil";
 import { Button } from "@/components/ui/button"; // Import Button nếu cần
-import { Input } from "@/components/ui/input"; // Import Input nếu cần
-import { Label } from "@/components/ui/label"; // Import Label nếu cần
+import AddressSelect from "../components/AddressSelect";
 
 const CheckoutPage = () => {
   const location = useLocation();
@@ -28,10 +27,8 @@ const CheckoutPage = () => {
     total: number;
   };
 
-  const handleAddressChange = (e: ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    // SỬA LỖI: Thêm kiểu Address cho prev
-    setShippingAddress((prev: Address) => ({ ...prev, [name]: value }));
+  const handleAddressChange = (address: Address) => {
+    setShippingAddress(address);
   };
 
   // Kiểm tra dữ liệu đầu vào trước khi render
@@ -76,102 +73,10 @@ const CheckoutPage = () => {
         Thông Tin Giao Hàng
       </h1>
       <div className="bg-white shadow-md rounded-lg px-6 sm:px-8 pt-6 pb-8 mb-4">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-          <div className="md:col-span-2">
-            <Label
-              htmlFor="street"
-              className="text-gray-700 text-sm font-bold mb-2"
-            >
-              Địa chỉ
-            </Label>
-            <Input
-              id="street"
-              name="street"
-              type="text"
-              placeholder="Ví dụ: Số 10, ngõ 5..."
-              value={shippingAddress.street}
-              onChange={handleAddressChange}
-              required
-              className="shadow border rounded w-full py-2 px-3 text-gray-700 focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
-
-          <div>
-            <Label
-              htmlFor="city"
-              className="text-gray-700 text-sm font-bold mb-2"
-            >
-              Thành phố / Tỉnh
-            </Label>
-            <Input
-              id="city"
-              name="city"
-              type="text"
-              placeholder="Ví dụ: Hà Nội"
-              value={shippingAddress.city}
-              onChange={handleAddressChange}
-              required
-              className="shadow border rounded w-full py-2 px-3 text-gray-700 focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
-
-          <div>
-            <Label
-              htmlFor="state"
-              className="text-gray-700 text-sm font-bold mb-2"
-            >
-              Quận / Huyện
-            </Label>
-            <Input
-              id="state"
-              name="state"
-              type="text"
-              placeholder="Ví dụ: Ba Đình"
-              value={shippingAddress.state}
-              onChange={handleAddressChange}
-              required
-              className="shadow border rounded w-full py-2 px-3 text-gray-700 focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
-
-          <div>
-            <Label
-              htmlFor="zipCode"
-              className="text-gray-700 text-sm font-bold mb-2"
-            >
-              Mã bưu chính
-            </Label>
-            <Input
-              id="zipCode"
-              name="zipCode"
-              type="text"
-              placeholder="Ví dụ: 100000"
-              value={shippingAddress.zipCode}
-              onChange={handleAddressChange}
-              required
-              className="shadow border rounded w-full py-2 px-3 text-gray-700 focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
-
-          <div>
-            <Label
-              htmlFor="country"
-              className="text-gray-700 text-sm font-bold mb-2"
-            >
-              Quốc gia
-            </Label>
-            <Input
-              id="country"
-              name="country"
-              type="text"
-              placeholder="Ví dụ: Việt Nam"
-              value={shippingAddress.country}
-              onChange={handleAddressChange}
-              required
-              className="shadow border rounded w-full py-2 px-3 text-gray-700 focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
-        </div>
+        <AddressSelect
+          onAddressChange={handleAddressChange}
+          defaultAddress={shippingAddress}
+        />
 
         <div className="flex justify-center mt-6">
           <Button

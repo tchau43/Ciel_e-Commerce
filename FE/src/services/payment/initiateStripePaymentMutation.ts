@@ -8,6 +8,8 @@ type InitiatePaymentVariables = {
   userId: string;
   productsList: InvoiceItemInput[];
   shippingAddress: Address;
+  couponCode: string | null;
+  deliveryFee: number;
 };
 
 type InitiatePaymentResponse = {

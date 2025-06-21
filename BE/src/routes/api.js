@@ -121,6 +121,9 @@ const {
 const { handleOpenAIChat } = require("../controllers/openaiChatController");
 const openaiAssistantRoutes = require('./openaiAssistantRoutes');
 
+// Import controllers
+const { getDeliveryFee } = require("../controllers/deliveryController");
+
 // --- Router Definition ---
 const routerAPI = express.Router();
 
@@ -152,6 +155,9 @@ routerAPI.post("/faqs/:id/rate", rateFaqHelpfulness);
 routerAPI.get("/faq-categories", getAllFaqCategories);
 routerAPI.get("/faq-categories/:id", getFaqCategoryById);
 routerAPI.get("/faq-categories/slug/:slug", getFaqCategoryBySlug);
+
+// Delivery Fee Routes
+routerAPI.post("/delivery/calculate", getDeliveryFee);
 
 // === AUTHENTICATED ROUTES (Token Required for all routes below) ===
 routerAPI.use(verifyToken);
@@ -214,6 +220,7 @@ routerAPI.post("/products/batch", async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 });
+
 
 // === ADMIN ROUTES (Token and Admin Role Required) ===
 routerAPI.use(verifyAdmin); // Apply Admin check for all routes below

@@ -19,13 +19,14 @@ const StripePaymentPage = () => {
   const { userInfo } = getAuthCredentials();
 
   // Destructure ALL data passed from PaymentPage
-  const { cartItems, total, shippingAddress, couponCode } = (location.state ||
-    {}) as {
-    cartItems: CartItem[];
-    total: number; // This FE total is mainly for initial display/fallback
-    shippingAddress: Address; // Updated type to match dataTypes.ts
-    couponCode: string | null; // Add couponCode to the type
-  };
+  const { cartItems, total, shippingAddress, couponCode, deliveryFee } =
+    (location.state || {}) as {
+      cartItems: CartItem[];
+      total: number; // This FE total is mainly for initial display/fallback
+      shippingAddress: Address; // Updated type to match dataTypes.ts
+      couponCode: string | null; // Add couponCode to the type
+      deliveryFee: number;
+    };
 
   // State to hold data received from the backend initiation endpoint
   const [paymentData, setPaymentData] = useState<{
@@ -52,11 +53,12 @@ const StripePaymentPage = () => {
       !userInfo?._id ||
       !cartItems?.length ||
       !shippingAddress ||
-      !(total > 0)
+      !(total > 0) ||
+      typeof deliveryFee !== "number"
     ) {
       console.error(
         "StripePaymentPage: Missing required data. Navigating back to cart.",
-        { userInfo, cartItems, shippingAddress, total }
+        { userInfo, cartItems, shippingAddress, total, deliveryFee }
       );
       alert(
         "Could not proceed to payment. Please check your cart and address details."
@@ -68,14 +70,14 @@ const StripePaymentPage = () => {
     // Prepare variables for the initiation mutation
     const variables = {
       userId: userInfo._id,
-      // Map cart items correctly, including variantId
       productsList: cartItems.map((item) => ({
         productId: item.productId,
         quantity: item.quantity,
         variantId: item.variantId || null,
       })),
-      shippingAddress: shippingAddress, // Pass the structured address
-      couponCode: couponCode || undefined, // Add couponCode to variables, use undefined if null
+      shippingAddress,
+      couponCode: couponCode || null,
+      deliveryFee,
     };
 
     console.log(

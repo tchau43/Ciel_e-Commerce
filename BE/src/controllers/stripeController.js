@@ -8,14 +8,15 @@ const { triggerOrderConfirmationEmail } = require('../utils/helper'); // Import 
 
 // --- Initiate Stripe Payment Flow ---
 const initiateStripePayment = async (req, res) => {
-  // Expect optional couponCode
-  const { userId, productsList, shippingAddress, couponCode } = req.body;
+  // Expect optional couponCode and deliveryFee
+  const { userId, productsList, shippingAddress, couponCode, deliveryFee } = req.body;
   const paymentMethod = "CARD"; // Hardcoded for Stripe
 
   // --- Validation ---
   if (!userId || !mongoose.Types.ObjectId.isValid(userId)) return res.status(400).json({ message: "Valid userId required." });
   if (!productsList || !Array.isArray(productsList) || productsList.length === 0) return res.status(400).json({ message: "productsList required." });
   if (!shippingAddress || !shippingAddress.street /* ...etc... */) return res.status(400).json({ message: "Complete shippingAddress required." });
+  if (typeof deliveryFee !== 'number' || deliveryFee < 0) return res.status(400).json({ message: "Valid deliveryFee required." });
   // Coupon code validation happens in service
   // --- End Validation ---
 
@@ -27,6 +28,7 @@ const initiateStripePayment = async (req, res) => {
       productsList,
       paymentMethod,
       shippingAddress,
+      deliveryFee, // Pass delivery fee to service
       couponCode,
       'paid' // Pass payment status as paid for Stripe
     );
