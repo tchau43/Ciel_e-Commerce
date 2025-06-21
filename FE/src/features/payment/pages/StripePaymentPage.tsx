@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { CartItem, Address } from "@/types/dataTypes"; // Updated imports to match dataTypes.ts
 // Import the CORRECT mutation hook
-import StripeForm from "@/features/stripe/components/StripeForm"; // Adjust path
+import StripeForm from "@/features/payment/components/StripeForm"; // Adjust path
 import { getAuthCredentials } from "@/utils/authUtil"; // To get userId
 import { useInitiateStripePaymentMutation } from "@/services/payment/initiateStripePaymentMutation";
 
