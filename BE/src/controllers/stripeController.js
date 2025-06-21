@@ -15,27 +15,27 @@ const initiateStripePayment = async (req, res) => {
   // --- Validation ---
   if (!userId || !mongoose.Types.ObjectId.isValid(userId)) return res.status(400).json({ message: "Valid userId required." });
   if (!productsList || !Array.isArray(productsList) || productsList.length === 0) return res.status(400).json({ message: "productsList required." });
-  if (!shippingAddress || !shippingAddress.street /* ...etc... */) return res.status(400).json({ message: "Complete shippingAddress with name required." });
+  if (!shippingAddress || !shippingAddress.street /* ...etc... */) return res.status(400).json({ message: "Complete shippingAddress required." });
   // Coupon code validation happens in service
   // --- End Validation ---
 
   let savedPendingInvoice;
   try {
-    // 1. Create PENDING invoice, passing couponCode
-    // Service validates coupon, applies discount, calculates final amount, updates stock/coupon, triggers email
+    // 1. Create invoice with PAID status for Stripe payments
     savedPendingInvoice = await createInvoiceService(
       userId,
       productsList,
       paymentMethod,
       shippingAddress,
-      couponCode // Pass optional code
+      couponCode,
+      'paid' // Pass payment status as paid for Stripe
     );
 
     if (!savedPendingInvoice || !savedPendingInvoice._id || typeof savedPendingInvoice.totalAmount !== 'number') {
       // Should have been caught by service, but double-check
       throw new Error('Invoice creation failed or returned invalid data.');
     }
-    console.log(`Stripe Controller: Pending invoice ${savedPendingInvoice._id} created.`);
+    console.log(`Stripe Controller: Invoice ${savedPendingInvoice._id} created with paid status.`);
 
     // --- Handle Zero Amount Orders ---
     // If total is 0 (e.g., 100% discount), no need for Stripe Payment Intent
@@ -64,28 +64,39 @@ const initiateStripePayment = async (req, res) => {
     // 2. Create Stripe Payment Intent (Only if amount > 0)
     const amountInSmallestUnit = Math.round(finalTotalAmount); // Adjust for currency if needed (*100 for USD etc)
     const stripeShipping = {
-      name: "",
+      name: shippingAddress.fullName || "",
       address: {
-        line1: shippingAddress.street, city: shippingAddress.city,
-        state: shippingAddress.state, postal_code: shippingAddress.zipCode,
-        country: shippingAddress.country?.substring(0, 2)?.toUpperCase() || 'VN', // Default VN if needed
+        line1: shippingAddress.street,
+        city: shippingAddress.city,
+        state: shippingAddress.state,
+        postal_code: shippingAddress.zipCode,
+        country: shippingAddress.country?.substring(0, 2)?.toUpperCase() || 'VN',
       }
     };
     const paymentIntent = await stripe.paymentIntents.create({
       amount: amountInSmallestUnit,
       currency: 'vnd', // Use your currency
-      metadata: { invoiceId: savedPendingInvoice._id.toString(), userId: userId },
+      metadata: {
+        invoiceId: savedPendingInvoice._id.toString(),
+        userId: userId
+      },
       description: `Payment for Invoice #${savedPendingInvoice._id}`,
       shipping: stripeShipping,
     });
 
     // 3. Link Payment Intent ID back to Invoice
     await Invoice.findByIdAndUpdate(savedPendingInvoice._id, {
-      $set: { paymentIntentId: paymentIntent.id }
+      $set: {
+        paymentIntentId: paymentIntent.id,
+        paidAt: new Date() // Add paid timestamp
+      }
     });
     console.log(`Stripe Controller: PI ${paymentIntent.id} created and linked to invoice ${savedPendingInvoice._id}.`);
 
     // 4. Send client secret to Frontend
+    await triggerOrderConfirmationEmail(savedPendingInvoice)
+      .catch(emailError => console.error(`Failed to trigger confirmation email for Invoice ${savedPendingInvoice._id}:`, emailError));
+
     res.status(200).json({
       clientSecret: paymentIntent.client_secret,
       invoiceId: savedPendingInvoice._id.toString(),
@@ -133,28 +144,14 @@ const handleStripeWebhook = async (req, res) => {
           throw new Error('No invoiceId found in payment intent metadata');
         }
 
-        // Update invoice status
-        const updatedInvoice = await Invoice.findByIdAndUpdate(
-          invoiceId,
-          {
-            $set: {
-              paymentStatus: 'paid',
-              orderStatus: 'processing',
-              paidAt: new Date()
-            }
-          },
-          { new: true }
-        ).populate('user items.product items.variant');
+        // Update invoice status if needed (should already be paid)
+        const updatedInvoice = await Invoice.findById(invoiceId).populate('user items.product items.variant');
 
         if (!updatedInvoice) {
           throw new Error(`Invoice ${invoiceId} not found`);
         }
 
-        // Send confirmation email
-        await triggerOrderConfirmationEmail(updatedInvoice)
-          .catch(emailError => console.error(`Failed to trigger confirmation email for Invoice ${invoiceId}:`, emailError));
-
-        console.log(`Payment succeeded and invoice ${invoiceId} updated`);
+        console.log(`Payment succeeded for invoice ${invoiceId}`);
         break;
 
       case 'payment_intent.payment_failed':
