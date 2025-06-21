@@ -105,7 +105,8 @@ const createInvoiceService = async (
     productsList, // Expect: [{ productId, variantId, quantity }]
     paymentMethod,
     shippingAddress,
-    couponCodeInput = null // Optional coupon code from request
+    couponCodeInput = null, // Optional coupon code from request
+    paymentStatus = 'pending' // Add default payment status
 ) => {
     let retryCount = 0;
     let lastError = null;
@@ -127,6 +128,9 @@ const createInvoiceService = async (
             }
             if (!shippingAddress?.street || !shippingAddress?.city || !shippingAddress?.country || !shippingAddress?.zipCode) {
                 throw new Error("Incomplete shippingAddress provided.");
+            }
+            if (!Invoice.schema.path('paymentStatus').enumValues.includes(paymentStatus)) {
+                throw new Error("Invalid payment status provided.");
             }
 
             // --- 2. Process Items & Calculate Subtotal ---
@@ -170,18 +174,19 @@ const createInvoiceService = async (
                 totalAmount: finalTotalAmount,
                 paymentMethod,
                 shippingAddress,
-                paymentStatus: "pending",
-                orderStatus: "processing",
+                paymentStatus,
+                orderStatus: paymentStatus === 'paid' ? 'processing' : 'pending',
+                paidAt: paymentStatus === 'paid' ? new Date() : null
             });
 
             const savedInvoice = await invoice.save({ session });
 
             // --- 6. Commit Transaction ---
             await session.commitTransaction();
-            console.log(`SERVICE: Invoice ${savedInvoice._id} created successfully.`);
+            console.log(`SERVICE: Invoice ${savedInvoice._id} created successfully with status ${paymentStatus}.`);
 
-            // --- 7. Send Email for non-CARD payments ---
-            if (paymentMethod !== 'CARD') {
+            // --- 7. Send Email for non-CARD payments or if payment is already completed ---
+            if (paymentMethod !== 'CARD' || paymentStatus === 'paid') {
                 triggerOrderConfirmationEmail(savedInvoice)
                     .catch(error => console.error(`Failed to send confirmation email for Invoice ${savedInvoice._id}:`, error));
             }
