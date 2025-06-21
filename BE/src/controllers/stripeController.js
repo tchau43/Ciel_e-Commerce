@@ -4,6 +4,7 @@ const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 const { createInvoiceService } = require('../services/invoiceService'); // Needs the service
 const Invoice = require('../models/invoice'); // Needs model for updates
 const mongoose = require('mongoose');
+const { triggerOrderConfirmationEmail } = require('../utils/helper'); // Import email helper
 
 // --- Initiate Stripe Payment Flow ---
 const initiateStripePayment = async (req, res) => {
@@ -45,6 +46,11 @@ const initiateStripePayment = async (req, res) => {
       await Invoice.findByIdAndUpdate(savedPendingInvoice._id, {
         $set: { paymentStatus: 'paid', orderStatus: 'processing' } // Mark as paid, ready for processing
       });
+
+      // Send confirmation email for zero amount orders
+      await triggerOrderConfirmationEmail(savedPendingInvoice)
+        .catch(emailError => console.error(`Failed to trigger confirmation email for zero-amount Invoice ${savedPendingInvoice._id}:`, emailError));
+
       // Send response indicating success without needing payment
       return res.status(200).json({
         message: "Order processed successfully (Free due to discount).",
@@ -54,7 +60,6 @@ const initiateStripePayment = async (req, res) => {
       });
     }
     // --- End Zero Amount Check ---
-
 
     // 2. Create Stripe Payment Intent (Only if amount > 0)
     const amountInSmallestUnit = Math.round(finalTotalAmount); // Adjust for currency if needed (*100 for USD etc)
@@ -100,4 +105,87 @@ const initiateStripePayment = async (req, res) => {
   }
 };
 
-module.exports = { initiateStripePayment };
+// --- Handle Stripe Webhook ---
+const handleStripeWebhook = async (req, res) => {
+  const sig = req.headers['stripe-signature'];
+  let event;
+
+  try {
+    // Verify webhook signature
+    event = stripe.webhooks.constructEvent(
+      req.body,
+      sig,
+      process.env.STRIPE_WEBHOOK_SECRET
+    );
+  } catch (err) {
+    console.error('Webhook signature verification failed:', err.message);
+    return res.status(400).send(`Webhook Error: ${err.message}`);
+  }
+
+  // Handle the event
+  try {
+    switch (event.type) {
+      case 'payment_intent.succeeded':
+        const paymentIntent = event.data.object;
+        const { invoiceId } = paymentIntent.metadata;
+
+        if (!invoiceId) {
+          throw new Error('No invoiceId found in payment intent metadata');
+        }
+
+        // Update invoice status
+        const updatedInvoice = await Invoice.findByIdAndUpdate(
+          invoiceId,
+          {
+            $set: {
+              paymentStatus: 'paid',
+              orderStatus: 'processing',
+              paidAt: new Date()
+            }
+          },
+          { new: true }
+        ).populate('user items.product items.variant');
+
+        if (!updatedInvoice) {
+          throw new Error(`Invoice ${invoiceId} not found`);
+        }
+
+        // Send confirmation email
+        await triggerOrderConfirmationEmail(updatedInvoice)
+          .catch(emailError => console.error(`Failed to trigger confirmation email for Invoice ${invoiceId}:`, emailError));
+
+        console.log(`Payment succeeded and invoice ${invoiceId} updated`);
+        break;
+
+      case 'payment_intent.payment_failed':
+        const failedPaymentIntent = event.data.object;
+        const failedInvoiceId = failedPaymentIntent.metadata.invoiceId;
+
+        if (failedInvoiceId) {
+          await Invoice.findByIdAndUpdate(
+            failedInvoiceId,
+            {
+              $set: {
+                paymentStatus: 'failed',
+                orderStatus: 'cancelled'
+              }
+            }
+          );
+          console.log(`Payment failed for invoice ${failedInvoiceId}`);
+        }
+        break;
+
+      // Add other event types as needed
+
+      default:
+        console.log(`Unhandled event type ${event.type}`);
+    }
+
+    res.json({ received: true });
+  } catch (error) {
+    console.error('Error processing webhook:', error);
+    res.status(500).json({ error: 'Failed to process webhook' });
+  }
+};
+
+module.exports = { initiateStripePayment, handleStripeWebhook };
