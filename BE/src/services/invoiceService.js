@@ -12,11 +12,87 @@ const { getDeliveryFeeService } = require('./deliveryService'); // Import delive
 const User = require("../models/user");
 
 // Maximum number of retries for transaction
-const MAX_RETRIES = 3;
-const RETRY_DELAY_MS = 100;
+const MAX_RETRIES = 5;
+const INITIAL_RETRY_DELAY = 100;
 
-// Helper function to delay execution
-const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+// Helper function to delay execution with exponential backoff
+const delay = (retryCount) => new Promise(resolve =>
+    setTimeout(resolve, INITIAL_RETRY_DELAY * Math.pow(2, retryCount))
+);
+
+// Helper to validate and lock coupon
+const validateAndLockCoupon = async (code, subtotal, session) => {
+    if (!code) return null;
+
+    const coupon = await Coupon.findOne({
+        code: code.trim().toUpperCase(),
+        isActive: true,
+        expiresAt: { $gt: new Date() },
+        $expr: { $lt: ["$usedCount", "$maxUses"] }
+    }).session(session);
+
+    if (!coupon) throw new Error(`Coupon code "${code}" not found or invalid.`);
+    if (!coupon.canApply(subtotal)) {
+        throw new Error(`Order subtotal (${subtotal}) does not meet minimum purchase (${coupon.minPurchaseAmount}) for coupon "${code}".`);
+    }
+
+    return coupon;
+};
+
+// Helper to update variant stock
+const updateVariantStock = async (variantId, productId, quantity, session) => {
+    const variant = await Variant.findOneAndUpdate(
+        {
+            _id: variantId,
+            product: productId,
+            stock: { $gte: quantity }
+        },
+        { $inc: { stock: -quantity } },
+        { session, new: true }
+    );
+
+    if (!variant) {
+        throw new Error(`Insufficient stock for variant ${variantId}`);
+    }
+
+    return variant;
+};
+
+// Helper to process items and calculate subtotal
+const processItemsAndCalculateSubtotal = async (productsList, session) => {
+    const items = [];
+    let subtotal = 0;
+
+    for (const itemData of productsList) {
+        if (!itemData?.productId || !mongoose.Types.ObjectId.isValid(itemData.productId) || !itemData.quantity || itemData.quantity < 1) {
+            console.warn("SERVICE: Skipping invalid item in productsList:", itemData);
+            continue;
+        }
+
+        const product = await Product.findById(itemData.productId).select('name base_price').lean();
+        if (!product) throw new Error(`Product ${itemData.productId} not found.`);
+
+        let priceAtPurchase = product.base_price ?? 0;
+        let variantIdToSave = null;
+
+        if (itemData.variantId && mongoose.Types.ObjectId.isValid(itemData.variantId)) {
+            const variant = await updateVariantStock(itemData.variantId, itemData.productId, itemData.quantity, session);
+            priceAtPurchase = (typeof variant.price === 'number' && variant.price >= 0) ? variant.price : priceAtPurchase;
+            variantIdToSave = variant._id;
+        }
+
+        items.push({
+            product: product._id,
+            variant: variantIdToSave,
+            quantity: itemData.quantity,
+            priceAtPurchase: priceAtPurchase,
+        });
+
+        subtotal += priceAtPurchase * itemData.quantity;
+    }
+
+    return { items, subtotal: Math.round(subtotal) };
+};
 
 // --- CREATE INVOICE ---
 /**
@@ -32,101 +108,38 @@ const createInvoiceService = async (
     couponCodeInput = null // Optional coupon code from request
 ) => {
     let retryCount = 0;
+    let lastError = null;
 
     while (retryCount < MAX_RETRIES) {
         const session = await mongoose.startSession();
-        session.startTransaction();
-        let savedInvoice;
 
         try {
-            let items = [];
-            let subtotal = 0;
-            const stockUpdates = [];
-            let appliedCoupon = null;
-            let discountAmount = 0;
-            let deliveryFee = 0;
+            session.startTransaction({
+                readConcern: { level: 'snapshot' },
+                writeConcern: { w: 'majority' }
+            });
 
-            // --- 1. Validate Inputs ---
+            // --- 1. Basic Input Validation ---
             if (!mongoose.Types.ObjectId.isValid(userId)) throw new Error("Invalid User ID format.");
-            if (!productsList || !Array.isArray(productsList) || productsList.length === 0) throw new Error("Product list cannot be empty.");
-            if (!paymentMethod || !Invoice.schema.path('paymentMethod').enumValues.includes(paymentMethod)) throw new Error("Invalid or missing paymentMethod.");
-            if (!shippingAddress || !shippingAddress.street || !shippingAddress.city || !shippingAddress.country || !shippingAddress.zipCode) {
+            if (!productsList?.length) throw new Error("Product list cannot be empty.");
+            if (!paymentMethod || !Invoice.schema.path('paymentMethod').enumValues.includes(paymentMethod)) {
+                throw new Error("Invalid or missing paymentMethod.");
+            }
+            if (!shippingAddress?.street || !shippingAddress?.city || !shippingAddress?.country || !shippingAddress?.zipCode) {
                 throw new Error("Incomplete shippingAddress provided.");
             }
 
-            // --- 2. Validate and Lock Coupon First (if provided) ---
-            if (couponCodeInput && typeof couponCodeInput === 'string') {
-                const code = couponCodeInput.trim().toUpperCase();
-                if (code) {
-                    appliedCoupon = await Coupon.findOne({
-                        code: code,
-                        isActive: true,
-                        expiresAt: { $gt: new Date() },
-                        $expr: { $lt: ["$usedCount", "$maxUses"] }
-                    }).session(session);
+            // --- 2. Process Items & Calculate Subtotal ---
+            const { items, subtotal } = await processItemsAndCalculateSubtotal(productsList, session);
+            if (items.length === 0) throw new Error("No valid items to process.");
 
-                    if (!appliedCoupon) throw new Error(`Coupon code "${code}" not found or invalid.`);
-                }
-            }
+            // --- 3. Validate and Lock Coupon ---
+            let discountAmount = 0;
+            const appliedCoupon = await validateAndLockCoupon(couponCodeInput, subtotal, session);
 
-            // --- 3. Process Items & Calculate Subtotal ---
-            for (const itemData of productsList) {
-                if (!itemData?.productId || !mongoose.Types.ObjectId.isValid(itemData.productId) || !itemData.quantity || itemData.quantity < 1) {
-                    console.warn("SERVICE: Skipping invalid item in productsList:", itemData);
-                    continue;
-                }
-                if (itemData.variantId && !mongoose.Types.ObjectId.isValid(itemData.variantId)) {
-                    console.warn(`SERVICE: Skipping item with invalid variantId: ${itemData.variantId}`);
-                    continue;
-                }
-
-                const product = await Product.findById(itemData.productId).select('name base_price').lean();
-                if (!product) throw new Error(`Product ${itemData.productId} not found.`);
-
-                let priceAtPurchase = product.base_price ?? 0;
-                let variantIdToSave = null;
-                let currentStock = Infinity;
-
-                if (itemData.variantId) {
-                    const variant = await Variant.findOneAndUpdate(
-                        {
-                            _id: itemData.variantId,
-                            product: itemData.productId,
-                            stock: { $gte: itemData.quantity }
-                        },
-                        { $inc: { stock: -itemData.quantity } },
-                        { session, new: true }
-                    );
-
-                    if (!variant) {
-                        throw new Error(`Insufficient stock for ${product.name} (Variant: ${itemData.variantId})`);
-                    }
-
-                    priceAtPurchase = (typeof variant.price === 'number' && variant.price >= 0) ? variant.price : priceAtPurchase;
-                    variantIdToSave = variant._id;
-                }
-
-                items.push({
-                    product: product._id,
-                    variant: variantIdToSave,
-                    quantity: itemData.quantity,
-                    priceAtPurchase: priceAtPurchase,
-                });
-
-                subtotal += priceAtPurchase * itemData.quantity;
-            }
-
-            subtotal = Math.round(subtotal);
-
-            // --- 4. Apply Coupon Discount ---
             if (appliedCoupon) {
-                if (!appliedCoupon.canApply(subtotal)) {
-                    throw new Error(`Order subtotal (${subtotal}) does not meet minimum purchase (${appliedCoupon.minPurchaseAmount}) for coupon "${appliedCoupon.code}".`);
-                }
                 discountAmount = appliedCoupon.calculateDiscount(subtotal);
-
-                // Update coupon usage atomically
-                const updatedCoupon = await Coupon.findOneAndUpdate(
+                await Coupon.findOneAndUpdate(
                     {
                         _id: appliedCoupon._id,
                         usedCount: { $lt: appliedCoupon.maxUses }
@@ -134,31 +147,24 @@ const createInvoiceService = async (
                     { $inc: { usedCount: 1 } },
                     { session, new: true }
                 );
-
-                if (!updatedCoupon) {
-                    throw new Error(`Coupon "${appliedCoupon.code}" usage limit was reached.`);
-                }
             }
 
-            // --- 5. Calculate Delivery Fee ---
+            // --- 4. Calculate Delivery Fee ---
+            let deliveryFee = 0;
             try {
                 deliveryFee = await getDeliveryFeeService(shippingAddress);
-                if (typeof deliveryFee !== 'number' || deliveryFee < 0) deliveryFee = 0;
-                deliveryFee = Math.round(deliveryFee);
-            } catch (deliveryError) {
-                console.error("Failed to calculate delivery fee:", deliveryError);
-                deliveryFee = 0;
+                deliveryFee = Math.max(0, Math.round(deliveryFee));
+            } catch (error) {
+                console.warn("Failed to calculate delivery fee:", error);
             }
 
-            // --- 6. Calculate Final Total Amount ---
+            // --- 5. Create and Save Invoice ---
             const finalTotalAmount = Math.max(0, subtotal - discountAmount + deliveryFee);
-
-            // --- 7. Create and Save Invoice ---
-            const invoiceData = {
+            const invoice = new Invoice({
                 user: userId,
                 items,
                 subtotal,
-                couponCode: appliedCoupon ? appliedCoupon.code : null,
+                couponCode: appliedCoupon?.code || null,
                 discountAmount,
                 deliveryFee,
                 totalAmount: finalTotalAmount,
@@ -166,39 +172,44 @@ const createInvoiceService = async (
                 shippingAddress,
                 paymentStatus: "pending",
                 orderStatus: "processing",
-            };
+            });
 
-            const invoice = new Invoice(invoiceData);
-            savedInvoice = await invoice.save({ session });
+            const savedInvoice = await invoice.save({ session });
 
-            // --- 8. Commit Transaction ---
+            // --- 6. Commit Transaction ---
             await session.commitTransaction();
-            console.log(`SERVICE: Invoice ${savedInvoice._id} transaction committed.`);
+            console.log(`SERVICE: Invoice ${savedInvoice._id} created successfully.`);
 
-            // --- 9. Trigger Email (AFTER successful commit) ---
-            triggerOrderConfirmationEmail(savedInvoice)
-                .catch(emailError => console.error(`Failed to trigger confirmation email for Invoice ${savedInvoice._id}:`, emailError));
+            // --- 7. Send Email for non-CARD payments ---
+            if (paymentMethod !== 'CARD') {
+                triggerOrderConfirmationEmail(savedInvoice)
+                    .catch(error => console.error(`Failed to send confirmation email for Invoice ${savedInvoice._id}:`, error));
+            }
 
             return savedInvoice.toObject();
 
         } catch (error) {
             await session.abortTransaction();
+            lastError = error;
 
-            if (error.message.includes('WriteConflict') && retryCount < MAX_RETRIES - 1) {
+            const isWriteConflict = error.message.includes('WriteConflict') ||
+                error.message.includes('transaction') ||
+                error.codeName === 'WriteConflict';
+
+            if (isWriteConflict && retryCount < MAX_RETRIES - 1) {
                 console.log(`Retrying transaction due to write conflict. Attempt ${retryCount + 1} of ${MAX_RETRIES}`);
                 retryCount++;
-                await delay(RETRY_DELAY_MS * retryCount); // Exponential backoff
+                await delay(retryCount);
                 continue;
             }
 
-            console.error("SERVICE: Transaction aborted due to error in createInvoiceService:", error);
             throw error;
         } finally {
             session.endSession();
         }
     }
 
-    throw new Error("Failed to create invoice after maximum retry attempts");
+    throw new Error(`Failed to create invoice after ${MAX_RETRIES} attempts. Last error: ${lastError?.message}`);
 };
 
 const getInvoiceByIdService = async (userId, invoiceId) => {
