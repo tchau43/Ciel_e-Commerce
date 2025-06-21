@@ -8,7 +8,7 @@ import { CartItem, Address } from "@/types/dataTypes"; // Updated imports to mat
 // Import the CORRECT mutation hook
 import StripeForm from "@/features/stripe/components/StripeForm"; // Adjust path
 import { getAuthCredentials } from "@/utils/authUtil"; // To get userId
-import { useInitiateStripePaymentMutation } from "@/services/invoice/initiateStripePaymentMutation";
+import { useInitiateStripePaymentMutation } from "@/services/payment/initiateStripePaymentMutation";
 
 // Initialize Stripe
 const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
@@ -19,10 +19,12 @@ const StripePaymentPage = () => {
   const { userInfo } = getAuthCredentials();
 
   // Destructure ALL data passed from PaymentPage
-  const { cartItems, total, shippingAddress } = (location.state || {}) as {
+  const { cartItems, total, shippingAddress, couponCode } = (location.state ||
+    {}) as {
     cartItems: CartItem[];
     total: number; // This FE total is mainly for initial display/fallback
     shippingAddress: Address; // Updated type to match dataTypes.ts
+    couponCode: string | null; // Add couponCode to the type
   };
 
   // State to hold data received from the backend initiation endpoint
@@ -73,6 +75,7 @@ const StripePaymentPage = () => {
         variantId: item.variantId || null,
       })),
       shippingAddress: shippingAddress, // Pass the structured address
+      couponCode: couponCode || undefined, // Add couponCode to variables, use undefined if null
     };
 
     console.log(
