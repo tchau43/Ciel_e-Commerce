@@ -15,10 +15,3 @@ createRoot(document.getElementById("root")!).render(
   </QueryClientProvider>
   // </StrictMode>
 );
-
-//Card,
-// CardHeader,
-// CardFooter,
-// CardTitle,
-// CardDescription,
-// CardContent,

@@ -164,6 +164,13 @@ const createInvoiceService = async (
 
             // --- 5. Create and Save Invoice ---
             const finalTotalAmount = Math.max(0, subtotal - discountAmount + deliveryFee);
+
+            // Determine order status based on payment status
+            let orderStatus = 'processing';
+            if (paymentStatus === 'cancelled' || paymentStatus === 'failed') {
+                orderStatus = 'cancelled';
+            }
+
             const invoice = new Invoice({
                 user: userId,
                 items,
@@ -175,7 +182,7 @@ const createInvoiceService = async (
                 paymentMethod,
                 shippingAddress,
                 paymentStatus,
-                orderStatus: paymentStatus === 'paid' ? 'processing' : 'pending',
+                orderStatus,
                 paidAt: paymentStatus === 'paid' ? new Date() : null
             });
 
