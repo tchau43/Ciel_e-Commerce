@@ -297,13 +297,18 @@ export type InvoiceItemInput = Pick<
   "productId" | "variantId" | "quantity"
 >; // Giống CartItemInput nhưng quantity > 0
 
-export type CreateInvoiceInput = {
+export interface CreateInvoiceInput {
   userId: string;
-  productsList: InvoiceItemInput[];
-  paymentMethod: PaymentMethod;
   shippingAddress: Address;
-  couponCode?: string;
-};
+  productsList: {
+    productId: string;
+    quantity: number;
+    variantId?: string | null;
+  }[];
+  paymentMethod: PaymentMethod;
+  couponCode?: string | null;
+  deliveryFee: number;
+}
 
 export type UpdateInvoiceStatusInput = Partial<
   Pick<Invoice, "orderStatus" | "paymentStatus">

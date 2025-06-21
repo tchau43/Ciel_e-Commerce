@@ -3,6 +3,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { useDeleteAllProductInCartMutation } from "@/services/cart/deleteAllProductInCartMutation";
 import { useCreateInvoiceMutation } from "@/services/invoice/createInvoiceMutation";
 import { useValidateCouponQuery } from "@/services/coupon/validateCouponQuery";
+import { useGetDeliveryFeeQuery } from "@/services/delivery/getDeliveryFeeQuery";
 import {
   CartItem,
   Address,
@@ -10,6 +11,7 @@ import {
   CreateInvoiceInput,
 } from "@/types/dataTypes";
 import { getAuthCredentials } from "@/utils/authUtil";
+import { normalizeLocationName } from "@/utils/helper";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -19,8 +21,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-
-const SHIPPING_FEE = 30000; // 30,000 VND shipping fee
 
 const PaymentPage = () => {
   const location = useLocation();
@@ -38,6 +38,27 @@ const PaymentPage = () => {
     total: number;
     shippingAddress: Address;
   };
+
+  // Chuẩn hóa địa chỉ cho API vận chuyển
+  const normalizedAddress: Address = {
+    ...shippingAddress,
+    city: normalizeLocationName(shippingAddress.city || ""),
+    state: normalizeLocationName(shippingAddress.state || ""),
+  };
+
+  console.log("Original Address:", shippingAddress);
+  console.log("Normalized Address:", normalizedAddress);
+
+  // Gọi API tính phí vận chuyển
+  const {
+    data: deliveryData,
+    isLoading: isCalculatingDeliveryFee,
+    error: deliveryError,
+  } = useGetDeliveryFeeQuery(normalizedAddress);
+
+  console.log("Delivery Error:", deliveryError);
+
+  const SHIPPING_FEE = deliveryData?.deliveryFee || 30000;
 
   const {
     mutate: createInvoice,
@@ -71,6 +92,11 @@ const PaymentPage = () => {
       return;
     }
 
+    if (!SHIPPING_FEE || typeof SHIPPING_FEE !== "number" || SHIPPING_FEE < 0) {
+      alert("Không thể tính phí vận chuyển. Vui lòng thử lại sau.");
+      return;
+    }
+
     if (selectedPaymentMethod === PaymentMethod.CARD) {
       navigate("/payment/stripe", {
         state: {
@@ -78,6 +104,7 @@ const PaymentPage = () => {
           total: finalTotal,
           shippingAddress,
           couponCode: couponData?.valid ? appliedCoupon : null,
+          deliveryFee: SHIPPING_FEE,
         },
       });
       return;
@@ -95,6 +122,7 @@ const PaymentPage = () => {
           })),
           paymentMethod: selectedPaymentMethod,
           couponCode: couponData?.valid ? appliedCoupon : null,
+          deliveryFee: SHIPPING_FEE,
         } as CreateInvoiceInput,
       },
       {
@@ -206,7 +234,11 @@ const PaymentPage = () => {
           </div>
           <div className="flex justify-between text-gray-600">
             <span>Phí vận chuyển:</span>
-            <span>{SHIPPING_FEE.toLocaleString("vi-VN")} ₫</span>
+            {isCalculatingDeliveryFee ? (
+              <span className="text-gray-500">Đang tính...</span>
+            ) : (
+              <span>{SHIPPING_FEE.toLocaleString("vi-VN")} ₫</span>
+            )}
           </div>
           {discountAmount > 0 && (
             <div className="flex justify-between text-green-600">
@@ -216,7 +248,11 @@ const PaymentPage = () => {
           )}
           <div className="flex justify-between text-lg font-semibold border-t pt-2">
             <span>Tổng cộng:</span>
-            <span>{finalTotal.toLocaleString("vi-VN")} ₫</span>
+            {isCalculatingDeliveryFee ? (
+              <span className="text-gray-500">Đang tính...</span>
+            ) : (
+              <span>{finalTotal.toLocaleString("vi-VN")} ₫</span>
+            )}
           </div>
         </div>
 
@@ -249,7 +285,7 @@ const PaymentPage = () => {
             size="lg"
             className="bg-green-600 hover:bg-green-700 text-white font-bold w-full md:w-auto px-8"
             onClick={handleCheckout}
-            disabled={isCreateInvoicePending}
+            disabled={isCreateInvoicePending || isCalculatingDeliveryFee}
           >
             {isCreateInvoicePending
               ? "Đang xử lý..."

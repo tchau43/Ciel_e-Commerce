@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { useGetInvoiceQuery } from "@/services/invoice/getInvoiceQuery";
 import { getAuthCredentials } from "@/utils/authUtil";
 import { formatCurrency } from "@/utils/formatCurrency";
@@ -9,7 +9,6 @@ import { Invoice } from "@/types/dataTypes";
 import { CheckCircle2, ShoppingBag, ArrowLeft, Package } from "lucide-react";
 
 const SuccessPage = () => {
-  const location = useLocation();
   const navigate = useNavigate();
   const { userInfo } = getAuthCredentials();
   const [latestInvoice, setLatestInvoice] = useState<Invoice | null>(null);
