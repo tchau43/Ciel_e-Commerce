@@ -1,6 +1,7 @@
 // src/pages/admin/ProductsManagementPage.tsx (or wherever it resides)
 
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useGetAllProductsQuery } from "@/services/product/getAllProductsQuery";
 // Correct the import path if necessary
 import ProductsManagementTable from "@/features/product/components/ProductsManagementTable";
@@ -10,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button"; // Added Button import
 
 const ProductsManagementPage = () => {
+  const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
   const {
     data: productsList = [], // Default to empty array
@@ -77,9 +79,7 @@ const ProductsManagementPage = () => {
             variant="default"
             size="sm"
             className="flex items-center gap-2"
-            onClick={() => {
-              /* Handle add product */
-            }}
+            onClick={() => navigate("/products/create")}
           >
             <Plus className="h-4 w-4" />
             Thêm sản phẩm

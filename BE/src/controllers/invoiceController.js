@@ -10,30 +10,34 @@ const Invoice = require("../models/invoice"); // For enum validation if needed
 const mongoose = require("mongoose");
 
 const createInvoice = async (req, res) => {
-  // Expect optional couponCode
-  const { userId, productsList, paymentMethod, shippingAddress, couponCode } =
-    req.body;
+  // Expect optional couponCode and deliveryFee
+  const { userId, productsList, paymentMethod, shippingAddress, couponCode, deliveryFee } = req.body;
 
   // Basic Validation
   if (!userId || !productsList || !paymentMethod || !shippingAddress) {
     return res.status(400).json({
-      message:
-        "Missing required fields (userId, productsList, paymentMethod, shippingAddress).",
+      message: "Missing required fields (userId, productsList, paymentMethod, shippingAddress).",
     });
   }
   if (!mongoose.Types.ObjectId.isValid(userId)) {
     return res.status(400).json({ message: "Invalid userId format." });
   }
-  // Add more validation for productsList structure, shippingAddress details if needed
+
+  // Validate deliveryFee
+  const parsedDeliveryFee = typeof deliveryFee === 'string' ? parseFloat(deliveryFee) : deliveryFee;
+  if (typeof parsedDeliveryFee !== 'number' || isNaN(parsedDeliveryFee) || parsedDeliveryFee < 0) {
+    return res.status(400).json({ message: "Invalid delivery fee. Must be a non-negative number." });
+  }
 
   try {
-    // Pass couponCode (can be null/undefined) to the service
+    // Pass all necessary data to the service
     const createdInvoice = await createInvoiceService(
       userId,
       productsList,
       paymentMethod,
       shippingAddress,
-      couponCode // Pass coupon code string or null
+      parsedDeliveryFee,
+      couponCode
     );
 
     res.status(201).json({
@@ -46,18 +50,17 @@ const createInvoice = async (req, res) => {
     if (
       error.message.includes("Coupon code") ||
       error.message.includes("Insufficient stock") ||
-      error.message.includes("not found") || // Product/Variant/Coupon not found
+      error.message.includes("not found") ||
       error.message.includes("minimum purchase") ||
       error.message.includes("invalid or expired") ||
       error.message.includes("usage limit")
     ) {
-      res.status(400).json({ message: error.message }); // Bad request for these issues
+      res.status(400).json({ message: error.message });
     } else if (error.message.includes("Invalid")) {
-      res.status(400).json({ message: error.message }); // Other validation errors
+      res.status(400).json({ message: error.message });
     } else {
       res.status(500).json({
-        message:
-          error.message || "Failed to create invoice due to server error.",
+        message: error.message || "Failed to create invoice due to server error.",
       });
     }
   }

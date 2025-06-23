@@ -9,11 +9,6 @@ interface UpdateUserProfileData {
   address?: Address;
 }
 
-interface UpdateProfileResponse {
-  message: string;
-  user: User;
-}
-
 // For admin updates
 export const useUpdateUserByIdMutation = () => {
   return useMutation({

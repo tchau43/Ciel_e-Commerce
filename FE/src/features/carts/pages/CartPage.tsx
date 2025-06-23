@@ -31,7 +31,7 @@ const CartPage = () => {
       alert("Giỏ hàng của bạn đang trống.");
       return;
     }
-    navigate("/payment", {
+    navigate("/checkout", {
       state: {
         cartItems: cart.items as CartItem[],
         total: total,

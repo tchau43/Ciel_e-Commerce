@@ -2,88 +2,132 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useGetAllCategoriesQuery } from "@/services/category/getAllCategoriesQuery";
 import { useUpdateProductMutation } from "@/services/product/updateProductMutation";
-import { Product } from "@/types/dataTypes";
-import { Loader } from "lucide-react";
+import { useDeleteProductMutation } from "@/services/product/deleteProductMutation";
+import { useAddVariantMutation } from "@/services/product/addVariantMutation";
+import { useDeleteVariantMutation } from "@/services/product/deleteVariantMutation";
+import { useUpdateVariantMutation } from "@/services/product/updateVariantMutation";
+import { Product, VariantInput, BrandReference } from "@/types/dataTypes";
+import { Loader, Eye, Trash2, Plus } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-const VITE_BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
+import { useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
+import VariantList from "./VariantList";
 
 interface ProductUpdateFormProps {
   product: Product;
 }
 
+interface UpdateProductData {
+  name?: string;
+  base_price?: number;
+  description?: string[];
+  category?: string;
+  brand?: string;
+  tags?: string[];
+  images?: string[];
+  url?: string;
+  popularity?: number;
+}
+
+// Make all fields required in our form data type
+type FormDataType = Required<
+  Pick<
+    Product,
+    | "_id"
+    | "name"
+    | "base_price"
+    | "category"
+    | "images"
+    | "variants"
+    | "createdAt"
+    | "updatedAt"
+  >
+> & {
+  description: string[]; // Always an array
+  brand?: BrandReference; // Optional
+  tags: string[]; // Always an array
+  averageRating?: number; // Optional
+  numberOfReviews?: number; // Optional
+};
+
 const ProductUpdateForm = ({ product }: ProductUpdateFormProps) => {
-  const [formData, setFormData] = useState<Product>({ ...product });
-  // console.log(">>>>>>>>formData", formData);
+  // Helper function to ensure description is always a string array
+  const ensureDescriptionArray = (desc: string[] | undefined): string[] => {
+    if (!desc) return [];
+    if (!Array.isArray(desc)) return [];
+    return desc;
+  };
+
+  // Initialize form data with proper type handling
+  const [formData, setFormData] = useState<FormDataType>(() => {
+    const description = ensureDescriptionArray(product.description);
+    const tags = product.tags ?? [];
+
+    const initialData = {
+      _id: product._id,
+      name: product.name,
+      base_price: product.base_price,
+      category: product.category,
+      images: product.images,
+      variants: product.variants,
+      createdAt: product.createdAt,
+      updatedAt: product.updatedAt,
+      description,
+      brand: product.brand,
+      tags,
+      averageRating: product.averageRating,
+      numberOfReviews: product.numberOfReviews,
+    };
+
+    return {
+      ...initialData,
+      description: description as string[],
+      tags: tags as string[],
+    } as FormDataType & {
+      description: string[];
+      tags: string[];
+    } as unknown as FormDataType & {
+      description: string[];
+      tags: string[];
+    } as FormDataType & {
+      description: string[];
+      tags: string[];
+    } as FormDataType & {
+      description: string[];
+      tags: string[];
+    } as FormDataType;
+  });
+
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState<string | null>(null);
-  const [selectedFile, setSelectedFile] = useState<File | null>(null); // For local file
-  const [imagePreviewUrl, setImagePreviewUrl] = useState(""); // Preview for local file
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [showAllImages, setShowAllImages] = useState(false);
+
   const { data: categories = [] } = useGetAllCategoriesQuery();
-  useEffect(() => {
-    setFormData({ ...product });
-  }, [product]);
-  const { mutate: productUpdate } = useUpdateProductMutation();
+  const updateProduct = useUpdateProductMutation();
+  const deleteProduct = useDeleteProductMutation();
+  const addVariant = useAddVariantMutation();
+  const deleteVariant = useDeleteVariantMutation();
+  const updateVariant = useUpdateVariantMutation();
 
-  // const imageSources = product?.images
-  //   ? Array.from({ length: 4 }, (_, index) => {
-  //       return product.images[index]
-  //         ? `${VITE_BACKEND_URL}/${product.images[index]}`
-  //         : "/logo.png";
-  //     })
-  //   : Array(4).fill("/logo.png");
-
-  const imageSources = product?.images
-    ? product.images.map((img) =>
-        img.startsWith("http") ? img : `${VITE_BACKEND_URL}/${img}`
-      )
+  const imageSources = product.images?.length
+    ? product.images
     : Array(4).fill("/logo.png");
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    setLoading(true);
-    setMessage(null);
-
-    const formDataToSend = new FormData();
-
-    // Append all text fields
-    formDataToSend.append("name", formData.name);
-    formDataToSend.append("price", formData.base_price.toString());
-    formDataToSend.append("description", formData.description?.join(",") || "");
-    formDataToSend.append("category", formData.category._id);
-
-    // Append the image file
-    if (selectedFile instanceof File) {
-      formDataToSend.append("image", selectedFile); // Field name must match Multer's
-    }
-
-    productUpdate(
-      { productId: formData._id, variables: formDataToSend },
-      {
-        onSuccess: () => {
-          setMessage("Cập nhật sản phẩm thành công!");
-          setTimeout(() => navigate("/products"), 1000);
-        },
-        onError: (error) => {
-          setMessage(error.message || "Error updating product");
-          setLoading(false);
-        },
-      }
-    );
-  };
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setImagePreviewUrl(reader.result as string);
-      };
-      reader.readAsDataURL(file);
-      setSelectedFile(file);
-    }
-  };
+  const displayedImages = showAllImages
+    ? imageSources
+    : imageSources.slice(0, 4);
+  const hasMoreImages = imageSources.length > 4;
+  useEffect(() => {
+    setFormData((prev) => ({
+      ...prev,
+      ...product,
+      description: product.description || [],
+      tags: product.tags || [],
+    }));
+  }, [product]);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
@@ -96,169 +140,363 @@ const ProductUpdateForm = ({ product }: ProductUpdateFormProps) => {
   };
 
   const handleCategoryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const selectedCategoryId = e.target.value;
-    const selectedCategory = categories.find(
-      (c) => c._id === selectedCategoryId
-    );
+    const selectedCategory = categories.find((c) => c._id === e.target.value);
+    if (selectedCategory) {
+      setFormData((prev) => ({
+        ...prev,
+        category: selectedCategory,
+      }));
+    }
+  };
 
-    if (!selectedCategory) return;
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setSelectedFile(file);
+    }
+  };
 
-    setFormData((prev) => ({
-      ...prev,
-      category: { ...selectedCategory },
-    }));
+  const handleDeleteProduct = async () => {
+    try {
+      await deleteProduct.mutateAsync({ productId: product._id });
+      toast.success("Xóa sản phẩm thành công");
+      navigate("/products");
+    } catch (error) {
+      toast.error("Lỗi khi xóa sản phẩm");
+    }
+  };
+
+  const handleDeleteVariant = async (variantId: string) => {
+    try {
+      await deleteVariant.mutateAsync({ variantId });
+      queryClient.invalidateQueries({ queryKey: ["product", product._id] });
+      toast.success("Xóa biến thể thành công");
+    } catch (error) {
+      toast.error("Lỗi khi xóa biến thể");
+    }
+  };
+
+  const handleAddVariant = async (variantData: VariantInput) => {
+    try {
+      await addVariant.mutateAsync({
+        productId: product._id,
+        variables: variantData,
+      });
+      queryClient.invalidateQueries({ queryKey: ["product", product._id] });
+      toast.success("Thêm biến thể thành công");
+    } catch (error) {
+      toast.error("Lỗi khi thêm biến thể");
+    }
+  };
+
+  const handleUpdateVariant = async (
+    variantId: string,
+    variantData: VariantInput
+  ) => {
+    try {
+      await updateVariant.mutateAsync({
+        variantId,
+        variables: variantData,
+      });
+      queryClient.invalidateQueries({ queryKey: ["product", product._id] });
+      toast.success("Cập nhật biến thể thành công");
+    } catch (error) {
+      toast.error("Lỗi khi cập nhật biến thể");
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setLoading(true);
+
+    try {
+      // Prepare update data
+      const updateData: UpdateProductData = {};
+
+      // Only include fields that have changed
+      if (formData.name !== product.name) {
+        updateData.name = formData.name;
+      }
+
+      if (formData.base_price !== product.base_price) {
+        updateData.base_price = Number(formData.base_price);
+      }
+
+      // Handle description - only include if changed and not empty
+      const currentDesc = formData.description.filter(
+        (desc) => desc.trim() !== ""
+      );
+      const originalDesc = product.description || [];
+      if (JSON.stringify(currentDesc) !== JSON.stringify(originalDesc)) {
+        updateData.description = currentDesc;
+      }
+
+      // Handle category - send ID only
+      if (formData.category?._id !== product.category._id) {
+        updateData.category = formData.category._id;
+      }
+
+      // Handle brand if present
+      if (formData.brand?._id !== product.brand?._id) {
+        updateData.brand = formData.brand?._id;
+      }
+
+      // Handle tags if changed
+      if (JSON.stringify(formData.tags) !== JSON.stringify(product.tags)) {
+        updateData.tags = formData.tags;
+      }
+
+      // Handle images if changed
+      if (selectedFile) {
+        // TODO: First upload image to server and get URL
+        // Then include the URL in the update
+        // For now, we'll skip image update
+      }
+
+      // Log the update data for debugging
+      console.log("Update data:", updateData);
+
+      const result = await updateProduct.mutateAsync({
+        productId: product._id,
+        variables: updateData,
+      });
+
+      if (result) {
+        queryClient.invalidateQueries({ queryKey: ["product", product._id] });
+        toast.success("Cập nhật sản phẩm thành công");
+      }
+    } catch (error) {
+      console.error("Error updating product:", error);
+      toast.error(
+        error instanceof Error ? error.message : "Lỗi khi cập nhật sản phẩm"
+      );
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
-    <div>
-      <Card className="p-6 max-w-lg mx-auto mt-10 border border-border/10 dark:border-border/20 bg-card/95 dark:bg-card/90 backdrop-blur-sm">
-        <h2 className="text-xl font-bold mb-4 text-foreground/90 dark:text-foreground/80">
-          Cập nhật Sản phẩm
-        </h2>
+    <div className="space-y-6">
+      {/* Product Info Section */}
+      <Card className="border border-border/10 dark:border-border/20 bg-card/95 dark:bg-card/90">
+        <div className="p-6">
+          <form onSubmit={handleSubmit}>
+            <div className="space-y-4">
+              <div>
+                <h3 className="text-lg font-medium text-foreground/90 dark:text-foreground/80">
+                  Thông tin sản phẩm
+                </h3>
+                <p className="text-sm text-muted-foreground/70 dark:text-muted-foreground/60">
+                  Cập nhật thông tin cơ bản của sản phẩm
+                </p>
+              </div>
 
-        {message && (
-          <div
-            className={`p-2 rounded-md mb-4 ${
-              message.includes("Error")
-                ? "bg-destructive/20 text-destructive-foreground dark:bg-destructive/30"
-                : "bg-emerald-500/20 text-emerald-700 dark:bg-emerald-500/30 dark:text-emerald-400"
-            }`}
-          >
-            {message.includes("Error")
-              ? "Có lỗi xảy ra khi cập nhật sản phẩm"
-              : "Cập nhật sản phẩm thành công!"}
-          </div>
-        )}
+              {/* Form fields */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Name Input */}
+                <div className="col-span-2">
+                  <label className="block text-sm font-medium text-foreground/90 dark:text-foreground/80 mb-1.5">
+                    Tên sản phẩm
+                  </label>
+                  <input
+                    type="text"
+                    name="name"
+                    value={formData.name ?? ""}
+                    onChange={handleChange}
+                    className="w-full rounded-md bg-input/90 dark:bg-input/80 border border-input/20 dark:border-input/10 p-2.5 text-foreground/90 dark:text-foreground/80 placeholder:text-muted-foreground/50 dark:placeholder:text-muted-foreground/40 focus:border-primary/50 dark:focus:border-primary/40 focus:ring-1 focus:ring-primary/50 dark:focus:ring-primary/40"
+                    placeholder="Nhập tên sản phẩm"
+                  />
+                </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Name Input */}
-          <div>
-            <label className="block text-sm font-medium text-foreground/90 dark:text-foreground/80">
-              Tên sản phẩm:
-            </label>
-            <input
-              type="text"
-              name="name"
-              value={formData.name ?? ""}
-              onChange={handleChange}
-              className="w-full border border-input/20 dark:border-input/10 bg-input/90 dark:bg-input/80 p-2 rounded text-foreground/90 dark:text-foreground/80"
-              placeholder="Nhập tên sản phẩm"
-            />
-          </div>
+                {/* Price Input */}
+                <div>
+                  <label className="block text-sm font-medium text-foreground/90 dark:text-foreground/80 mb-1.5">
+                    Giá cơ bản
+                  </label>
+                  <input
+                    type="number"
+                    name="price"
+                    value={formData.base_price}
+                    onChange={handleChange}
+                    className="w-full rounded-md bg-input/90 dark:bg-input/80 border border-input/20 dark:border-input/10 p-2.5 text-foreground/90 dark:text-foreground/80 placeholder:text-muted-foreground/50 dark:placeholder:text-muted-foreground/40 focus:border-primary/50 dark:focus:border-primary/40 focus:ring-1 focus:ring-primary/50 dark:focus:ring-primary/40"
+                    placeholder="Nhập giá cơ bản của sản phẩm"
+                  />
+                </div>
 
-          {/* Price Input */}
-          <div>
-            <label className="block text-sm font-medium text-foreground/90 dark:text-foreground/80">
-              Giá:
-            </label>
-            <input
-              type="number"
-              name="price"
-              value={formData.base_price}
-              onChange={handleChange}
-              className="w-full border border-input/20 dark:border-input/10 bg-input/90 dark:bg-input/80 p-2 rounded text-foreground/90 dark:text-foreground/80"
-              placeholder="Nhập giá sản phẩm"
-            />
-          </div>
+                {/* Category Selection */}
+                <div>
+                  <label className="block text-sm font-medium text-foreground/90 dark:text-foreground/80 mb-1.5">
+                    Danh mục
+                  </label>
+                  <select
+                    name="category"
+                    value={formData.category._id}
+                    onChange={handleCategoryChange}
+                    className="w-full rounded-md bg-input/90 dark:bg-input/80 border border-input/20 dark:border-input/10 p-2.5 text-foreground/90 dark:text-foreground/80 focus:border-primary/50 dark:focus:border-primary/40 focus:ring-1 focus:ring-primary/50 dark:focus:ring-primary/40"
+                  >
+                    {categories.map((c) => (
+                      <option key={c._id} value={c._id}>
+                        {c.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
 
-          {/* Category Selection */}
-          <div>
-            <label className="block text-sm font-medium text-foreground/90 dark:text-foreground/80">
-              Danh mục:
-            </label>
-            <select
-              name="category"
-              value={formData.category._id}
-              onChange={handleCategoryChange}
-              className="w-full border border-input/20 dark:border-input/10 bg-input/90 dark:bg-input/80 px-2 py-2 rounded text-foreground/90 dark:text-foreground/80"
-            >
-              {categories.map((c) => (
-                <option key={c._id} value={c._id}>
-                  {c.name}
-                </option>
-              ))}
-            </select>
-          </div>
+                {/* Description Input */}
+                <div className="col-span-2">
+                  <label className="block text-sm font-medium text-foreground/90 dark:text-foreground/80 mb-1.5">
+                    Mô tả
+                  </label>
+                  <div className="space-y-2">
+                    {formData.description.map((desc, index) => (
+                      <div key={index} className="flex gap-2">
+                        <input
+                          type="text"
+                          value={desc}
+                          onChange={(e) => {
+                            const newDesc = [...formData.description];
+                            newDesc[index] = e.target.value;
+                            setFormData((prev) => ({
+                              ...prev,
+                              description: newDesc,
+                            }));
+                          }}
+                          className="flex-1 rounded-md bg-input/90 dark:bg-input/80 border border-input/20 dark:border-input/10 p-2.5 text-foreground/90 dark:text-foreground/80 placeholder:text-muted-foreground/50 dark:placeholder:text-muted-foreground/40 focus:border-primary/50 dark:focus:border-primary/40 focus:ring-1 focus:ring-primary/50 dark:focus:ring-primary/40"
+                          placeholder={`Mô tả ${index + 1}`}
+                        />
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="icon"
+                          className="border-border/20 dark:border-border/10 hover:bg-destructive/20 dark:hover:bg-destructive/10 text-destructive-foreground/90 dark:text-destructive-foreground/80"
+                          onClick={() => {
+                            const newDesc = formData.description.filter(
+                              (_, i) => i !== index
+                            );
+                            setFormData((prev) => ({
+                              ...prev,
+                              description: newDesc,
+                            }));
+                          }}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    ))}
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="w-full border-border/20 dark:border-border/10 hover:bg-muted/30 dark:hover:bg-muted/20"
+                      onClick={() => {
+                        setFormData((prev) => ({
+                          ...prev,
+                          description: [...prev.description, ""],
+                        }));
+                      }}
+                    >
+                      <Plus className="h-4 w-4 mr-2" />
+                      Thêm mô tả
+                    </Button>
+                  </div>
+                </div>
+              </div>
 
-          {/* Description Input */}
-          <div>
-            <label className="block text-sm font-medium text-foreground/90 dark:text-foreground/80">
-              Mô tả:
-            </label>
-            <input
-              type="text"
-              name="description"
-              value={formData.description}
-              onChange={handleChange}
-              className="w-full border border-input/20 dark:border-input/10 bg-input/90 dark:bg-input/80 p-2 rounded text-foreground/90 dark:text-foreground/80"
-              placeholder="Nhập mô tả sản phẩm"
-            />
-          </div>
+              <div className="flex justify-end space-x-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={handleDeleteProduct}
+                  className="border-border/20 dark:border-border/10 hover:bg-destructive/20 dark:hover:bg-destructive/10 text-destructive-foreground/90 dark:text-destructive-foreground/80"
+                >
+                  <Trash2 className="w-4 h-4 mr-2" />
+                  Xóa sản phẩm
+                </Button>
+                <Button
+                  type="submit"
+                  disabled={loading}
+                  className="bg-primary/90 dark:bg-primary/80 hover:bg-primary/100 dark:hover:bg-primary/90"
+                >
+                  {loading && <Loader className="w-4 h-4 mr-2 animate-spin" />}
+                  Cập nhật
+                </Button>
+              </div>
+            </div>
+          </form>
+        </div>
+      </Card>
 
-          {/* Existing Images */}
-          <div>
-            <label className="block text-sm font-medium mb-2 text-foreground/90 dark:text-foreground/80">
-              Hình ảnh hiện tại:
-            </label>
-            <div className="flex flex-wrap gap-2">
-              {imageSources.map((i) => (
-                <img
-                  className="w-20 h-20 object-cover border border-border/10 dark:border-border/20 rounded"
-                  alt="Hình ảnh sản phẩm"
-                  src={i}
-                />
+      {/* Images Section */}
+      <Card className="border border-border/10 dark:border-border/20 bg-card/95 dark:bg-card/90">
+        <div className="p-6">
+          <div className="space-y-4">
+            <div>
+              <h3 className="text-lg font-medium text-foreground/90 dark:text-foreground/80">
+                Hình ảnh sản phẩm
+              </h3>
+              <p className="text-sm text-muted-foreground/70 dark:text-muted-foreground/60">
+                Quản lý hình ảnh của sản phẩm
+              </p>
+            </div>
+
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              {displayedImages.map((src, index) => (
+                <div
+                  key={index}
+                  className="relative aspect-square rounded-lg overflow-hidden bg-muted/30 dark:bg-muted/20 ring-1 ring-border/10 dark:ring-border/20"
+                >
+                  <img
+                    src={src}
+                    alt={`Product ${index + 1}`}
+                    className="object-cover w-full h-full"
+                  />
+                </div>
               ))}
             </div>
-          </div>
 
-          {/* Upload New Image */}
-          <div className="mt-4">
-            <label className="block text-sm font-medium text-foreground/90 dark:text-foreground/80">
-              Tải lên hình ảnh mới:
-            </label>
-            <div className="flex items-center space-x-2">
+            {hasMoreImages && (
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setShowAllImages(!showAllImages)}
+                className="border-border/20 dark:border-border/10 hover:bg-muted/30 dark:hover:bg-muted/20"
+              >
+                <Eye className="w-4 h-4 mr-2" />
+                {showAllImages ? "Ẩn bớt" : "Xem thêm"}
+              </Button>
+            )}
+
+            <div className="mt-4">
               <input
                 type="file"
-                accept="image/*"
                 onChange={handleFileChange}
-                className="w-full border border-input/20 dark:border-input/10 bg-input/90 dark:bg-input/80 p-2 rounded text-foreground/90 dark:text-foreground/80"
+                accept="image/*"
+                className="hidden"
+                id="image-upload"
               />
-              {imagePreviewUrl && (
-                <img
-                  src={imagePreviewUrl}
-                  alt="Xem trước"
-                  className="w-20 h-20 object-cover border border-border/10 dark:border-border/20 rounded"
-                />
-              )}
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => document.getElementById("image-upload")?.click()}
+                className="border-border/20 dark:border-border/10 hover:bg-muted/30 dark:hover:bg-muted/20"
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                Thêm hình ảnh
+              </Button>
             </div>
           </div>
+        </div>
+      </Card>
 
-          {/* Action Buttons */}
-          <div className="flex justify-between mt-4">
-            <Button
-              variant="outline"
-              onClick={() => navigate("/products")}
-              disabled={loading}
-              className="border-border/20 dark:border-border/10 hover:bg-muted/80 dark:hover:bg-muted/20"
-            >
-              Hủy
-            </Button>
-            <Button
-              type="submit"
-              disabled={loading}
-              className="bg-primary/90 dark:bg-primary/80 hover:bg-primary/100 dark:hover:bg-primary/90"
-            >
-              {loading ? (
-                <>
-                  <Loader className="w-4 h-4 mr-2 animate-spin" />
-                  Đang lưu...
-                </>
-              ) : (
-                "Lưu thay đổi"
-              )}
-            </Button>
-          </div>
-        </form>
+      {/* Variants Section */}
+      <Card className="border border-border/10 dark:border-border/20 bg-card/95 dark:bg-card/90">
+        <div className="p-6">
+          <VariantList
+            variants={product.variants || []}
+            onDelete={handleDeleteVariant}
+            onEdit={handleUpdateVariant}
+            onAdd={handleAddVariant}
+          />
+        </div>
       </Card>
     </div>
   );

@@ -51,26 +51,26 @@ const COLORS = {
 };
 
 // Thêm một số màu gradient cho biểu đồ
-const CHART_COLORS = {
-  light: {
-    primary: "rgba(79, 70, 229, 1)",
-    success: "rgba(16, 185, 129, 1)",
-    warning: "rgba(245, 158, 11, 1)",
-    error: "rgba(239, 68, 68, 1)",
-    purple: "rgba(139, 92, 246, 1)",
-    gradientFrom: "rgba(79, 70, 229, 1)",
-    gradientTo: "rgba(129, 140, 248, 1)",
-  },
-  dark: {
-    primary: "rgba(129, 140, 248, 1)",
-    success: "rgba(52, 211, 153, 1)",
-    warning: "rgba(252, 211, 77, 1)",
-    error: "rgba(248, 113, 113, 1)",
-    purple: "rgba(167, 139, 250, 1)",
-    gradientFrom: "rgba(129, 140, 248, 1)",
-    gradientTo: "rgba(199, 210, 254, 1)",
-  },
-};
+// const CHART_COLORS = {
+//   light: {
+//     primary: "rgba(79, 70, 229, 1)",
+//     success: "rgba(16, 185, 129, 1)",
+//     warning: "rgba(245, 158, 11, 1)",
+//     error: "rgba(239, 68, 68, 1)",
+//     purple: "rgba(139, 92, 246, 1)",
+//     gradientFrom: "rgba(79, 70, 229, 1)",
+//     gradientTo: "rgba(129, 140, 248, 1)",
+//   },
+//   dark: {
+//     primary: "rgba(129, 140, 248, 1)",
+//     success: "rgba(52, 211, 153, 1)",
+//     warning: "rgba(252, 211, 77, 1)",
+//     error: "rgba(248, 113, 113, 1)",
+//     purple: "rgba(167, 139, 250, 1)",
+//     gradientFrom: "rgba(129, 140, 248, 1)",
+//     gradientTo: "rgba(199, 210, 254, 1)",
+//   },
+// };
 
 // Add interface definition at the top
 interface Invoice {

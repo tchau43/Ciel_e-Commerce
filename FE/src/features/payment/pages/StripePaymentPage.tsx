@@ -6,9 +6,9 @@ import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { CartItem, Address } from "@/types/dataTypes"; // Updated imports to match dataTypes.ts
 // Import the CORRECT mutation hook
-import StripeForm from "@/features/stripe/components/StripeForm"; // Adjust path
+import StripeForm from "@/features/payment/components/StripeForm"; // Adjust path
 import { getAuthCredentials } from "@/utils/authUtil"; // To get userId
-import { useInitiateStripePaymentMutation } from "@/services/invoice/initiateStripePaymentMutation";
+import { useInitiateStripePaymentMutation } from "@/services/payment/initiateStripePaymentMutation";
 
 // Initialize Stripe
 const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
@@ -19,11 +19,14 @@ const StripePaymentPage = () => {
   const { userInfo } = getAuthCredentials();
 
   // Destructure ALL data passed from PaymentPage
-  const { cartItems, total, shippingAddress } = (location.state || {}) as {
-    cartItems: CartItem[];
-    total: number; // This FE total is mainly for initial display/fallback
-    shippingAddress: Address; // Updated type to match dataTypes.ts
-  };
+  const { cartItems, total, shippingAddress, couponCode, deliveryFee } =
+    (location.state || {}) as {
+      cartItems: CartItem[];
+      total: number; // This FE total is mainly for initial display/fallback
+      shippingAddress: Address; // Updated type to match dataTypes.ts
+      couponCode: string | null; // Add couponCode to the type
+      deliveryFee: number;
+    };
 
   // State to hold data received from the backend initiation endpoint
   const [paymentData, setPaymentData] = useState<{
@@ -50,11 +53,12 @@ const StripePaymentPage = () => {
       !userInfo?._id ||
       !cartItems?.length ||
       !shippingAddress ||
-      !(total > 0)
+      !(total > 0) ||
+      typeof deliveryFee !== "number"
     ) {
       console.error(
         "StripePaymentPage: Missing required data. Navigating back to cart.",
-        { userInfo, cartItems, shippingAddress, total }
+        { userInfo, cartItems, shippingAddress, total, deliveryFee }
       );
       alert(
         "Could not proceed to payment. Please check your cart and address details."
@@ -66,13 +70,14 @@ const StripePaymentPage = () => {
     // Prepare variables for the initiation mutation
     const variables = {
       userId: userInfo._id,
-      // Map cart items correctly, including variantId
       productsList: cartItems.map((item) => ({
         productId: item.productId,
         quantity: item.quantity,
         variantId: item.variantId || null,
       })),
-      shippingAddress: shippingAddress, // Pass the structured address
+      shippingAddress,
+      couponCode: couponCode || null,
+      deliveryFee,
     };
 
     console.log(

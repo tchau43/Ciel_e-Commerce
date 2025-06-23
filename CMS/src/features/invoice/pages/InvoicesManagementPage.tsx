@@ -40,13 +40,7 @@ import {
 import { format } from "date-fns";
 
 // Icons and Types
-import {
-  AlertCircle,
-  Search,
-  Calendar as CalendarIcon,
-  Filter,
-  X,
-} from "lucide-react";
+import { AlertCircle, Search, Calendar as CalendarIcon } from "lucide-react";
 import {
   UpdateInvoiceStatusInput,
   OrderStatus,
@@ -63,7 +57,7 @@ const InvoicesManagementPage = () => {
   });
 
   const [searchTerm, setSearchTerm] = useState("");
-  const [showFilterPanel, setShowFilterPanel] = useState(false);
+  const [showFilterPanel] = useState(false);
   const [debouncedSearchTerm] = useDebounce(searchTerm, 500);
 
   // Update filters with debounced search term
@@ -177,19 +171,6 @@ const InvoicesManagementPage = () => {
               className="pl-10 bg-input/90 dark:bg-input/80 border-input/20 dark:border-input/10 text-foreground/90 dark:text-foreground/80 placeholder:text-muted-foreground/50 dark:placeholder:text-muted-foreground/40"
             />
           </div>
-          <Button
-            variant="outline"
-            size="sm"
-            className="flex items-center gap-2"
-            onClick={() => setShowFilterPanel(!showFilterPanel)}
-          >
-            {showFilterPanel ? (
-              <X className="h-4 w-4" />
-            ) : (
-              <Filter className="h-4 w-4" />
-            )}
-            {showFilterPanel ? "Ẩn bộ lọc" : "Hiện bộ lọc"}
-          </Button>
         </div>
       </div>
 

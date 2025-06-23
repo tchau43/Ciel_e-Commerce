@@ -29,19 +29,15 @@ export interface AdminInvoiceQueryResult {
   limit: number;
 }
 
-// Hàm query function, sử dụng các kiểu đã import
 const fetchAllInvoicesAdmin = async (
   params?: AdminInvoiceFilterParams
 ): Promise<AdminInvoiceQueryResult> => {
-  // Gọi repository với endpoint và params
-  // InvoiceRepository.getAllInvoices đã được sửa để nhận params
   return await InvoiceRepository.getAllInvoices(
     API_ENDPOINTS.ADMIN_GET_ALL_INVOICES,
     params
   );
 };
 
-// Hook useGetAllInvoicesQuery, sử dụng các kiểu đã import
 export const useGetAllInvoicesQuery = (params?: AdminInvoiceFilterParams) => {
   return useQuery<AdminInvoiceQueryResult, Error>({
     queryKey: ["allInvoicesAdmin", params],

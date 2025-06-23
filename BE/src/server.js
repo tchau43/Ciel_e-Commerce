@@ -21,5 +21,3 @@ appConfig(app);
     console.log(">>> Error connect to DB: ", error);
   }
 })();
-
-
