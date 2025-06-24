@@ -1,5 +1,5 @@
 // src/controllers/openaiChatController.js
-const openaiAssistantService = require('../services/openaiAssistantService');
+const openaiAssistantService = require('../services/openaiChatService');
 const chatHistoryService = require('../services/chatHistoryService'); // Để lưu lịch sử nếu muốn
 const logger = require('../config/logger'); //
 
