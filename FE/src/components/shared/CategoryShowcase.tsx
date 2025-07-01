@@ -146,8 +146,6 @@ export const CategoryShowcase: React.FC<CategoryShowcaseProps> = ({
       const descriptionElement = item.querySelector(".category-description");
       const iconElement = item.querySelector(".category-icon");
       const countElement = item.querySelector(".category-count");
-
-      // Initially hide description
       if (descriptionElement) {
         gsap.set(descriptionElement, {
           opacity: 0,
@@ -155,29 +153,23 @@ export const CategoryShowcase: React.FC<CategoryShowcaseProps> = ({
           display: "none",
         });
       }
-
-      // Set initial icon and count state
       if (iconElement && countElement) {
         gsap.set([iconElement, countElement], {
           scale: 1,
         });
       }
-
-      // Set initial state
       gsap.set(item, {
         flexGrow: NORMAL_FLEX_GROW,
         width: `${100 / sectionItems.length}%`,
       });
 
       item.addEventListener("mouseenter", () => {
-        // Expand hovered item
         gsap.to(item, {
           flexGrow: EXPAND_FLEX_GROW,
           duration: DURATION,
           ease: "power2.inOut",
         });
 
-        // Show description and animate icon
         if (descriptionElement) {
           gsap.to(descriptionElement, {
             opacity: 1,
@@ -196,7 +188,6 @@ export const CategoryShowcase: React.FC<CategoryShowcaseProps> = ({
           });
         }
 
-        // Shrink other items
         sectionItems.forEach((otherItem) => {
           if (otherItem !== item) {
             gsap.to(otherItem, {
@@ -209,14 +200,12 @@ export const CategoryShowcase: React.FC<CategoryShowcaseProps> = ({
       });
 
       item.addEventListener("mouseleave", () => {
-        // Reset hovered item
         gsap.to(item, {
           flexGrow: NORMAL_FLEX_GROW,
           duration: DURATION,
           ease: "power2.inOut",
         });
 
-        // Hide description
         if (descriptionElement) {
           gsap.to(descriptionElement, {
             opacity: 0,
@@ -227,7 +216,6 @@ export const CategoryShowcase: React.FC<CategoryShowcaseProps> = ({
           });
         }
 
-        // Reset icon and count
         if (iconElement && countElement) {
           gsap.to([iconElement, countElement], {
             scale: 1,
@@ -236,7 +224,6 @@ export const CategoryShowcase: React.FC<CategoryShowcaseProps> = ({
           });
         }
 
-        // Reset other items
         sectionItems.forEach((otherItem) => {
           if (otherItem !== item) {
             gsap.to(otherItem, {

@@ -11,6 +11,6 @@ export const useSearchFaqsQuery = (query: string) => {
       );
       return response;
     },
-    enabled: !!query && query.length >= 2, // Only run the query if at least 2 characters
+    enabled: !!query && query.length >= 2, 
   });
 };

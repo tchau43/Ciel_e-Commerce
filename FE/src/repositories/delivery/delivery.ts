@@ -16,7 +16,6 @@ interface APIResponse {
 class DeliveryRepository extends Base {
   calculateDeliveryFee = async (address: Address): Promise<DeliveryFeeData> => {
     try {
-      // Wrap địa chỉ trong shippingAddress object theo yêu cầu của API
       const payload = {
         shippingAddress: {
           street: address.street || "",

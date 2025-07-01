@@ -75,10 +75,8 @@ const DeliveredProduct: FC<DeliveredProductProps> = ({
     }
   };
 
-  // Product detail URL
   const productUrl = `/product/${productData._id}`;
 
-  // Render stars based on rating
   const renderStars = (rating: number | null | undefined) => {
     if (rating === null || rating === undefined) return null;
 
@@ -101,7 +99,6 @@ const DeliveredProduct: FC<DeliveredProductProps> = ({
     );
   };
 
-  // Default review status if not provided
   const isReviewed = reviewStatus?.isReviewed || false;
 
   return (

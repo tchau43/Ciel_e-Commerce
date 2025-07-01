@@ -17,7 +17,6 @@ const getDeliveryFee = async (req, res) => {
     try {
         const { shippingAddress } = req.body;
 
-        // Validate shipping address
         if (!shippingAddress) {
             return res.status(400).json({ message: "Shipping address is required" });
         }
@@ -30,10 +29,8 @@ const getDeliveryFee = async (req, res) => {
             });
         }
 
-        // Calculate delivery fee
         const deliveryFee = await getDeliveryFeeService(shippingAddress);
 
-        // Return the calculated fee
         res.status(200).json({
             success: true,
             data: {

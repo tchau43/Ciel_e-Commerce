@@ -49,7 +49,6 @@ const Header: React.FC = () => {
     >
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16">
-          {/* Logo */}
           <motion.div
             variants={logoVariants}
             initial="initial"
@@ -63,7 +62,6 @@ const Header: React.FC = () => {
             </NavLink>
           </motion.div>
 
-          {/* Navigation Links */}
           <div className="flex items-center space-x-8">
             <motion.div
               variants={navLinkVariants}

@@ -1,4 +1,3 @@
-// models/cart.js
 const mongoose = require("mongoose");
 
 const cartSchema = new mongoose.Schema(
@@ -7,8 +6,8 @@ const cartSchema = new mongoose.Schema(
         items: [{
             product: { type: mongoose.Schema.Types.ObjectId, ref: "Product", required: true },
             variant: { type: mongoose.Schema.Types.ObjectId, ref: 'Variant', required: true },
-            quantity: { type: Number, default: 1, min: 1 }, // Ensure quantity is at least 1
-            _id: false // Usually not needed for subdocuments unless referenced elsewhere
+            quantity: { type: Number, default: 1, min: 1 }, 
+            _id: false 
         }],
         // totalPrice: { type: Number, default: 0 }, // totalPrice is often calculated on fetch, not stored persistently
     },

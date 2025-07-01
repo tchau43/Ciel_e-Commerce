@@ -103,11 +103,19 @@ const {
   updateCoupon,
   deleteCoupon,
 } = require("../controllers/couponController");
-const { handleOpenAIChat } = require("../controllers/openaiChatController");
+const { handleOpenAIChat, getChatHistory } = require("../controllers/openaiChatController");
 
 const { getDeliveryFee } = require("../controllers/deliveryController");
 
 const routerAPI = express.Router();
+
+const optionalAuth = (req, res, next) => {
+  try {
+    verifyToken(req, res, next);
+  } catch (error) {
+    next();
+  }
+};
 
 // Public
 routerAPI.post("/register", createUser);
@@ -138,10 +146,11 @@ routerAPI.get("/faq-categories/slug/:slug", getFaqCategoryBySlug);
 
 routerAPI.post("/delivery/calculate", getDeliveryFee);
 
+routerAPI.post("/openai-chat", optionalAuth, handleOpenAIChat);
+routerAPI.get("/chat/history/:threadId", optionalAuth, getChatHistory);
+
 // User
 routerAPI.use(verifyToken);
-
-routerAPI.post("/openai-chat", handleOpenAIChat);
 
 
 routerAPI.put("/user/profile", updateUserProfile);

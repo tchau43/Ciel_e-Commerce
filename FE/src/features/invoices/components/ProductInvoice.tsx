@@ -9,7 +9,6 @@ const ProductInvoice = ({ product }: ProductInvoiceProps) => {
 
   return (
     <div className="grid grid-cols-1 sm:grid-cols-12 gap-4 p-4 sm:px-6 sm:py-4 hover:bg-gray-50 transition-colors">
-      {/* Mobile view (stacked) */}
       <div className="flex items-center col-span-1 sm:hidden mb-2">
         <div className="flex-1">
           <h4 className="font-medium text-gray-900">{product.product.name}</h4>
@@ -24,7 +23,6 @@ const ProductInvoice = ({ product }: ProductInvoiceProps) => {
         </div>
       </div>
 
-      {/* Desktop view (grid) */}
       <div className="hidden sm:flex col-span-5 items-center space-x-4">
         <div className="flex-shrink-0 h-16 w-16 rounded-md border border-gray-200 overflow-hidden bg-gray-100">
           {product.product.images && product.product.images.length > 0 ? (

@@ -10,7 +10,6 @@ appConfig(app);
 
 (async () => {
   try {
-    //using mongoose
     await connection();
 
     app.listen(port, () => {

@@ -1,53 +1,49 @@
-// src/controllers/emailController.js
-const mongoose = require('mongoose');
-const { sendEmail } = require("../config/mailer"); // Path to your mailer config
-const Invoice = require('../models/invoice');     // Path to your Invoice model
-// Optional: Helper for formatting currency or dates
-const { formatCurrencyVND } = require('../utils/helper'); // Adjust path if needed
 
-/**
- * Controller to trigger sending a payment/order confirmation email.
- * Fetches invoice details by ID and sends email to the user associated with the invoice.
- */
+const mongoose = require('mongoose');
+const { sendEmail } = require("../config/mailer");
+const Invoice = require('../models/invoice');    
+const { formatCurrencyVND } = require('../utils/helper');
+
+
 const sendPaymentConfirmationEmail = async (req, res) => {
   console.log("API call received for sendPaymentConfirmationEmail");
-  const { invoiceId } = req.body; // Expecting invoiceId from the trigger
+  const { invoiceId } = req.body;
 
-  // 1. Validate Input
+
   if (!invoiceId || !mongoose.Types.ObjectId.isValid(invoiceId)) {
     console.warn("Missing or invalid invoiceId for payment confirmation email:", invoiceId);
     return res.status(400).json({ message: "Missing or invalid required field: invoiceId" });
   }
 
   try {
-    // 2. Fetch Populated Invoice Data directly here
-    // Ensure all necessary fields for the email are populated
+  
+  
     const invoice = await Invoice.findById(invoiceId)
-      .populate({ path: "user", select: "name email" }) // Essential: Populate user name and email
-      .populate({ // Populate product details
+      .populate({ path: "user", select: "name email" })
+      .populate({
         path: "items.product",
-        select: "name images base_price", // Select fields needed for email
+        select: "name images base_price",
       })
-      .populate({ // Populate variant details
+      .populate({
         path: "items.variant",
-        select: "types price", // Select fields needed for email
+        select: "types price",
       })
-      .lean(); // Use lean for plain object
+      .lean();
 
-    // Check if invoice and user data exist
+  
     if (!invoice) {
       console.error(`Invoice not found for ID: ${invoiceId}`);
       return res.status(404).json({ message: "Invoice not found." });
     }
-    if (!invoice.user || !invoice.user.email) { // CRITICAL: Check if user and email exist
+    if (!invoice.user || !invoice.user.email) {
       console.error(`User data or email missing for invoice ${invoiceId}. Cannot send confirmation.`);
-      // Don't necessarily error out the whole request, but log it.
-      // Depending on the trigger, maybe return success but indicate email skip.
+    
+    
       return res.status(200).json({ message: "Email skipped: User email missing from invoice data." });
     }
 
-    // 3. Extract necessary data FOR EMAIL from the fetched invoice
-    const userEmail = invoice.user.email; // <-- Use the email from the populated user
+  
+    const userEmail = invoice.user.email;
     const userName = invoice.user.name || 'Valued Customer';
     const orderId = invoice._id.toString();
     const items = invoice.items || [];
@@ -55,8 +51,8 @@ const sendPaymentConfirmationEmail = async (req, res) => {
     const shippingAddress = invoice.shippingAddress || {};
     const paymentMethod = invoice.paymentMethod || 'N/A';
 
-    // 4. Generate Email Content
-    const formattedTotal = formatCurrencyVND(totalAmount); // Use your helper
+  
+    const formattedTotal = formatCurrencyVND(totalAmount);
     const formattedShippingAddress = `
             ${shippingAddress.street || ''}<br>
             ${shippingAddress.city || ''}, ${shippingAddress.state || ''} ${shippingAddress.zipCode || ''}<br>
@@ -66,10 +62,10 @@ const sendPaymentConfirmationEmail = async (req, res) => {
     const itemsHtml = items.map(item => {
       const product = item.product || {};
       const variant = item.variant || {};
-      const price = item.priceAtPurchase; // Use price from invoice item
+      const price = item.priceAtPurchase;
       const formattedPrice = formatCurrencyVND(price);
       const formattedSubtotal = formatCurrencyVND(price * item.quantity);
-      const imageUrl = product.images?.[0] || ''; // Use first image
+      const imageUrl = product.images?.[0] || '';
 
       return `
                 <tr>
@@ -87,31 +83,25 @@ const sendPaymentConfirmationEmail = async (req, res) => {
             `;
     }).join('');
 
-    // Simple text version (for email clients that don't show HTML)
+  
     const textVersion = `
-Hello ${userName},
+      Hello ${userName},
+      Thank you for your order #${orderId}!
+      Your payment of ${formattedTotal} via ${paymentMethod} was successful (or is being processed).
+      Order Summary:
+      ${items.map(item => `- ${item.product?.name || 'Item'} ${item.variant?.types ? '(' + item.variant.types + ')' : ''} (Qty: ${item.quantity}) @ ${formatCurrencyVND(item.priceAtPurchase)}`).join("\n")}
+      Total: ${formattedTotal}
+      Shipping To:
+      ${shippingAddress.street || ''}
+      ${shippingAddress.city || ''}, ${shippingAddress.state || ''} ${shippingAddress.zipCode || ''}
+      ${shippingAddress.country || ''}
+      We'll notify you when your order ships.
+      Thanks for shopping with us!
+      Your Company Name
+      [Your Support Email/Phone]
+      `.trim();
 
-Thank you for your order #${orderId}!
-
-Your payment of ${formattedTotal} via ${paymentMethod} was successful (or is being processed).
-
-Order Summary:
-${items.map(item => `- ${item.product?.name || 'Item'} ${item.variant?.types ? '(' + item.variant.types + ')' : ''} (Qty: ${item.quantity}) @ ${formatCurrencyVND(item.priceAtPurchase)}`).join("\n")}
-
-Total: ${formattedTotal}
-
-Shipping To:
-${shippingAddress.street || ''}
-${shippingAddress.city || ''}, ${shippingAddress.state || ''} ${shippingAddress.zipCode || ''}
-${shippingAddress.country || ''}
-
-We'll notify you when your order ships.
-Thanks for shopping with us!
-Your Company Name
-[Your Support Email/Phone]
-        `.trim();
-
-    // Detailed HTML version
+  
     const htmlVersion = `
             <div style="font-family: Arial, Helvetica, sans-serif; line-height: 1.6; color: #333;">
                 <h2 style="color: #444;">Order Confirmation</h2>
@@ -156,15 +146,15 @@ Your Company Name
             </div>
         `;
 
-    // Set up mail options
+  
     const mailOptions = {
-      to: userEmail, // Send to user's registered email
+      to: userEmail,
       subject: `Your Order Confirmation - #${orderId}`,
-      text: textVersion, // Plain text fallback
-      html: htmlVersion,  // HTML version
+      text: textVersion,
+      html: htmlVersion, 
     };
 
-    // 5. Send Email using the mailer config
+  
     await sendEmail(mailOptions);
     console.log(`Confirmation email sent successfully to ${userEmail} for invoice ${invoiceId}.`);
     res.status(200).json({ message: "Confirmation email sent successfully." });
@@ -177,5 +167,5 @@ Your Company Name
 
 module.exports = {
   sendPaymentConfirmationEmail,
-  // You might add other email functions here later (e.g., shipping notification)
+
 };

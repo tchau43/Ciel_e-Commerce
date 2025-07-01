@@ -130,7 +130,6 @@ const InvoiceItems = ({ invoiceItem }: InvoiceItemsProps) => {
 
   return (
     <div className="mb-8 overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm transition hover:shadow-md">
-      {/* Header */}
       <div className="border-b border-gray-100 bg-gray-50 p-4 sm:p-6">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div className="space-y-1">
@@ -187,7 +186,6 @@ const InvoiceItems = ({ invoiceItem }: InvoiceItemsProps) => {
         </div>
       </div>
 
-      {/* Products header */}
       <div className="hidden sm:grid grid-cols-12 px-6 py-3 text-xs font-medium uppercase tracking-wider text-gray-500 border-b">
         <div className="col-span-5">Sản phẩm</div>
         <div className="col-span-2 text-center">Giá</div>
@@ -195,14 +193,12 @@ const InvoiceItems = ({ invoiceItem }: InvoiceItemsProps) => {
         <div className="col-span-3 text-right">Thành tiền</div>
       </div>
 
-      {/* Products list */}
       <div className="divide-y divide-gray-100">
         {productList.map((product: InvoiceItem, index: number) => (
           <ProductInvoice key={index} product={product} />
         ))}
       </div>
 
-      {/* Footer with totals */}
       <div className="border-t border-gray-100 bg-gray-50 p-4 sm:p-6">
         <div className="flex flex-col items-end space-y-2">
           <div className="flex w-full max-w-xs justify-between text-sm text-gray-500">

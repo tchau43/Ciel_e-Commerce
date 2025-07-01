@@ -34,12 +34,6 @@ interface GetReviewsResponse {
 }
 
 class Review extends Base {
-  /**
-   * Creates a new review for a product
-   * @param endpoint API endpoint for creating a review
-   * @param reviewData Data for the review to be created
-   * @returns The created review
-   */
   createReview = async (
     url: string,
     reviewData: any
@@ -47,11 +41,6 @@ class Review extends Base {
     return this.http(url, "post", reviewData);
   };
 
-  /**
-   * Gets all reviews for a product
-   * @param endpoint API endpoint for getting reviews
-   * @returns List of reviews for the product
-   */
   getReviewsByProduct = async (url: string): Promise<GetReviewsResponse[]> => {
     return this.http(url, "get");
   };

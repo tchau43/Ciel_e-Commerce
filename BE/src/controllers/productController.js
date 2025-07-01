@@ -1,25 +1,17 @@
-// controllers/productController.js
-// Handles CRUD for Products AND individual Variants after schema refactor
-
 const { default: mongoose } = require("mongoose");
 const { createProductService, getAllProductsService, getProductByIdService, getProductsByNameService, updateProductService, deleteProductService, getProductsByCategoryService, searchProductService, getVariantByIdService, updateVariantService, deleteVariantService, updateVariantStockService, addVariantToProductService, getFeaturedProductsService } = require("../services/productService");
 
-// Import all service functions under a namespace for clarity
-
-// --- PRODUCT CONTROLLERS ---
-
 const createProduct = async (req, res) => {
-  // Service now handles creating Product then associated Variants
-  const productData = req.body; // Expects optional 'variants' array [{types, price, stock}]
+
+  const productData = req.body;
   try {
-    // Basic validation
+
     if (!productData.name || productData.base_price === undefined || productData.base_price < 0) {
       return res.status(400).json({ message: "Product name and valid base_price are required." });
     }
-    // TODO: Add validation for the structure of productData.variants if present
 
     const data = await createProductService(productData);
-    // Service returns the created product document (with variants as an array of ObjectIds)
+
     res.status(201).json(data);
   } catch (error) {
     console.error("Error in createProduct controller:", error);
@@ -30,7 +22,7 @@ const createProduct = async (req, res) => {
 const getAllProducts = async (req, res) => {
   try {
     const { sort } = req.query;
-    // Allow sorting by purchasedQuantity
+
     let sortParam = sort;
     if (sort === 'popular') {
       sortParam = 'purchasedQuantity:desc';
@@ -44,10 +36,9 @@ const getAllProducts = async (req, res) => {
 };
 
 const getProductById = async (req, res) => {
-  // Service now fetches product AND populates its variants array
   try {
     const { id } = req.params;
-    const data = await getProductByIdService(id); // Returns { ...product, variants: [...] }
+    const data = await getProductByIdService(id);
     res.status(200).json(data);
   } catch (error) {
     console.error(`Error in getProductById controller for ID ${req.params.id}:`, error);
@@ -60,7 +51,6 @@ const getProductById = async (req, res) => {
 };
 
 const getProductsByName = async (req, res) => {
-  // Service returns products without populated variants
   const { name } = req.query;
   if (!name) {
     return res.status(400).json({ message: "Search 'name' query parameter is required." });
@@ -75,26 +65,24 @@ const getProductsByName = async (req, res) => {
 };
 
 const updateProduct = async (req, res) => {
-  // IMPORTANT: This endpoint ONLY updates core Product fields (name, desc, category, etc.)
-  // It specifically ignores/rejects 'variants' array in the body.
   const { id } = req.params;
   const productData = req.body;
   try {
-    // Validation: Prevent accidental variant updates via this route
+
     if (productData.variants !== undefined) {
       return res.status(400).json({ message: "Cannot update variants via this endpoint. Use specific /variants/:variantId routes." });
     }
-    // Validation: Prevent direct rating updates
+
     if (productData.averageRating !== undefined || productData.numberOfReviews !== undefined) {
       return res.status(400).json({ message: "Cannot update rating fields directly." });
     }
 
     const data = await updateProductService(id, productData);
-    res.status(200).json(data); // Returns updated product (without populated variants)
+    res.status(200).json(data);
   } catch (error) {
     console.error(`Error in updateProduct controller for ID ${req.params.id}:`, error);
     if (error.message.includes("not found") || error.message.startsWith("Category") || error.message.includes("Invalid")) {
-      res.status(404).json({ message: error.message }); // 404 or 400 depending on error type
+      res.status(404).json({ message: error.message });
     } else {
       res.status(500).json({ message: error.message || "Failed to update product." });
     }
@@ -102,11 +90,10 @@ const updateProduct = async (req, res) => {
 };
 
 const deleteProduct = async (req, res) => {
-  // Service now deletes the product AND its associated variants
   try {
     const { id } = req.params;
     await deleteProductService(id);
-    res.status(204).send(); // No Content indicates successful deletion
+    res.status(204).send();
   } catch (error) {
     console.error(`Error in deleteProduct controller for ID ${req.params.id}:`, error);
     if (error.message.includes("not found") || error.message.includes("Invalid")) {
@@ -118,7 +105,6 @@ const deleteProduct = async (req, res) => {
 };
 
 const getProductsByCategory = async (req, res) => {
-  // Service returns products without populated variants
   try {
     const { category } = req.query;
     if (!category) {
@@ -134,7 +120,6 @@ const getProductsByCategory = async (req, res) => {
 };
 
 const searchProduct = async (req, res) => {
-  // Service returns products without populated variants
   const { searchText, category } = req.query;
   const categories = category ? (Array.isArray(category) ? category : category.split(",")) : [];
   try {
@@ -149,10 +134,6 @@ const searchProduct = async (req, res) => {
   }
 };
 
-
-// --- VARIANT-SPECIFIC CONTROLLERS ---
-
-// GET /variants/:variantId
 const getVariantById = async (req, res) => {
   try {
     const { variantId } = req.params;
@@ -168,13 +149,11 @@ const getVariantById = async (req, res) => {
   }
 };
 
-// PATCH /variants/:variantId
 const updateVariant = async (req, res) => {
   try {
     const { variantId } = req.params;
-    const updateData = req.body; // Contains fields like types, price, stock to update
+    const updateData = req.body;
 
-    // Add basic validation as needed (e.g., check price/stock format)
     if (updateData.product !== undefined) {
       return res.status(400).json({ message: "Cannot change the parent product of a variant." });
     }
@@ -191,12 +170,11 @@ const updateVariant = async (req, res) => {
   }
 };
 
-// DELETE /variants/:variantId
 const deleteVariant = async (req, res) => {
   try {
     const { variantId } = req.params;
-    await deleteVariantService(variantId); // Service handles removing ref from Product too
-    res.status(204).send(); // No content on successful delete
+    await deleteVariantService(variantId);
+    res.status(204).send();
   } catch (error) {
     console.error(`Error in deleteVariant controller for ID ${req.params.variantId}:`, error);
     if (error.message.includes("not found") || error.message.includes("Invalid")) {
@@ -207,25 +185,24 @@ const deleteVariant = async (req, res) => {
   }
 };
 
-// PATCH /variants/:variantId/stock - Example for specific field update
 const updateVariantStock = async (req, res) => {
   try {
     const { variantId } = req.params;
-    const { change } = req.body; // Expecting body like { "change": -2 } or { "change": 10 }
+    const { change } = req.body;
 
     if (change === undefined || typeof change !== 'number') {
       return res.status(400).json({ message: "Stock 'change' amount (number) is required in body." });
     }
 
     const updatedVariant = await updateVariantStockService(variantId, change);
-    res.status(200).json(updatedVariant); // Return updated variant with new stock
+    res.status(200).json(updatedVariant);
 
   } catch (error) {
     console.error(`Error in updateVariantStock controller for ID ${req.params.variantId}:`, error);
     if (error.message.includes("not found") || error.message.includes("Invalid")) {
       res.status(404).json({ message: error.message });
     } else if (error.message.includes("Stock cannot be negative")) {
-      res.status(400).json({ message: error.message }); // Bad request if update leads to invalid state
+      res.status(400).json({ message: error.message });
     }
     else {
       res.status(500).json({ message: error.message || "Failed to update variant stock." });
@@ -233,14 +210,11 @@ const updateVariantStock = async (req, res) => {
   }
 };
 
-// --- ADD Controller to Add a Variant to an Existing Product ---
-// POST /products/:productId/variants
 const addVariantToProduct = async (req, res) => {
   try {
     const { productId } = req.params;
-    const variantData = req.body; // Should contain types, price, stock
+    const variantData = req.body;
 
-    // --- Basic Validation ---
     if (!variantData.types || variantData.price === undefined || variantData.stock === undefined) {
       return res.status(400).json({ message: "Variant types, price, and stock are required." });
     }
@@ -253,20 +227,17 @@ const addVariantToProduct = async (req, res) => {
     if (!mongoose.Types.ObjectId.isValid(productId)) {
       return res.status(400).json({ message: "Invalid Product ID format." });
     }
-    // --- End Validation ---
 
-    // --- Call the Service Function ---
     const newVariant = await addVariantToProductService(productId, variantData);
-    // --- Service handles DB operations ---
 
-    res.status(201).json(newVariant); // Return the newly created variant
+    res.status(201).json(newVariant);
 
   } catch (error) {
     console.error(`Error in addVariantToProduct controller for Product ${req.params.productId}:`, error);
     if (error.message.includes("not found") || error.message.includes("Invalid")) {
-      res.status(404).json({ message: error.message }); // Use 404 if product not found
+      res.status(404).json({ message: error.message });
     } else if (error.name === 'ValidationError' || error.message.includes("required")) {
-      res.status(400).json({ message: error.message }); // Use 400 for validation errors
+      res.status(400).json({ message: error.message });
     }
     else {
       res.status(500).json({ message: error.message || "Failed to add variant to product." });
@@ -274,10 +245,9 @@ const addVariantToProduct = async (req, res) => {
   }
 };
 
-// --- GET FEATURED PRODUCTS ---
 const getFeaturedProducts = async (req, res) => {
   try {
-    const limit = req.query.limit; // Lấy tham số limit từ query string
+    const limit = req.query.limit;
     const featuredProducts = await getFeaturedProductsService(limit);
     res.status(200).json(featuredProducts);
   } catch (error) {
@@ -287,20 +257,18 @@ const getFeaturedProducts = async (req, res) => {
 };
 
 module.exports = {
-  // Product specific
   createProduct,
   getAllProducts,
   getProductById,
   getProductsByName,
-  updateProduct, // Updates Product ONLY
-  deleteProduct, // Deletes Product AND its Variants
+  updateProduct,
+  deleteProduct,
   getProductsByCategory,
   searchProduct,
-  // Variant specific
   getVariantById,
   updateVariant,
   deleteVariant,
   updateVariantStock,
-  addVariantToProduct, // Added controller for adding variant
-  getFeaturedProducts, // Thêm vào exports
+  addVariantToProduct,
+  getFeaturedProducts,
 };

@@ -39,7 +39,6 @@ const PaymentPage = () => {
     shippingAddress: Address;
   };
 
-  // Chuẩn hóa địa chỉ cho API vận chuyển
   const normalizedAddress: Address = {
     ...shippingAddress,
     city: normalizeLocationName(shippingAddress.city || ""),
@@ -49,7 +48,6 @@ const PaymentPage = () => {
   console.log("Original Address:", shippingAddress);
   console.log("Normalized Address:", normalizedAddress);
 
-  // Gọi API tính phí vận chuyển
   const {
     data: deliveryData,
     isLoading: isCalculatingDeliveryFee,
@@ -67,7 +65,6 @@ const PaymentPage = () => {
   } = useCreateInvoiceMutation();
   const { mutate: deleteCart } = useDeleteAllProductInCartMutation();
 
-  // Validate coupon if applied
   const { data: couponData, isLoading: isCouponValidating } =
     useValidateCouponQuery(appliedCoupon, total);
 
@@ -86,7 +83,7 @@ const PaymentPage = () => {
   };
 
   const handleCheckout = () => {
-    if (!userId) {
+    if (!cartItems?.length || !shippingAddress || !userId) {
       alert("Vui lòng đăng nhập để tiếp tục.");
       navigate("/login");
       return;

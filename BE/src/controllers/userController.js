@@ -1,5 +1,3 @@
-// controllers/userController.js (Modified based on your code)
-
 const {
   createUserService,
   userLoginService,
@@ -8,18 +6,17 @@ const {
   getUserByIdService,
   getUsersPurchasedDetailService,
   changePasswordService,
-} = require("../services/userService"); // Your provided service imports
-const { getInvoiceService } = require("../services/invoiceService"); // Keep if getUserPurchased uses it directly
-const mongoose = require('mongoose'); // For ObjectId validation
-const User = require('../models/user'); // Assuming you have a User model
+} = require("../services/userService");
+const { getInvoiceService } = require("../services/invoiceService");
+const mongoose = require('mongoose');
+const User = require('../models/user');
 const { updateUserProfileService } = require('../services/utilsService');
 const bcrypt = require('bcrypt');
 const saltRounds = 10;
 
 const createUser = async (req, res) => {
-  const { name, email, password, address, phoneNumber } = req.body; // Include optional fields
+  const { name, email, password, address, phoneNumber } = req.body;
   try {
-    // --- Input Validation ---
     if (!name || !email || !password) {
       return res.status(400).json({ message: "Tên, email và mật khẩu là bắt buộc." });
     }
@@ -32,24 +29,19 @@ const createUser = async (req, res) => {
     if (typeof password !== 'string' || password.length < 6) {
       return res.status(400).json({ message: "Mật khẩu phải dài trên 6 ký tựtự." });
     }
-    // --- End Validation ---
-
-    // Prepare data object for service
     const userData = { name: name.trim(), email, password, address, phoneNumber };
 
-    const data = await createUserService(userData); // Pass object to service
+    const data = await createUserService(userData);
 
     if (data === null) {
-      // Assuming null means duplicate email based on your service logic
+    
       return res.status(400).json({ message: "Email already exists." });
     }
+    const { password: removedPassword, ...userResponse } = data.toObject ? data.toObject() : data;
 
-    // Exclude password from response
-    const { password: removedPassword, ...userResponse } = data.toObject ? data.toObject() : data; // Handle potential plain object return
+    res.status(201).json({ message: "User created successfully", user: userResponse });
 
-    res.status(201).json({ message: "User created successfully", user: userResponse }); // Use 201 Created
-
-  } catch (error) { // Catch errors thrown by the service (e.g., validation)
+  } catch (error) {
     console.error("Error in createUser controller:", error);
     if (error.name === 'ValidationError') {
       res.status(400).json({ message: `Registration failed: ${error.message}` });
@@ -68,11 +60,10 @@ const userLogin = async (req, res) => {
 
     const data = await userLoginService(email, password);
 
-    // Check the EC code returned by your service
     if (data && data.EC === 0) {
-      res.status(200).json({ message: "Login successful", ...data }); // Spread the success data
+      res.status(200).json({ message: "Login successful", ...data });
     } else {
-      // Use 401 Unauthorized for login failures
+    
       res.status(401).json({ message: data.EM || "Invalid email or password." });
     }
   } catch (error) {
@@ -82,12 +73,10 @@ const userLogin = async (req, res) => {
 };
 
 const getAllUsers = async (req, res) => {
-  // NOTE: This fetches ALL users. Add pagination via req.query if needed later
-  // const { page = 1, limit = 10, sort = 'createdAt:desc', ...filters } = req.query;
   try {
-    const data = await getAllUsersService(); // Pass query params if service supports them
+    const data = await getAllUsersService();
     if (data === null) {
-      // Service returned null on error based on its pattern
+    
       throw new Error("Service failed to retrieve users.");
     }
     res.status(200).json(data);
@@ -100,9 +89,8 @@ const getAllUsers = async (req, res) => {
 const getUserById = async (req, res) => {
   try {
     const requestedUserId = req.params.id;
-    const authenticatedUser = req.user; // From verifyToken
+    const authenticatedUser = req.user;
 
-    // --- Validation & Security ---
     if (!mongoose.Types.ObjectId.isValid(requestedUserId)) {
       return res.status(400).json({ message: "Invalid user ID format." });
     }
@@ -112,15 +100,13 @@ const getUserById = async (req, res) => {
     if (authenticatedUser._id.toString() !== requestedUserId && authenticatedUser.role !== 'ADMIN') {
       return res.status(403).json({ message: "Forbidden: Cannot access this user's profile." });
     }
-    // --- End Checks ---
-
+  
     const data = await getUserByIdService(requestedUserId);
 
     if (data === null) {
       return res.status(404).json({ message: "User not found." });
     }
 
-    // Ensure password is not sent back
     const { password, ...userResponse } = data.toObject ? data.toObject() : data;
     res.status(200).json(userResponse);
 
@@ -131,19 +117,16 @@ const getUserById = async (req, res) => {
 };
 
 const updateUserbyId = async (req, res) => {
-  // NOTE: This route is ADMIN only based on router setup
-  const { id } = req.params; // ID of user to update
-  const updateData = req.body; // Contains fields to update
+  const { id } = req.params;
+  const updateData = req.body;
 
   try {
     if (!mongoose.Types.ObjectId.isValid(id)) {
       return res.status(400).json({ message: "Invalid user ID format." });
     }
 
-    // --- Sanitize & Validate updateData ---
     const sanitizedData = {};
-
-    // Handle basic fields
+  
     if (updateData.name !== undefined) {
       if (typeof updateData.name === 'string' && updateData.name.trim().length > 0) {
         sanitizedData.name = updateData.name.trim();
@@ -152,7 +135,6 @@ const updateUserbyId = async (req, res) => {
       }
     }
 
-    // Handle status
     if (updateData.status !== undefined) {
       if (typeof updateData.status === 'boolean') {
         sanitizedData.status = updateData.status;
@@ -161,7 +143,6 @@ const updateUserbyId = async (req, res) => {
       }
     }
 
-    // Handle role
     if (updateData.role !== undefined) {
       const allowedRoles = ['CUSTOMER', 'ADMIN'];
       if (allowedRoles.includes(updateData.role)) {
@@ -170,8 +151,7 @@ const updateUserbyId = async (req, res) => {
         return res.status(400).json({ message: `Invalid role. Allowed: ${allowedRoles.join(', ')}` });
       }
     }
-
-    // Handle phone number
+    
     if (updateData.phoneNumber !== undefined) {
       if (typeof updateData.phoneNumber === 'string' && updateData.phoneNumber.trim().length > 0) {
         sanitizedData.phoneNumber = updateData.phoneNumber.trim();
@@ -180,7 +160,6 @@ const updateUserbyId = async (req, res) => {
       }
     }
 
-    // Handle address
     if (updateData.address !== undefined) {
       if (typeof updateData.address === 'object' && updateData.address !== null) {
         sanitizedData.address = {
@@ -195,7 +174,6 @@ const updateUserbyId = async (req, res) => {
       }
     }
 
-    // Handle password change if provided
     if (updateData.oldPassword && updateData.newPassword) {
       const user = await User.findById(id);
       if (!user) {
@@ -214,22 +192,19 @@ const updateUserbyId = async (req, res) => {
       sanitizedData.password = await bcrypt.hash(updateData.newPassword, saltRounds);
     }
 
-    // Exclude sensitive fields
-    delete sanitizedData.email; // Email cannot be changed
+    delete sanitizedData.email;
     delete sanitizedData._id;
 
     if (Object.keys(sanitizedData).length === 0) {
       return res.status(400).json({ message: "No valid fields provided for update." });
     }
 
-    // Call service with the sanitized data object
     const updatedUser = await updateUserbyIdService(id, sanitizedData);
 
     if (updatedUser === null) {
       return res.status(404).json({ message: "User not found or update failed." });
     }
 
-    // Service should return updated user without password
     res.status(200).json({ message: "User updated successfully", user: updatedUser });
 
   } catch (error) {
@@ -243,7 +218,6 @@ const updateUserbyId = async (req, res) => {
 };
 
 const getUserPurchased = async (req, res) => {
-  // This uses your original logic but adds validation & security
   try {
     const requestedUserId = req.params.userId;
     const authenticatedUser = req.user;
@@ -254,22 +228,18 @@ const getUserPurchased = async (req, res) => {
     if (!authenticatedUser?._id) {
       return res.status(401).json({ message: "Authentication error." });
     }
-
-    // Security Check
+  
     if (authenticatedUser._id.toString() !== requestedUserId && authenticatedUser.role !== 'ADMIN') {
       return res.status(403).json({ message: "Forbidden: Cannot access another user's purchase history." });
     }
 
-    // Use the invoice service to get relevant invoices for the user
-    // Ensure getInvoiceService populates product and category correctly
-    const invoices = await getInvoiceService(requestedUserId); // Service should handle "not found" gracefully
+    const invoices = await getInvoiceService(requestedUserId);
 
     const purchasedProducts = [];
     invoices.forEach((invoice) => {
-      // Only process 'delivered' orders for purchase history? Or 'paid'? Add filter if needed.
-      // if (invoice.orderStatus === 'delivered') {
+    
       invoice.items.forEach((item) => {
-        // Ensure nested data exists before accessing _id
+      
         if (item.product?._id && item.product?.category?._id) {
           purchasedProducts.push({
             productId: item.product._id,
@@ -279,12 +249,8 @@ const getUserPurchased = async (req, res) => {
           console.warn(`Skipping item in invoice ${invoice._id} due to missing product/category data during populate.`);
         }
       });
-      // }
     });
-    // console.log("-------------------------------CONTROLLER: Purchased products:", purchasedProducts);
-    // Optionally de-duplicate the list if needed, though repeats might be intended
-    // const uniquePurchases = Array.from(new Map(purchasedProducts.map(item => [item.productId.toString(), item])).values());
-
+  
     res.status(200).json(purchasedProducts);
 
   } catch (error) {
@@ -294,9 +260,8 @@ const getUserPurchased = async (req, res) => {
 };
 
 const getUsersPurchasedDetail = async (req, res) => {
-  // Admin only route
   try {
-    const purchases = await getUsersPurchasedDetailService(); // Service aggregates data
+    const purchases = await getUsersPurchasedDetailService();
     if (purchases === null) {
       throw new Error("Service failed to retrieve purchase details.");
     }
@@ -309,7 +274,7 @@ const getUsersPurchasedDetail = async (req, res) => {
 
 const updateUserProfile = async (req, res) => {
   try {
-    const userId = req.user._id; // Get authenticated user's ID
+    const userId = req.user._id;
     const updateData = req.body;
 
     const updatedUser = await updateUserProfileService(userId, updateData);
@@ -324,7 +289,7 @@ const updateUserProfile = async (req, res) => {
     if (error.name === 'ValidationError') {
       return res.status(400).json({ message: `Validation error: ${error.message}` });
     }
-    // Handle specific error messages from service
+  
     if (error.message.includes("Invalid") || error.message.includes("No valid fields")) {
       return res.status(400).json({ message: error.message });
     }
@@ -337,10 +302,9 @@ const updateUserProfile = async (req, res) => {
 
 const changePassword = async (req, res) => {
   try {
-    const userId = req.user._id; // Get user ID from authenticated token
+    const userId = req.user._id;
     const { oldPassword, newPassword } = req.body;
 
-    // Basic validation
     if (!oldPassword || !newPassword) {
       return res.status(400).json({
         message: "Vui lòng cung cấp mật khẩu cũ và mới."
@@ -356,7 +320,6 @@ const changePassword = async (req, res) => {
   } catch (error) {
     console.error("Error in changePassword controller:", error);
 
-    // Handle specific errors
     if (error.message.includes("không chính xác") ||
       error.message.includes("ít nhất 6 ký tự")) {
       return res.status(400).json({ message: error.message });

@@ -9,7 +9,6 @@ interface UpdateUserProfileData {
   address?: Address;
 }
 
-// For admin updates
 export const useUpdateUserByIdMutation = () => {
   return useMutation({
     mutationFn: ({ id, variables }: { id: string; variables: User }) => {
@@ -21,7 +20,6 @@ export const useUpdateUserByIdMutation = () => {
   });
 };
 
-// For user self-profile updates
 export const useUpdateUserProfileMutation = () => {
   return useMutation({
     mutationFn: (variables: UpdateUserProfileData) => {

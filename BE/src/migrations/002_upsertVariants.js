@@ -1,18 +1,13 @@
-// node ./src/migrations/002_upsertVariants.js
 require('dotenv').config();
 const mongoose = require('mongoose');
-// Ensure these paths correctly point to your model files
-const { Product } = require('../models/product'); // Used for final update ($unset)
-const Variant = require('../models/variant');   // Used for finding/creating new variants
-
-// --- Configuration ---
+const { Product } = require('../models/product');
+const Variant = require('../models/variant');
 const MONGODB_URI = process.env.MONGODB_URI;
 if (!MONGODB_URI) {
     console.error("Error: MONGODB_URI not found in .env file.");
     process.exit(1);
 }
 
-// --- Main Migration Logic ---
 async function runMigration() {
     console.log("!!! IMPORTANT !!!");
     console.log("!!! Backup your database BEFORE running this script. !!!");
@@ -20,7 +15,6 @@ async function runMigration() {
     console.log("--- Checking existing variants by Product ID and 'types' field ---");
     console.log("--------------------------------------------------------------------");
 
-    // Optional: Confirmation Step
     const readline = require('readline').createInterface({ input: process.stdin, output: process.stdout });
     await new Promise(resolve => {
         readline.question('Type YES to confirm and start the variant upsert migration: ', (answer) => {
@@ -32,8 +26,6 @@ async function runMigration() {
             resolve();
         });
     });
-    // End Optional Confirmation
-
 
     let connection;
     let processedProductCount = 0;
@@ -78,7 +70,6 @@ async function runMigration() {
                 continue;
             }
 
-            // --- Transaction Block for each Product ---
             const session = await mongoose.startSession();
             try {
                 let productUpsertCount = 0;
@@ -87,7 +78,6 @@ async function runMigration() {
 
                     const processedTypes = new Set();
 
-                    // *** CHANGE: Process variants sequentially using for...of and await ***
                     for (const embVariant of product.variants) {
                         if (!embVariant || typeof embVariant.types !== 'string' || !embVariant.types.trim() || typeof embVariant.price !== 'number') {
                             console.warn(`   -> Skipping invalid embedded variant data inside Product ${product._id}:`, embVariant);
@@ -111,27 +101,24 @@ async function runMigration() {
                             setDefaultsOnInsert: true, session
                         };
 
-                        // *** CHANGE: Await each operation directly ***
                         try {
                             const result = await Variant.findOneAndUpdate(variantFilter, variantUpdate, options);
                             if (result) {
                                 productUpsertCount++;
-                                // console.log(`    -> Upserted variant type "${variantTypes}"`); // Optional log
                             } else {
                                 console.error(`    -> Failed to upsert variant type "${variantTypes}" (Result was null/undefined)`);
                                 throw new Error(`Upsert failed for type "${variantTypes}"`);
                             }
                         } catch (err) {
                             console.error(`    -> Error during findOneAndUpdate for type "${variantTypes}", Product ${product._id}:`, err);
-                            throw err; // Re-throw to abort transaction
+                            throw err;
                         }
 
                         processedTypes.add(variantTypes);
-                    } // *** End sequential for...of loop ***
+                    }
 
                     console.log(`   -> Completed ${productUpsertCount} variant upserts for Product ${product._id}.`);
 
-                    // *** If all variant upserts succeeded, remove the old array from the product ***
                     const unsetResult = await Product.updateOne(
                         { _id: product._id },
                         { $unset: { variants: "" } },
@@ -142,24 +129,18 @@ async function runMigration() {
                         throw new Error(`Product ${product._id} was not updated to remove variants array (modifiedCount: ${unsetResult.modifiedCount}).`);
                     }
                     console.log(`   -> Successfully removed 'variants' array from Product ${product._id}.`);
+                });
 
-                }); // End transaction block
-
-                // If transaction succeeded for this product
                 migratedProductCount++;
                 variantUpsertCount += productUpsertCount;
-
             } catch (migrationError) {
-                // If transaction failed for this product
-                console.error(`  -> FAILED migration transaction for Product ${product._id}:`, migrationError.message); // Log only message for cleaner output maybe
+                console.error(`  -> FAILED migration transaction for Product ${product._id}:`, migrationError.message);
                 errorCount++;
                 productErrorOccurred = true;
             } finally {
                 await session.endSession();
             }
-            // --- End Transaction Block ---
-
-        } // End while loop for products
+        }
 
         console.log('\n--- Migration Summary ---');
         console.log(`Total products checked (matched query): ${processedProductCount}`);
@@ -168,7 +149,6 @@ async function runMigration() {
         console.log(`Products failed during migration transaction: ${errorCount}`);
         console.log('-------------------------');
         console.log('Variant migration/upsert script finished.');
-
     } catch (error) {
         console.error('\n!!! Critical error during migration setup or processing !!!:', error);
         errorCount++;
@@ -184,7 +164,6 @@ async function runMigration() {
             console.log('Database already disconnected or connection failed.');
         }
 
-        // --- Exit Code ---
         if (errorCount > 0) {
             console.warn(`\nMigration completed with ${errorCount} errors. Please review logs carefully.`);
             process.exit(1);
@@ -198,5 +177,4 @@ async function runMigration() {
     }
 }
 
-// --- Run the Migration ---
 runMigration();

@@ -27,8 +27,7 @@ export const useGetDeliveryFeeQuery = (address: Address) => {
         );
       }
     },
-    enabled: hasRequiredFields, // Chỉ gọi API khi có đủ thông tin cần thiết
-    staleTime: 5 * 60 * 1000, // Cache trong 5 phút
-    retry: false, // Không retry nếu có lỗi
+    enabled: hasRequiredFields, 
+    retry: false, 
   });
 };

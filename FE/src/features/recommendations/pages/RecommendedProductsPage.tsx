@@ -1,5 +1,3 @@
-// src/pages/recommendations/RecommendedProductsPage.tsx
-
 import ProductCard from "@/features/components/ProductCard";
 import { useGetRecommendationProductQuery } from "@/services/recommendation/getRecommendationProductQuery";
 import { Product } from "@/types/dataTypes";
@@ -17,7 +15,6 @@ const RecommendedProductsPage = () => {
   } = useGetRecommendationProductQuery(userId);
 
   if (!userId) {
-    // Should be handled by routing/auth ideally, but good failsafe
     return (
       <div className="p-4 text-center text-red-500">
         Please log in to see recommendations.
@@ -61,7 +58,6 @@ const RecommendedProductsPage = () => {
           <p className="text-xl text-gray-600">
             We don't have specific recommendations for you right now.
           </p>
-          {/* Optionally link to general products page */}
         </div>
       )}
     </div>
