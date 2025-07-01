@@ -30,7 +30,7 @@ interface UpdateProductData {
   popularity?: number;
 }
 
-// Make all fields required in our form data type
+
 type FormDataType = Required<
   Pick<
     Product,
@@ -44,22 +44,22 @@ type FormDataType = Required<
     | "updatedAt"
   >
 > & {
-  description: string[]; // Always an array
-  brand?: BrandReference; // Optional
-  tags: string[]; // Always an array
-  averageRating?: number; // Optional
-  numberOfReviews?: number; // Optional
+  description: string[]; 
+  brand?: BrandReference; 
+  tags: string[]; 
+  averageRating?: number; 
+  numberOfReviews?: number; 
 };
 
 const ProductUpdateForm = ({ product }: ProductUpdateFormProps) => {
-  // Helper function to ensure description is always a string array
+  
   const ensureDescriptionArray = (desc: string[] | undefined): string[] => {
     if (!desc) return [];
     if (!Array.isArray(desc)) return [];
     return desc;
   };
 
-  // Initialize form data with proper type handling
+  
   const [formData, setFormData] = useState<FormDataType>(() => {
     const description = ensureDescriptionArray(product.description);
     const tags = product.tags ?? [];
@@ -210,10 +210,10 @@ const ProductUpdateForm = ({ product }: ProductUpdateFormProps) => {
     setLoading(true);
 
     try {
-      // Prepare update data
+      
       const updateData: UpdateProductData = {};
 
-      // Only include fields that have changed
+      
       if (formData.name !== product.name) {
         updateData.name = formData.name;
       }
@@ -222,7 +222,7 @@ const ProductUpdateForm = ({ product }: ProductUpdateFormProps) => {
         updateData.base_price = Number(formData.base_price);
       }
 
-      // Handle description - only include if changed and not empty
+      
       const currentDesc = formData.description.filter(
         (desc) => desc.trim() !== ""
       );
@@ -231,29 +231,29 @@ const ProductUpdateForm = ({ product }: ProductUpdateFormProps) => {
         updateData.description = currentDesc;
       }
 
-      // Handle category - send ID only
+      
       if (formData.category?._id !== product.category._id) {
         updateData.category = formData.category._id;
       }
 
-      // Handle brand if present
+      
       if (formData.brand?._id !== product.brand?._id) {
         updateData.brand = formData.brand?._id;
       }
 
-      // Handle tags if changed
+      
       if (JSON.stringify(formData.tags) !== JSON.stringify(product.tags)) {
         updateData.tags = formData.tags;
       }
 
-      // Handle images if changed
+      
       if (selectedFile) {
-        // TODO: First upload image to server and get URL
-        // Then include the URL in the update
-        // For now, we'll skip image update
+        
+        
+        
       }
 
-      // Log the update data for debugging
+      
       console.log("Update data:", updateData);
 
       const result = await updateProduct.mutateAsync({
@@ -277,7 +277,6 @@ const ProductUpdateForm = ({ product }: ProductUpdateFormProps) => {
 
   return (
     <div className="space-y-6">
-      {/* Product Info Section */}
       <Card className="border border-border/10 dark:border-border/20 bg-card/95 dark:bg-card/90">
         <div className="p-6">
           <form onSubmit={handleSubmit}>
@@ -291,9 +290,7 @@ const ProductUpdateForm = ({ product }: ProductUpdateFormProps) => {
                 </p>
               </div>
 
-              {/* Form fields */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* Name Input */}
                 <div className="col-span-2">
                   <label className="block text-sm font-medium text-foreground/90 dark:text-foreground/80 mb-1.5">
                     Tên sản phẩm
@@ -308,7 +305,6 @@ const ProductUpdateForm = ({ product }: ProductUpdateFormProps) => {
                   />
                 </div>
 
-                {/* Price Input */}
                 <div>
                   <label className="block text-sm font-medium text-foreground/90 dark:text-foreground/80 mb-1.5">
                     Giá cơ bản
@@ -323,7 +319,6 @@ const ProductUpdateForm = ({ product }: ProductUpdateFormProps) => {
                   />
                 </div>
 
-                {/* Category Selection */}
                 <div>
                   <label className="block text-sm font-medium text-foreground/90 dark:text-foreground/80 mb-1.5">
                     Danh mục
@@ -342,7 +337,6 @@ const ProductUpdateForm = ({ product }: ProductUpdateFormProps) => {
                   </select>
                 </div>
 
-                {/* Description Input */}
                 <div className="col-span-2">
                   <label className="block text-sm font-medium text-foreground/90 dark:text-foreground/80 mb-1.5">
                     Mô tả
@@ -425,7 +419,6 @@ const ProductUpdateForm = ({ product }: ProductUpdateFormProps) => {
         </div>
       </Card>
 
-      {/* Images Section */}
       <Card className="border border-border/10 dark:border-border/20 bg-card/95 dark:bg-card/90">
         <div className="p-6">
           <div className="space-y-4">
@@ -487,7 +480,6 @@ const ProductUpdateForm = ({ product }: ProductUpdateFormProps) => {
         </div>
       </Card>
 
-      {/* Variants Section */}
       <Card className="border border-border/10 dark:border-border/20 bg-card/95 dark:bg-card/90">
         <div className="p-6">
           <VariantList

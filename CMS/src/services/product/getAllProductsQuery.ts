@@ -1,9 +1,6 @@
-// src/services/product/getAllProductsQuery.ts
-
-// << SỬA LỖI: Sử dụng đúng type Product từ dataTypes.ts
 import { Product } from "@/types/dataTypes";
 import { useQuery } from "@tanstack/react-query";
-import ProductRepository from "@/repositories/product/product"; // Đổi tên import để tránh trùng lặp
+import ProductRepository from "@/repositories/product/product"; 
 import { API_ENDPOINTS } from "@/utils/api/endpoint";
 
 interface ProductQueryOptions {

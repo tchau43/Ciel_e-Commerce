@@ -12,7 +12,6 @@ const CouponsManagementPage = () => {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const { data: couponsData, isLoading, isError } = useGetAllCouponsQuery();
 
-  // Filter coupons based on search term
   const filteredCoupons =
     couponsData?.filter(
       (coupon: { code: string; description: string; discountType: string }) =>

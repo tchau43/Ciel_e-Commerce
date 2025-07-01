@@ -1,33 +1,24 @@
-// src/components/shared/ProductCard.tsx
-import { IoCartOutline } from "react-icons/io5"; // Or your preferred cart icon
+import { IoCartOutline } from "react-icons/io5";
 import React, { useState, useRef, MouseEvent } from "react";
-import { useNavigate } from "react-router-dom"; // <-- Import useNavigate
+import { useNavigate } from "react-router-dom";
 import {
   Card,
   CardHeader,
   CardTitle,
   CardDescription,
   CardContent,
-  CardBorder, // Import the border wrapper
+  CardBorder,
 } from "@/components/ui/card";
-// import { ProductData } from "@/types/dataTypes"; // <-- Change this
-import { Product } from "@/types/dataTypes"; // <-- Use the correct type 'Product'
-import { cn } from "@/lib/utils"; //
+import { Product } from "@/types/dataTypes";
+import { cn } from "@/lib/utils";
 
-// --- Helper: Price Formatting (Updated for VND) ---
 const formatPrice = (price: number) => {
-  // return new Intl.NumberFormat("en-US", { // <-- Old version
-  //   style: "currency",
-  //   currency: "USD", // Adjust currency as needed
-  // }).format(price);
   return new Intl.NumberFormat("vi-VN", {
-    // <-- Use Vietnamese locale
     style: "currency",
-    currency: "VND", // <-- Use VND currency
+    currency: "VND",
   }).format(price);
 };
 
-// --- Helper: Placeholder Icons (Keep as is) ---
 const StarIcon = ({ className }: { className?: string }) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
@@ -60,21 +51,18 @@ const BagIcon = ({ className }: { className?: string }) => (
   </svg>
 );
 
-// --- Product Card Component ---
 interface ProductCardProps {
-  // product: ProductData; // <-- Change this
-  product: Product; // <-- Use the correct type 'Product'
+  product: Product;
   className?: string;
 }
 
 const ProductCard: React.FC<ProductCardProps> = ({ product, className }) => {
   const cardRef = useRef<HTMLDivElement>(null);
   const [rotate, setRotate] = useState({ x: 0, y: 0 });
-  const navigate = useNavigate(); // <-- Initialize useNavigate
+  const navigate = useNavigate();
 
-  // --- Click Handler for Navigation ---
   const handleCardClick = () => {
-    navigate(`/product/${product._id}`); // Navigate to product detail page
+    navigate(`/product/${product._id}`);
   };
 
   const handleMouseMove = (e: MouseEvent<HTMLDivElement>) => {
@@ -83,8 +71,8 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, className }) => {
     const { width, height, left, top } = rect;
     const mouseX = e.clientX - left;
     const mouseY = e.clientY - top;
-    const rotateY = (mouseX / width - 0.5) * 15; // Reduced sensitivity slightly
-    const rotateX = -(mouseY / height - 0.5) * 15; // Reduced sensitivity slightly
+    const rotateY = (mouseX / width - 0.5) * 15;
+    const rotateX = -(mouseY / height - 0.5) * 15;
     setRotate({ x: rotateX, y: rotateY });
   };
 
@@ -95,15 +83,14 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, className }) => {
   const imageUrl = product.images?.[0] || "/placeholder-image.png";
 
   const handleAddToCartClick = (e: React.MouseEvent) => {
-    e.stopPropagation(); // Prevent card click navigation when clicking button
+    e.stopPropagation();
     e.preventDefault();
     console.log(`Add ${product.name} (ID: ${product._id}) to cart`);
-    // Add actual add to cart logic here
   };
 
   return (
-    <CardBorder // Use the wrapper for the border and tilt effect
-      className={cn("h-full", className)} // Ensure border wrapper takes full height
+    <CardBorder
+      className={cn("h-full", className)}
       style={{
         transform: `perspective(1000px) rotateX(${rotate.x / 4}deg) rotateY(${
           rotate.y / 4
@@ -111,40 +98,35 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, className }) => {
         transformStyle: "preserve-3d",
         transition: "transform 0.1s ease-out",
       }}
-      onClick={handleCardClick} // <-- Add onClick handler to the outer border wrapper
+      onClick={handleCardClick}
     >
-      <Card // The main card content, gets background/mouse events
-        ref={cardRef} // Attach ref here for coordinate calculation
+      <Card
+        ref={cardRef}
         className={cn(
-          "group relative overflow-hidden hover:cursor-pointer", // group for hover effects
-          "h-full" // Ensure inner card takes full height of border wrapper
+          "group relative overflow-hidden hover:cursor-pointer",
+          "h-full"
         )}
         onMouseMove={handleMouseMove}
         onMouseLeave={handleMouseLeave}
-        // Remove onClick from here if CardBorder handles it
       >
-        {/* Image Section */}
         <div className="relative aspect-square overflow-hidden">
           <img
             src={imageUrl}
             alt={product.name}
             className="object-cover w-full h-full transition-transform duration-300 ease-in-out group-hover:scale-105"
           />
-          {/* Tag */}
           {product.tags?.[0] && (
             <span className="absolute top-2 left-2 bg-ch-pink text-white text-[10px] sm:text-xs font-semibold px-1.5 sm:px-2 py-0.5 sm:py-1 rounded z-10 shadow-sm">
-              {product.tags[0]} {/* Responsive text/padding */}
+              {product.tags[0]}
             </span>
           )}
-          {/* Overlay */}
           <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-          {/* Cart Icon - Slides from right */}
           <button
-            onClick={handleAddToCartClick} // Ensure this stops propagation
+            onClick={handleAddToCartClick}
             aria-label={`Add ${product.name} to cart`}
             className={cn(
               "absolute top-1/2 right-2 z-20 transform -translate-y-1/2",
-              "p-1.5 sm:p-2 rounded-md shadow-md", // Responsive padding
+              "p-1.5 sm:p-2 rounded-md shadow-md",
               "bg-ch-blue text-white",
               "opacity-0 translate-x-4 group-hover:opacity-100 group-hover:translate-x-0",
               "transition-all duration-300 ease-in-out",
@@ -152,13 +134,10 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, className }) => {
             )}
           >
             <IoCartOutline className="w-4 h-4 sm:w-5 sm:h-5" />
-            {/* Responsive icon */}
           </button>
         </div>
 
-        {/* Content Section */}
         <div className="flex flex-col flex-grow p-3 sm:p-4">
-          {/* Header */}
           <CardHeader className="p-0 pb-1 sm:pb-2">
             <CardTitle className="group-hover:text-ch-blue-50 dark:group-hover:text-ch-blue-light transition-colors duration-200">
               {product.name}
@@ -170,7 +149,6 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, className }) => {
             )}
           </CardHeader>
 
-          {/* Content */}
           <CardContent className="p-0 pb-1 sm:pb-2 flex-grow">
             <p
               className={cn(
@@ -178,9 +156,8 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, className }) => {
                 "text-lg sm:text-xl mb-1 sm:mb-2"
               )}
             >
-              {formatPrice(product.base_price)} {/* Now displays in VND */}
+              {formatPrice(product.base_price)}
             </p>
-            {/* Placeholders */}
             <div
               className={cn(
                 "flex flex-wrap items-center gap-x-2 sm:gap-x-3 mt-1",
@@ -189,7 +166,6 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, className }) => {
             >
               <span className="flex items-center whitespace-nowrap text-gray-400 dark:text-gray-500">
                 <StarIcon className="w-3 h-3 sm:w-4 sm:h-4 mr-0.5 sm:mr-1 text-yellow-400" />
-                {/* You might want to replace these with actual data if available */}
                 <span>
                   {product.averageRating?.toFixed(1) || "N/A"} (
                   {product.numberOfReviews || 0})
@@ -197,7 +173,6 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, className }) => {
               </span>
               <span className="flex items-center whitespace-nowrap text-gray-400 dark:text-gray-500">
                 <BagIcon className="w-3 h-3 sm:w-4 sm:h-4 mr-0.5 sm:mr-1" />
-                {/* Replace with actual sales data if available */}
                 <span>500+ sold</span>
               </span>
             </div>

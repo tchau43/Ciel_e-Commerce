@@ -1,25 +1,25 @@
-// src/pages/admin/ProductsManagementPage.tsx (or wherever it resides)
+
 
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useGetAllProductsQuery } from "@/services/product/getAllProductsQuery";
-// Correct the import path if necessary
+
 import ProductsManagementTable from "@/features/product/components/ProductsManagementTable";
-import { AlertCircle, Search, Plus } from "lucide-react"; // Icon for error and search, added Plus icon
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"; // Alert component
+import { AlertCircle, Search, Plus } from "lucide-react"; 
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"; 
 import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button"; // Added Button import
+import { Button } from "@/components/ui/button"; 
 
 const ProductsManagementPage = () => {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
   const {
-    data: productsList = [], // Default to empty array
+    data: productsList = [], 
     isLoading,
     isError,
-  } = useGetAllProductsQuery(); // Removed options object for simplicity, add back if needed
+  } = useGetAllProductsQuery(); 
 
-  // Filter products based on search term
+  
   const filteredProducts = productsList.filter((product) =>
     Object.values({
       name: product.name,
@@ -31,7 +31,7 @@ const ProductsManagementPage = () => {
 
   if (isLoading) {
     return (
-      // Simple loading indicator (you can replace with a spinner component)
+      
       <div className="flex justify-center items-center h-40">
         <p className="text-muted-foreground/70 dark:text-muted-foreground/60 animate-pulse">
           Đang tải dữ liệu sản phẩm...
@@ -52,8 +52,6 @@ const ProductsManagementPage = () => {
         </AlertTitle>
         <AlertDescription className="text-destructive-foreground/80 dark:text-destructive-foreground/70">
           Không thể tải dữ liệu sản phẩm. Vui lòng thử lại sau.
-          {/* Optional: Display error details for debugging */}
-          {/* <pre className="mt-2 text-xs">{error?.message || JSON.stringify(error)}</pre> */}
         </AlertDescription>
       </Alert>
     );

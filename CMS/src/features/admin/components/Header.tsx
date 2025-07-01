@@ -1,9 +1,9 @@
 import React, { useState } from "react";
 import { NavLink } from "react-router-dom";
-import { Menu, X, Sun, Moon } from "lucide-react"; // Icons remain the same
+import { Menu, X, Sun, Moon } from "lucide-react"; 
 import { clearAuthCredentials, getAuthCredentials } from "@/utils/authUtil";
 import { cn } from "@/lib/utils";
-import { useTheme } from "@/hooks/useTheme"; // Assuming path is correct
+import { useTheme } from "@/hooks/useTheme"; 
 
 const Header: React.FC = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -12,19 +12,19 @@ const Header: React.FC = () => {
 
   const handleLogout = () => {
     clearAuthCredentials();
-    // Optional: window.location.href = '/login';
+    
   };
 
-  // Navigation items with Vietnamese labels
+  
   const navItems = [
-    { to: "/users", label: "Người dùng" }, // Translated
-    { to: "/products", label: "Sản phẩm" }, // Translated
-    { to: "/invoices", label: "Đơn hàng" }, // Translated
-    { to: "/coupons", label: "Mã giảm giá" }, // Added Coupon Management
-    // Add more admin links here if needed
+    { to: "/users", label: "Người dùng" }, 
+    { to: "/products", label: "Sản phẩm" }, 
+    { to: "/invoices", label: "Đơn hàng" }, 
+    { to: "/coupons", label: "Mã giảm giá" }, 
+    
   ];
 
-  // Class names remain the same
+  
   const baseLinkClass =
     "px-3 py-2 rounded-md text-sm font-medium transition-colors duration-150 ease-in-out";
   const inactiveLinkClass =
@@ -34,12 +34,9 @@ const Header: React.FC = () => {
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 dark:border-border/40 dark:bg-card/95 dark:supports-[backdrop-filter]:bg-card/60">
-      {/* Changed max-w-7xl to max-w-screen for potentially wider header based on user code */}
       <div className="container flex h-16 max-w-screen items-center justify-between px-4 sm:px-6 lg:px-8">
-        {/* Left Side: Logo/Brand */}
         <div className="flex items-center">
           <NavLink to="/" className="flex items-center space-x-2">
-            {/* Logo SVG */}
             <svg
               xmlns="http://www.w3.org/2000/svg"
               viewBox="0 0 24 24"
@@ -52,14 +49,12 @@ const Header: React.FC = () => {
             >
               <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path>
             </svg>
-            {/* Brand Name - kept "Admin" */}
             <span className="font-bold text-lg text-foreground dark:text-foreground">
               Admin
             </span>
           </NavLink>
         </div>
 
-        {/* Center Navigation (Desktop) */}
         <nav className="hidden md:flex items-center space-x-1">
           {navItems.map((item) => (
             <NavLink
@@ -72,17 +67,14 @@ const Header: React.FC = () => {
                 )
               }
             >
-              {item.label} {/* Uses translated label */}
+              {item.label} 
             </NavLink>
           ))}
         </nav>
 
-        {/* Right Side: Actions & Mobile Menu Toggle */}
         <div className="flex items-center space-x-3">
-          {/* Theme Toggle */}
           <button
             onClick={toggleTheme}
-            // Translated aria-label, dynamically changes
             aria-label={`Chuyển sang chế độ ${
               theme === "light" ? "tối" : "sáng"
             }`}
@@ -95,10 +87,8 @@ const Header: React.FC = () => {
             )}
           </button>
 
-          {/* User Info / Logout (Desktop) */}
           <div className="hidden md:flex items-center space-x-3">
             {userInfo && (
-              // Translated greeting
               <span className="text-sm text-muted-foreground hidden lg:inline">
                 Chào, {userInfo.name}!
               </span>
@@ -112,11 +102,10 @@ const Header: React.FC = () => {
               )}
               onClick={handleLogout}
             >
-              Đăng xuất {/* Translated */}
+              Đăng xuất 
             </NavLink>
           </div>
 
-          {/* Mobile Menu Button */}
           <div className="md:hidden">
             <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
@@ -124,7 +113,6 @@ const Header: React.FC = () => {
               aria-expanded={isMobileMenuOpen}
               aria-controls="mobile-menu"
             >
-              {/* Translated screen reader text */}
               <span className="sr-only">Mở menu chính</span>
               {isMobileMenuOpen ? (
                 <X className="block h-6 w-6" aria-hidden="true" />
@@ -136,7 +124,6 @@ const Header: React.FC = () => {
         </div>
       </div>
 
-      {/* Mobile Menu */}
       {isMobileMenuOpen && (
         <div
           className="md:hidden border-t border-border dark:border-border/40"
@@ -156,10 +143,9 @@ const Header: React.FC = () => {
                   )
                 }
               >
-                {item.label} {/* Uses translated label */}
+                {item.label} 
               </NavLink>
             ))}
-            {/* Logout Button in Mobile Menu */}
             <NavLink
               to="/login"
               onClick={() => {
@@ -172,10 +158,10 @@ const Header: React.FC = () => {
                 "block text-base w-full text-left bg-destructive/10 hover:bg-destructive/20 text-destructive dark:bg-destructive/20 dark:hover:bg-destructive/30 dark:text-red-400"
               )}
             >
-              Đăng xuất {/* Translated */}
+              Đăng xuất 
             </NavLink>
             {userInfo && (
-              // Translated logged in message
+              
               <div className="px-3 pt-2 text-sm text-muted-foreground">
                 Đăng nhập với tên: {userInfo.name}
               </div>

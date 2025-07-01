@@ -30,8 +30,6 @@ interface FormData {
 
 export default function EditUserForm({ user, onCancel }: EditUserFormProps) {
   const { mutate: updateUser } = useUpdateUserMutation();
-
-  // Form state
   const [formData, setFormData] = useState<FormData>({
     name: user.name,
     status: user.status,
@@ -47,16 +45,12 @@ export default function EditUserForm({ user, onCancel }: EditUserFormProps) {
     oldPassword: "",
     newPassword: "",
   });
-
-  // Handle input changes
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement>,
     field: keyof FormData
   ) => {
     setFormData({ ...formData, [field]: e.target.value });
   };
-
-  // Handle address changes
   const handleAddressChange = (
     e: React.ChangeEvent<HTMLInputElement>,
     field: keyof Address
@@ -66,18 +60,14 @@ export default function EditUserForm({ user, onCancel }: EditUserFormProps) {
       address: { ...formData.address, [field]: e.target.value },
     });
   };
-
-  // Handle form submission
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Validate required fields
     if (!formData.name?.trim()) {
       toast.error("Tên không được để trống");
       return;
     }
 
-    // Prepare update data
     const updateData: UpdateUserInput = {
       name: formData.name.trim(),
       status: formData.status,
@@ -96,7 +86,6 @@ export default function EditUserForm({ user, onCancel }: EditUserFormProps) {
           : undefined,
     };
 
-    // Add password fields if both are provided
     if (formData.oldPassword && formData.newPassword) {
       if (formData.newPassword.length < 6) {
         toast.error("Mật khẩu mới phải có ít nhất 6 ký tự");
@@ -109,7 +98,6 @@ export default function EditUserForm({ user, onCancel }: EditUserFormProps) {
       return;
     }
 
-    // Call update API
     updateUser(
       { id: user._id, ...updateData },
       {
@@ -127,7 +115,6 @@ export default function EditUserForm({ user, onCancel }: EditUserFormProps) {
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <div className="grid grid-cols-2 gap-4">
-        {/* Basic Information */}
         <div className="space-y-4">
           <div>
             <Label
@@ -216,7 +203,6 @@ export default function EditUserForm({ user, onCancel }: EditUserFormProps) {
           </div>
         </div>
 
-        {/* Address Information */}
         <div className="space-y-4">
           <div>
             <Label
@@ -295,7 +281,6 @@ export default function EditUserForm({ user, onCancel }: EditUserFormProps) {
         </div>
       </div>
 
-      {/* Password Change Section */}
       <div className="border-t border-border/10 dark:border-border/5 pt-4">
         <h3 className="text-lg font-medium mb-4 text-foreground/90 dark:text-foreground/80">
           Đổi mật khẩu (tùy chọn)

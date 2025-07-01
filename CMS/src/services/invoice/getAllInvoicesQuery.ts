@@ -1,8 +1,5 @@
-// src/services/invoice/getAllInvoicesQuery.ts
-
 import InvoiceRepository from "@/repositories/invoice/invoice";
 import { API_ENDPOINTS } from "@/utils/api/endpoint";
-// Import thêm keepPreviousData từ thư viện
 import { useQuery, keepPreviousData } from "@tanstack/react-query";
 import { Invoice } from "@/types/dataTypes";
 
