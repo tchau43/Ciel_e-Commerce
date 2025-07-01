@@ -13,10 +13,9 @@ mongoose.connect(process.env.MONGODB_URI, {
 
 const updateAllCategories = async () => {
     try {
-        // Use aggregation pipeline in the update
         const result = await Category.updateMany(
-            {},  // Update all documents
-            [{ $set: { name: { $toUpper: "$name" } } }]  // Aggregation pipeline
+            {},  
+            [{ $set: { name: { $toUpper: "$name" } } }]  
         );
 
         console.log(`${result.modifiedCount} categories updated`);
@@ -25,7 +24,6 @@ const updateAllCategories = async () => {
     }
 };
 
-// Alternatively, using async/await:
 async function removeDescriptionField() {
     try {
         const result = await Category.updateMany({}, { $unset: { description: "" } });
@@ -37,4 +35,3 @@ async function removeDescriptionField() {
 
 removeDescriptionField();
 
-// updateAllCategories();

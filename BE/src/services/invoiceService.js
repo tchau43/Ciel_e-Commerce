@@ -1,26 +1,18 @@
-// services/invoiceService.js
-// Handles Invoice creation, retrieval, status updates.
-// Includes Coupon validation/application, Delivery fee calculation, Stock updates, Email trigger.
-
 const mongoose = require("mongoose");
 const Invoice = require("../models/invoice");
 const { Product } = require("../models/product");
 const Variant = require("../models/variant");
-const Coupon = require("../models/coupon"); // Import Coupon model
-const { triggerOrderConfirmationEmail } = require('../utils/helper'); // Import email helper (ensure path is correct)
-const { getDeliveryFeeService } = require('./deliveryService'); // Import delivery service (ensure path is correct)
+const Coupon = require("../models/coupon");
+const { triggerOrderConfirmationEmail } = require('../utils/helper');
 const User = require("../models/user");
 
-// Maximum number of retries for transaction
 const MAX_RETRIES = 5;
 const INITIAL_RETRY_DELAY = 100;
 
-// Helper function to delay execution with exponential backoff
 const delay = (retryCount) => new Promise(resolve =>
     setTimeout(resolve, INITIAL_RETRY_DELAY * Math.pow(2, retryCount))
 );
 
-// Helper to validate and lock coupon
 const validateAndLockCoupon = async (code, subtotal, session) => {
     if (!code) return null;
 
@@ -39,7 +31,6 @@ const validateAndLockCoupon = async (code, subtotal, session) => {
     return coupon;
 };
 
-// Helper to update variant stock
 const updateVariantStock = async (variantId, productId, quantity, session) => {
     const variant = await Variant.findOneAndUpdate(
         {
@@ -58,7 +49,6 @@ const updateVariantStock = async (variantId, productId, quantity, session) => {
     return variant;
 };
 
-// Helper to process items and calculate subtotal
 const processItemsAndCalculateSubtotal = async (productsList, session) => {
     const items = [];
     let subtotal = 0;
@@ -94,15 +84,9 @@ const processItemsAndCalculateSubtotal = async (productsList, session) => {
     return { items, subtotal: Math.round(subtotal) };
 };
 
-// --- CREATE INVOICE ---
-/**
- * Creates an invoice, validates items/stock, applies coupon,
- * updates stock/coupon usage, and triggers confirmation email.
- * Uses a transaction for atomicity with retry logic.
- */
 const createInvoiceService = async (
     userId,
-    productsList, // Expect: [{ productId, variantId, quantity }]
+    productsList,
     paymentMethod,
     shippingAddress,
     deliveryFee = 0,
@@ -112,7 +96,6 @@ const createInvoiceService = async (
     let retryCount = 0;
     let lastError = null;
 
-    // Convert deliveryFee to number if it's a string
     deliveryFee = typeof deliveryFee === 'string' ? parseFloat(deliveryFee) : deliveryFee;
 
     while (retryCount < MAX_RETRIES) {
@@ -124,7 +107,6 @@ const createInvoiceService = async (
                 writeConcern: { w: 'majority' }
             });
 
-            // --- 1. Basic Input Validation ---
             if (!mongoose.Types.ObjectId.isValid(userId)) throw new Error("Invalid User ID format.");
             if (!productsList?.length) throw new Error("Product list cannot be empty.");
             if (!paymentMethod || !Invoice.schema.path('paymentMethod').enumValues.includes(paymentMethod)) {
@@ -136,16 +118,13 @@ const createInvoiceService = async (
             if (!Invoice.schema.path('paymentStatus').enumValues.includes(paymentStatus)) {
                 throw new Error("Invalid payment status provided.");
             }
-            // Enhanced deliveryFee validation
             if (isNaN(deliveryFee) || deliveryFee < 0) {
                 throw new Error("Invalid delivery fee. Must be a non-negative number.");
             }
 
-            // --- 2. Process Items & Calculate Subtotal ---
             const { items, subtotal } = await processItemsAndCalculateSubtotal(productsList, session);
             if (items.length === 0) throw new Error("No valid items to process.");
 
-            // --- 3. Validate and Lock Coupon ---
             let discountAmount = 0;
             const appliedCoupon = await validateAndLockCoupon(couponCodeInput, subtotal, session);
 
@@ -161,11 +140,9 @@ const createInvoiceService = async (
                 );
             }
 
-            // --- 4. Calculate Final Total ---
             const roundedDeliveryFee = Math.round(deliveryFee);
             const finalTotalAmount = Math.max(0, subtotal - discountAmount + roundedDeliveryFee);
 
-            // Determine order status based on payment status
             let orderStatus = 'processing';
             if (paymentStatus === 'cancelled' || paymentStatus === 'failed') {
                 orderStatus = 'cancelled';
@@ -188,11 +165,9 @@ const createInvoiceService = async (
 
             const savedInvoice = await invoice.save({ session });
 
-            // --- 5. Commit Transaction ---
             await session.commitTransaction();
             console.log(`SERVICE: Invoice ${savedInvoice._id} created successfully with status ${paymentStatus}.`);
 
-            // --- 6. Send Email for non-CARD payments or if payment is already completed ---
             if (paymentMethod !== 'CARD' || paymentStatus === 'paid') {
                 triggerOrderConfirmationEmail(savedInvoice)
                     .catch(error => console.error(`Failed to send confirmation email for Invoice ${savedInvoice._id}:`, error));
@@ -226,10 +201,9 @@ const createInvoiceService = async (
 
 const getInvoiceByIdService = async (userId, invoiceId) => {
     return Invoice.findOne({ _id: invoiceId, user: userId })
-        .populate(/* your populate logic */);
+        .populate();
 };
 
-// --- GET INVOICES FOR USER ---
 const getInvoiceService = async (userId, queryParams = {}) => {
     try {
         if (!mongoose.Types.ObjectId.isValid(userId)) throw new Error("Invalid User ID format");
@@ -249,31 +223,26 @@ const getInvoiceService = async (userId, queryParams = {}) => {
 
         let query = { user: userId };
 
-        // Filter by order status
         if (orderStatus && Invoice.schema.path('orderStatus').enumValues.includes(orderStatus)) {
             query.orderStatus = orderStatus;
         }
 
-        // Filter by payment status
         if (paymentStatus && Invoice.schema.path('paymentStatus').enumValues.includes(paymentStatus)) {
             query.paymentStatus = paymentStatus;
         }
 
-        // Filter by date range
         if (fromDate || toDate) {
             query.createdAt = {};
             if (fromDate) {
                 query.createdAt.$gte = new Date(fromDate);
             }
             if (toDate) {
-                // Add one day to include the entire end date
                 const endDate = new Date(toDate);
                 endDate.setDate(endDate.getDate() + 1);
                 query.createdAt.$lt = endDate;
             }
         }
 
-        // Filter by amount
         if (minAmount !== undefined || maxAmount !== undefined) {
             query.totalAmount = {};
             if (minAmount !== undefined) {
@@ -284,15 +253,12 @@ const getInvoiceService = async (userId, queryParams = {}) => {
             }
         }
 
-        // Sort options
         const sortOptions = { [sortBy]: sortOrder === 'asc' ? 1 : -1 };
 
-        // Handle pagination
         const pageNum = parseInt(page, 10);
         const limitNum = parseInt(limit, 10);
         const applyPagination = !isNaN(limitNum) && limitNum > 0 && !isNaN(pageNum) && pageNum > 0;
 
-        // Query builder
         let invoiceQuery = Invoice.find(query)
             .populate({ path: "user", select: "name email" })
             .populate({
@@ -303,10 +269,8 @@ const getInvoiceService = async (userId, queryParams = {}) => {
             .populate({ path: "items.variant", select: "types price" })
             .sort(sortOptions);
 
-        // Count total for pagination info
         const totalInvoices = await Invoice.countDocuments(query);
 
-        // Apply pagination if requested
         if (applyPagination) {
             const skip = (pageNum - 1) * limitNum;
             invoiceQuery = invoiceQuery.skip(skip).limit(limitNum);
@@ -314,7 +278,6 @@ const getInvoiceService = async (userId, queryParams = {}) => {
 
         const invoices = await invoiceQuery.lean();
 
-        // Return with pagination info if pagination was applied
         if (applyPagination) {
             return {
                 invoices,
@@ -325,9 +288,6 @@ const getInvoiceService = async (userId, queryParams = {}) => {
             };
         }
 
-        // Just return the invoices if no pagination
-
-        // console.log("-------------------------------SERVICE: Invoices fetched:", invoices);
         return invoices;
     } catch (error) {
         console.error("Error getting user invoices:", error);
@@ -335,7 +295,6 @@ const getInvoiceService = async (userId, queryParams = {}) => {
     }
 };
 
-// --- UPDATE INVOICE STATUS (Admin) ---
 const updateInvoiceStatusService = async (invoiceId, statusUpdates) => {
     const session = await mongoose.startSession();
     session.startTransaction();
@@ -351,7 +310,6 @@ const updateInvoiceStatusService = async (invoiceId, statusUpdates) => {
         }
         if (Object.keys(validatedUpdates).length === 0) throw new Error("No valid status fields provided.");
 
-        // Find the invoice and update its status
         const updatedInvoice = await Invoice.findByIdAndUpdate(
             invoiceId,
             { $set: validatedUpdates },
@@ -363,16 +321,13 @@ const updateInvoiceStatusService = async (invoiceId, statusUpdates) => {
 
         if (!updatedInvoice) throw new Error(`Invoice '${invoiceId}' not found.`);
 
-        // If order status is changed to "delivered", update product purchase quantities
         if (validatedUpdates.orderStatus === "delivered") {
-            // Group items by product ID and sum quantities
             const productQuantities = {};
             updatedInvoice.items.forEach(item => {
                 const productId = item.product._id.toString();
                 productQuantities[productId] = (productQuantities[productId] || 0) + item.quantity;
             });
 
-            // Update each product's purchasedQuantity
             const updatePromises = Object.entries(productQuantities).map(([productId, quantity]) => {
                 return Product.findByIdAndUpdate(
                     productId,
@@ -394,7 +349,6 @@ const updateInvoiceStatusService = async (invoiceId, statusUpdates) => {
     }
 };
 
-// --- GET ALL INVOICES & SEARCH (Admin) ---
 const getAllInvoicesAdminService = async (queryParams) => {
     try {
         const {
@@ -412,15 +366,12 @@ const getAllInvoicesAdminService = async (queryParams) => {
         let pageFromQuery = queryParams.page;
         let limitFromQuery = queryParams.limit;
 
-        // --- DEBUG LOGS START ---
         console.log("[Service] Received queryParams:", queryParams);
         console.log("[Service] limitFromQuery:", limitFromQuery, "(type:", typeof limitFromQuery, ")");
         console.log("[Service] pageFromQuery:", pageFromQuery, "(type:", typeof pageFromQuery, ")");
-        // --- DEBUG LOGS END ---
 
         let query = {};
 
-        // Filter by searchTerm (existing functionality)
         if (searchTerm) {
             const searchRegex = new RegExp(searchTerm, 'i');
             const usersFound = await User.find({
@@ -440,40 +391,34 @@ const getAllInvoicesAdminService = async (queryParams) => {
             if (orConditions.length > 0) {
                 query.$or = orConditions;
             } else {
-                query = { _id: new mongoose.Types.ObjectId() }; // No results with searchTerm
+                query = { _id: new mongoose.Types.ObjectId() };
             }
         }
 
-        // Filter by specific user
         if (userId && mongoose.Types.ObjectId.isValid(userId)) {
             query.user = mongoose.Types.ObjectId(userId);
         }
 
-        // Filter by payment status
         if (paymentStatus && Invoice.schema.path('paymentStatus').enumValues.includes(paymentStatus)) {
             query.paymentStatus = paymentStatus;
         }
 
-        // Filter by order status
         if (orderStatus && Invoice.schema.path('orderStatus').enumValues.includes(orderStatus)) {
             query.orderStatus = orderStatus;
         }
 
-        // Filter by date range
         if (fromDate || toDate) {
             query.createdAt = {};
             if (fromDate) {
                 query.createdAt.$gte = new Date(fromDate);
             }
             if (toDate) {
-                // Add one day to include the entire end date
                 const endDate = new Date(toDate);
                 endDate.setDate(endDate.getDate() + 1);
                 query.createdAt.$lt = endDate;
             }
         }
 
-        // Filter by amount
         if (minAmount !== undefined || maxAmount !== undefined) {
             query.totalAmount = {};
             if (minAmount !== undefined) {
@@ -484,7 +429,6 @@ const getAllInvoicesAdminService = async (queryParams) => {
             }
         }
 
-        // Pagination handling (existing functionality)
         let page = parseInt(pageFromQuery, 10);
         let limit = parseInt(limitFromQuery, 10);
         const applyPagination = !isNaN(limit) && limit > 0;
@@ -536,18 +480,15 @@ const getAllInvoicesAdminService = async (queryParams) => {
     }
 };
 
-// --- GET DELIVERED PRODUCTS FOR USER ---
 const getDeliveredProductsForUserService = async (userId) => {
     try {
         if (!mongoose.Types.ObjectId.isValid(userId)) throw new Error("Invalid User ID format");
 
-        // Query for invoices with delivered status for this user
         const query = {
             user: userId,
             orderStatus: "delivered"
         };
 
-        // Find the invoices
         const deliveredInvoices = await Invoice.find(query)
             .populate({
                 path: "items.product",
@@ -558,7 +499,6 @@ const getDeliveredProductsForUserService = async (userId) => {
             .sort({ createdAt: -1 })
             .lean();
 
-        // Extract products from invoices
         const deliveredProducts = [];
         deliveredInvoices.forEach(invoice => {
             invoice.items.forEach(item => {
@@ -578,14 +518,11 @@ const getDeliveredProductsForUserService = async (userId) => {
             });
         });
 
-        // Get all reviews by this user to check which products have been reviewed
         const Review = require('../models/review');
         const userReviews = await Review.find({ user: userId }).lean();
 
         console.log("User reviews found:", userReviews.length);
-        // console.log("Sample review:", userReviews.length > 0 ? userReviews[0] : "No reviews");
 
-        // Create a map of reviewed items for quick lookup
         const reviewedItemsMap = new Map();
         userReviews.forEach(review => {
             const key = `${review.product}-${review.variant || 'none'}-${review.invoice}`;
@@ -593,7 +530,6 @@ const getDeliveredProductsForUserService = async (userId) => {
             reviewedItemsMap.set(key, review);
         });
 
-        // Add review status to each product
         const productsWithReviewStatus = deliveredProducts.map(item => {
             const productId = item.product._id.toString();
             const variantId = item.variant ? item.variant._id.toString() : 'none';

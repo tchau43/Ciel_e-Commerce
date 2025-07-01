@@ -1,16 +1,12 @@
-// pages/payment/StripePaymentPage.tsx (Corrected)
-
 import { Elements } from "@stripe/react-stripe-js";
 import { loadStripe } from "@stripe/stripe-js";
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { CartItem, Address } from "@/types/dataTypes"; // Updated imports to match dataTypes.ts
-// Import the CORRECT mutation hook
-import StripeForm from "@/features/payment/components/StripeForm"; // Adjust path
-import { getAuthCredentials } from "@/utils/authUtil"; // To get userId
+import { CartItem, Address } from "@/types/dataTypes";
+import StripeForm from "@/features/payment/components/StripeForm";
+import { getAuthCredentials } from "@/utils/authUtil";
 import { useInitiateStripePaymentMutation } from "@/services/payment/initiateStripePaymentMutation";
 
-// Initialize Stripe
 const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
 
 const StripePaymentPage = () => {
@@ -18,17 +14,15 @@ const StripePaymentPage = () => {
   const navigate = useNavigate();
   const { userInfo } = getAuthCredentials();
 
-  // Destructure ALL data passed from PaymentPage
   const { cartItems, total, shippingAddress, couponCode, deliveryFee } =
     (location.state || {}) as {
       cartItems: CartItem[];
-      total: number; // This FE total is mainly for initial display/fallback
-      shippingAddress: Address; // Updated type to match dataTypes.ts
-      couponCode: string | null; // Add couponCode to the type
+      total: number;
+      shippingAddress: Address;
+      couponCode: string | null;
       deliveryFee: number;
     };
 
-  // State to hold data received from the backend initiation endpoint
   const [paymentData, setPaymentData] = useState<{
     clientSecret: string | null;
     invoiceId: string | null;
@@ -39,16 +33,13 @@ const StripePaymentPage = () => {
     backendTotal: null,
   });
 
-  // Use the CORRECT mutation hook
   const {
-    mutate: initiatePayment, // Rename mutate function
+    mutate: initiatePayment,
     isPending: isInitiating,
     error: initiationError,
-  } = useInitiateStripePaymentMutation(); // <-- USE THIS HOOK
+  } = useInitiateStripePaymentMutation();
 
   useEffect(() => {
-    // Validate necessary data before initiating payment
-    // Use optional chaining for userInfo
     if (
       !userInfo?._id ||
       !cartItems?.length ||
@@ -62,12 +53,11 @@ const StripePaymentPage = () => {
       );
       alert(
         "Could not proceed to payment. Please check your cart and address details."
-      ); // User feedback
+      );
       navigate("/cart", { replace: true });
-      return; // Stop execution
+      return;
     }
 
-    // Prepare variables for the initiation mutation
     const variables = {
       userId: userInfo._id,
       productsList: cartItems.map((item) => ({
@@ -80,44 +70,25 @@ const StripePaymentPage = () => {
       deliveryFee,
     };
 
-    console.log(
-      "StripePaymentPage: Calling initiatePayment with variables:",
-      variables
-    );
-
-    // Call the mutation
     initiatePayment(
       { variables },
       {
         onSuccess: (data) => {
-          // Set state with data received from the backend
-          console.log(
-            "StripePaymentPage: Received data from initiatePayment:",
-            data
-          );
           setPaymentData({
             clientSecret: data.clientSecret,
             invoiceId: data.invoiceId,
-            backendTotal: data.totalAmount, // Store backend calculated total
+            backendTotal: data.totalAmount,
           });
         },
         onError: (error) => {
-          // Handle initiation error more gracefully
           console.error(
             "StripePaymentPage: Failed to initiate payment intent:",
             error
           );
-          // Optionally navigate back or show a persistent error message
-          // setErrorState(error.message || "Failed to initialize payment.");
         },
       }
     );
-
-    // Run this effect only once when the component mounts or essential data changes
-    // Be careful with dependencies if cartItems/total/address can change while on this page
-  }, []); // Empty dependency array means it runs once on mount
-
-  // --- Render loading/error states based on the INITIATION mutation ---
+  }, []);
 
   if (initiationError) {
     return (
@@ -141,7 +112,6 @@ const StripePaymentPage = () => {
     );
   }
 
-  // If initiation finished without error but data is missing
   if (!paymentData.clientSecret || !paymentData.invoiceId) {
     console.error(
       "StripePaymentPage: clientSecret or invoiceId missing after initiation attempt.",
@@ -161,13 +131,11 @@ const StripePaymentPage = () => {
     );
   }
 
-  // --- Render Stripe Elements once clientSecret and invoiceId are available ---
   const options = {
     clientSecret: paymentData.clientSecret,
   };
 
   return (
-    // Key added to Elements to force re-mount if clientSecret changes, per Stripe docs recommendation
     <Elements
       key={paymentData.clientSecret}
       stripe={stripePromise}
@@ -175,8 +143,8 @@ const StripePaymentPage = () => {
     >
       <StripeForm
         clientSecret={paymentData.clientSecret}
-        invoiceId={paymentData.invoiceId} // <-- Pass invoiceId
-        total={paymentData.backendTotal ?? total} // Prefer backend total
+        invoiceId={paymentData.invoiceId}
+        total={paymentData.backendTotal ?? total}
       />
     </Elements>
   );

@@ -62,7 +62,6 @@ const Profile = () => {
     confirmPassword: "",
   });
 
-  // Cập nhật form khi có dữ liệu từ API
   React.useEffect(() => {
     if (userData) {
       const newProfile = {
@@ -85,14 +84,12 @@ const Profile = () => {
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     if (name === "phoneNumber") {
-      // Chỉ cho phép nhập số
       const numericValue = value.replace(/\D/g, "");
       setProfile((prev) => ({
         ...prev,
         [name]: numericValue ? Number(numericValue) : undefined,
       }));
     } else if (name.startsWith("address.")) {
-      // Xử lý các trường địa chỉ
       const addressField = name.split(".")[1];
       setProfile((prev) => ({
         ...prev,
@@ -147,7 +144,6 @@ const Profile = () => {
       return;
     }
 
-    // Validate required fields
     if (!profile.name.trim()) {
       toast.error("Vui lòng nhập họ và tên!");
       return;
@@ -158,7 +154,6 @@ const Profile = () => {
       return;
     }
 
-    // Only validate address fields if any of them has been filled
     const hasAddressData = Boolean(
       profile.address?.street?.trim() ||
         profile.address?.city?.trim() ||
@@ -177,7 +172,6 @@ const Profile = () => {
     }
 
     try {
-      // Gọi mutation để cập nhật thông tin
       const result = await updateProfileMutation.mutateAsync({
         name: profile.name,
         phoneNumber: profile.phoneNumber,
@@ -197,7 +191,6 @@ const Profile = () => {
         setIsEditing(false);
         setOriginalProfile(profile);
 
-        // Cập nhật lại thông tin trong localStorage
         const currentAuth = JSON.parse(localStorage.getItem("auth") || "{}");
         localStorage.setItem(
           "auth",
@@ -220,7 +213,6 @@ const Profile = () => {
       return;
     }
 
-    // Validate inputs
     if (!passwordForm.currentPassword.trim()) {
       toast.error("Vui lòng nhập mật khẩu hiện tại!");
       return;
@@ -311,7 +303,7 @@ const Profile = () => {
                 name="email"
                 type="email"
                 value={profile.email}
-                disabled={true} // Email không được phép sửa
+                disabled={true}
                 className="mt-1 bg-gray-100"
               />
             </div>
@@ -407,7 +399,6 @@ const Profile = () => {
             </div>
           </div>
 
-          {/* Form buttons only shown when editing */}
           {isEditing && (
             <div className="flex justify-end space-x-4">
               <Button
@@ -427,9 +418,8 @@ const Profile = () => {
           )}
         </form>
 
-        {/* Buttons outside the form */}
         {!isEditing && (
-          <div className="flex justify-end space-x-4 ">
+          <div className="flex justify-end space-x-4">
             <Button
               type="button"
               onClick={() => setIsChangingPassword(true)}
@@ -447,7 +437,6 @@ const Profile = () => {
           </div>
         )}
 
-        {/* Form đổi mật khẩu */}
         {isChangingPassword && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
             <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-md">
@@ -572,7 +561,6 @@ const Profile = () => {
           </div>
         )}
 
-        {/* Popup xác nhận hủy chỉnh sửa */}
         {showCancelConfirm && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
             <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-md">

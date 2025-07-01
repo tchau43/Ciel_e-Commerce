@@ -1,10 +1,10 @@
 import { useEffect, useState } from "react";
-import { Product } from "@/types/dataTypes"; // Corrected import
+import { Product } from "@/types/dataTypes"; 
 import ProductCard from "@/features/components/ProductCard";
 import { Pagination } from "antd";
 
 interface ProductsListProps {
-  data: Product[]; // Corrected type
+  data: Product[]; 
 }
 
 const ProductsList = ({ data }: ProductsListProps) => {

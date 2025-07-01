@@ -1,4 +1,3 @@
-// src/components/AuthForm.tsx
 import React, { useState, ChangeEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import { useLoginMutation } from "@/services/auth/loginMutation";
@@ -7,7 +6,6 @@ import { LoginInput, RegisterInput, Role } from "@/types/dataTypes";
 import { setAuthCredentials } from "@/utils/authUtil";
 import { FloatingLabelInput } from "@/components/ui/floating-label-input";
 
-// Định nghĩa giá trị mặc định cho address để tránh undefined
 const defaultAddress = {
   street: "",
   city: "",
@@ -24,13 +22,11 @@ const AuthForm: React.FC = () => {
   const { mutate: register, isPending: isRegisterPending } =
     useRegisterMutation();
 
-  // Login form state
   const [loginData, setLoginData] = useState<LoginInput>({
     email: "",
     password: "",
   });
 
-  // Register form state with defaultAddress
   const [registerData, setRegisterData] = useState<RegisterInput>({
     name: "",
     email: "",
@@ -135,7 +131,7 @@ const AuthForm: React.FC = () => {
       { variables: variablesToSend },
       {
         onSuccess: (response: any) => {
-          setIsActive(false); // Switch to login form
+          setIsActive(false);
           setErrorMsg(
             response.message || "Đăng ký thành công! Vui lòng đăng nhập."
           );
@@ -150,7 +146,7 @@ const AuthForm: React.FC = () => {
   };
 
   return (
-    <div className="flex justify-center items-center min-h-[calc(100vh-4rem)] p-5">
+    <div className="flex justify-center items-center min-h-[calc(100vh-4rem)] p-5 w-[1000px] mx-auto">
       <div
         className={`relative w-[850px] h-[550px] bg-white m-5 rounded-[30px] shadow-2xl overflow-hidden
                     sm:h-[calc(100vh-40px)] sm:w-full

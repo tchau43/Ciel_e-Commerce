@@ -1,14 +1,8 @@
 const FaqCategory = require('../models/faqCategory');
 const mongoose = require('mongoose');
 
-/**
- * Create a new FAQ Category
- * @param {Object} categoryData - Category data (name, slug, description, etc)
- * @returns {Promise<Object>} Created category document
- */
 const createFaqCategoryService = async (categoryData) => {
     try {
-        // Create a slug from the name if not provided
         if (!categoryData.slug && categoryData.name) {
             categoryData.slug = categoryData.name
                 .toLowerCase()
@@ -24,12 +18,6 @@ const createFaqCategoryService = async (categoryData) => {
     }
 };
 
-/**
- * Get all FAQ Categories with optional filtering
- * @param {Object} filters - Optional filters
- * @param {Object} options - Optional pagination and sorting options
- * @returns {Promise<Object>} List of FAQ Categories with pagination info
- */
 const getAllFaqCategoriesService = async (filters = {}, options = {}) => {
     try {
         const {
@@ -49,7 +37,6 @@ const getAllFaqCategoriesService = async (filters = {}, options = {}) => {
             .skip(skip)
             .limit(limit);
 
-        // Include virtual FAQ count if requested
         if (includeCount) {
             categoriesQuery = categoriesQuery.populate('faqCount');
         }
@@ -70,11 +57,6 @@ const getAllFaqCategoriesService = async (filters = {}, options = {}) => {
     }
 };
 
-/**
- * Get a FAQ Category by ID
- * @param {string} categoryId - Category document ID
- * @returns {Promise<Object>} Category document
- */
 const getFaqCategoryByIdService = async (categoryId) => {
     try {
         if (!mongoose.Types.ObjectId.isValid(categoryId)) {
@@ -93,11 +75,6 @@ const getFaqCategoryByIdService = async (categoryId) => {
     }
 };
 
-/**
- * Get a FAQ Category by slug
- * @param {string} slug - Category slug
- * @returns {Promise<Object>} Category document
- */
 const getFaqCategoryBySlugService = async (slug) => {
     try {
         const category = await FaqCategory.findOne({ slug });
@@ -112,19 +89,12 @@ const getFaqCategoryBySlugService = async (slug) => {
     }
 };
 
-/**
- * Update a FAQ Category
- * @param {string} categoryId - Category document ID
- * @param {Object} updateData - Data to update
- * @returns {Promise<Object>} Updated category document
- */
 const updateFaqCategoryService = async (categoryId, updateData) => {
     try {
         if (!mongoose.Types.ObjectId.isValid(categoryId)) {
             throw new Error('Invalid FAQ Category ID format');
         }
 
-        // Create a slug from the name if name is being updated and slug isn't
         if (updateData.name && !updateData.slug) {
             updateData.slug = updateData.name
                 .toLowerCase()
@@ -149,11 +119,6 @@ const updateFaqCategoryService = async (categoryId, updateData) => {
     }
 };
 
-/**
- * Delete a FAQ Category
- * @param {string} categoryId - Category document ID
- * @returns {Promise<Object>} Deleted category document
- */
 const deleteFaqCategoryService = async (categoryId) => {
     try {
         if (!mongoose.Types.ObjectId.isValid(categoryId)) {
@@ -180,4 +145,4 @@ module.exports = {
     getFaqCategoryBySlugService,
     updateFaqCategoryService,
     deleteFaqCategoryService
-}; 
+};

@@ -12,11 +12,6 @@ const {
 } = require('../services/faqService');
 const mongoose = require('mongoose');
 
-/**
- * Create a new FAQ
- * @route POST /api/faqs
- * @access Private/Admin
- */
 const createFaq = async (req, res) => {
     try {
         const faqData = req.body;
@@ -33,30 +28,23 @@ const createFaq = async (req, res) => {
     }
 };
 
-/**
- * Get all FAQs with optional filters
- * @route GET /api/faqs
- * @access Public
- */
 const getAllFaqs = async (req, res) => {
     try {
         const {
             category,
             categorySlug,
-            isPublished = 'true', // Default to only published FAQs for public access
+            isPublished = 'true', 
             page,
             limit,
             sortBy,
             sortOrder
         } = req.query;
 
-        // Build filters
         const filters = {};
         if (category) filters.category = category;
         if (categorySlug) filters.categorySlug = categorySlug;
         if (isPublished !== undefined) filters.isPublished = isPublished === 'true';
-        // console.log("----------filters", filters);
-        // Build options
+        
         const options = {};
         if (page) options.page = parseInt(page, 10);
         if (limit) options.limit = parseInt(limit, 10);
@@ -77,11 +65,6 @@ const getAllFaqs = async (req, res) => {
     }
 };
 
-/**
- * Get a single FAQ by ID
- * @route GET /api/faqs/:id
- * @access Public
- */
 const getFaqById = async (req, res) => {
     try {
         const faq = await getFaqByIdService(req.params.id);
@@ -97,11 +80,6 @@ const getFaqById = async (req, res) => {
     }
 };
 
-/**
- * Update an existing FAQ
- * @route PUT /api/faqs/:id
- * @access Private/Admin
- */
 const updateFaq = async (req, res) => {
     try {
         const faq = await updateFaqService(req.params.id, req.body);
@@ -117,11 +95,6 @@ const updateFaq = async (req, res) => {
     }
 };
 
-/**
- * Delete a FAQ
- * @route DELETE /api/faqs/:id
- * @access Private/Admin
- */
 const deleteFaq = async (req, res) => {
     try {
         const faq = await deleteFaqService(req.params.id);
@@ -137,11 +110,6 @@ const deleteFaq = async (req, res) => {
     }
 };
 
-/**
- * Get FAQs by category ID or name
- * @route GET /api/faqs/category/:category
- * @access Public
- */
 const getFaqsByCategory = async (req, res) => {
     try {
         console.log("----------getFaqsByCategory", req.params);
@@ -149,17 +117,14 @@ const getFaqsByCategory = async (req, res) => {
         const limit = parseInt(req.query.limit || 20, 10);
 
         let faqs;
-        // Check if the parameter is a valid MongoDB ObjectId
+        
         if (mongoose.Types.ObjectId.isValid(category)) {
-            // If it's a valid ID, use getFaqsByCategoryService
             faqs = await getFaqsByCategoryService(category, limit);
         } else {
-            // If it's not a valid ID, try to find by category name or slug
-            // First try to find category by slug
             try {
                 faqs = await getFaqsByCategorySlugService(category, limit);
             } catch (error) {
-                // If not found by slug, try to find by handling it in getAllFaqsService
+                
                 const result = await getAllFaqsService(
                     {
                         categoryName: category,
@@ -170,7 +135,6 @@ const getFaqsByCategory = async (req, res) => {
                 faqs = result.faqs;
             }
         }
-
         res.status(200).json({
             success: true,
             count: faqs.length,
@@ -184,11 +148,6 @@ const getFaqsByCategory = async (req, res) => {
     }
 };
 
-/**
- * Get FAQs by category slug
- * @route GET /api/faqs/category-slug/:slug
- * @access Public
- */
 const getFaqsByCategorySlug = async (req, res) => {
     try {
         const { slug } = req.params;
@@ -209,11 +168,6 @@ const getFaqsByCategorySlug = async (req, res) => {
     }
 };
 
-/**
- * Search FAQs
- * @route GET /api/faqs/search/:query
- * @access Public
- */
 const searchFaqs = async (req, res) => {
     try {
         const { query } = req.params;
@@ -234,11 +188,6 @@ const searchFaqs = async (req, res) => {
     }
 };
 
-/**
- * Get popular FAQs
- * @route GET /api/faqs/popular
- * @access Public
- */
 const getPopularFaqs = async (req, res) => {
     try {
         const limit = parseInt(req.query.limit || 5, 10);
@@ -257,11 +206,6 @@ const getPopularFaqs = async (req, res) => {
     }
 };
 
-/**
- * Rate FAQ helpfulness
- * @route POST /api/faqs/:id/rate
- * @access Public
- */
 const rateFaqHelpfulness = async (req, res) => {
     try {
         const { id } = req.params;

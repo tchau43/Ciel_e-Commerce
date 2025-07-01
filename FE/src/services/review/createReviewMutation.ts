@@ -26,11 +26,6 @@ interface CreateReviewResponse {
   };
 }
 
-/**
- * Hook for submitting a product review
- * @param options Additional mutation options
- * @returns Mutation result object with submit function
- */
 export const useCreateReviewMutation = (
   options?: any
 ): UseMutationResult<CreateReviewResponse, AxiosError, CreateReviewRequest> => {

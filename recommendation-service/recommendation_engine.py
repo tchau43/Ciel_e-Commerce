@@ -10,7 +10,7 @@ logger = logging.getLogger(__name__)
 
 class HybridRecommender:
     def __init__(self, jwt_token=None):
-        self.NODE_API_URL = "http://localhost:8080/v1"
+        self.NODE_API_URL = "http://localhost:8081/v1"
         self.API_KEY = "XohvCe34tnpVulX9Xx2kNjsyNbeGWuOL"
         self.JWT_TOKEN = jwt_token
         

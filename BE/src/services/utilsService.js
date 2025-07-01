@@ -1,15 +1,16 @@
+const User = require('../models/user');
+
 const uploadImageService = (req, res) => {
     if (!req.file) {
         return res.status(400).send('No file uploaded');
     }
     res.json({
-        imageUrl: `http://localhost:8080/images/product/${req.file.filename}`
+        imageUrl: `http://localhost:8081/images/product/${req.file.filename}`
     });
 }
 
 const updateUserProfileService = async (userId, updateData) => {
     try {
-        // Sanitize & Validate updateData
         const sanitizedData = {};
         if (updateData.name !== undefined) {
             if (typeof updateData.name === 'string' && updateData.name.trim().length > 0) {
@@ -37,7 +38,6 @@ const updateUserProfileService = async (userId, updateData) => {
             }
         }
 
-        // Explicitly exclude sensitive fields
         delete sanitizedData.password;
         delete sanitizedData.email;
         delete sanitizedData.role;
@@ -48,8 +48,6 @@ const updateUserProfileService = async (userId, updateData) => {
             throw new Error("No valid fields provided for update.");
         }
 
-        // Update user
-        const User = require('../models/user');
         const updatedUser = await User.findByIdAndUpdate(
             userId,
             { $set: sanitizedData },
@@ -62,7 +60,7 @@ const updateUserProfileService = async (userId, updateData) => {
 
         return updatedUser;
     } catch (error) {
-        throw error; // Re-throw to let controller handle it
+        throw error;
     }
 }
 

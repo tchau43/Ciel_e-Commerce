@@ -1,18 +1,22 @@
-import { ChatbotInput, ChatbotResponse } from "@/types/dataTypes";
+import {
+  ChatbotInput,
+  ChatbotResponse,
+  ChatHistoryResponse,
+} from "@/types/dataTypes";
 import Base from "../base";
 
 class Chatbot extends Base {
-  /**
-   * Send a message to the chatbot and get a response
-   * @param url API endpoint for chatbot
-   * @param message Message to send to chatbot
-   * @returns Chatbot's response
-   */
   sendMessage = async (
     url: string,
-    message: ChatbotInput
+    input: ChatbotInput
   ): Promise<ChatbotResponse> => {
-    return this.http(url, "post", message);
+    return this.http(url, "post", input);
+  };
+
+  getChatHistoryByThread = async (
+    url: string
+  ): Promise<ChatHistoryResponse> => {
+    return this.http(url, "get");
   };
 }
 

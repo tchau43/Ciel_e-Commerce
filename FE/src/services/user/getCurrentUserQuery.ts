@@ -11,7 +11,6 @@ export const useCurrentUserQuery = (
     queryFn: async (): Promise<User> => {
       return OUser.getUserById(API_ENDPOINTS.USER_BY_ID(userId));
     },
-    // Không fetch lại khi focus window vì đã có token trong localStorage
     refetchOnWindowFocus: false,
   });
 };

@@ -1,10 +1,9 @@
-// pages/CheckoutPage.tsx
-import { useState } from "react"; // Import React
+import { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-// SỬA LỖI: Import đúng types từ dataTypes.ts
+
 import { CartItem, Address } from "@/types/dataTypes";
 import { getAuthCredentials } from "@/utils/authUtil";
-import { Button } from "@/components/ui/button"; // Import Button nếu cần
+import { Button } from "@/components/ui/button";
 import AddressSelect from "../components/AddressSelect";
 
 const CheckoutPage = () => {
@@ -13,17 +12,15 @@ const CheckoutPage = () => {
   const { userInfo } = getAuthCredentials();
 
   const [shippingAddress, setShippingAddress] = useState<Address>({
-    // Sử dụng type Address
-    street: userInfo?.address?.street || "", // Lấy thông tin chi tiết hơn nếu có
+    street: userInfo?.address?.street || "",
     city: userInfo?.address?.city || "",
     state: userInfo?.address?.state || "",
     country: userInfo?.address?.country || "",
     zipCode: userInfo?.address?.zipCode || "",
   });
 
-  // Giả định state truyền từ CartPage chứa cartItems và total
   const { cartItems, total } = (location.state || {}) as {
-    cartItems: CartItem[]; // Sử dụng type CartItem
+    cartItems: CartItem[];
     total: number;
   };
 
@@ -31,7 +28,6 @@ const CheckoutPage = () => {
     setShippingAddress(address);
   };
 
-  // Kiểm tra dữ liệu đầu vào trước khi render
   if (!location.state || !cartItems || cartItems.length === 0) {
     return (
       <div className="container mx-auto p-4 text-center">
@@ -44,7 +40,6 @@ const CheckoutPage = () => {
   }
 
   const handleContinue = () => {
-    // Validate address fields
     if (
       !shippingAddress.street ||
       !shippingAddress.city ||
@@ -55,7 +50,6 @@ const CheckoutPage = () => {
       return;
     }
 
-    // Navigate to payment page with all necessary data
     navigate("/payment", {
       state: {
         cartItems,
@@ -67,8 +61,6 @@ const CheckoutPage = () => {
 
   return (
     <div className="container mx-auto p-4 md:p-8 max-w-3xl">
-      {" "}
-      {/* Tăng max-w */}
       <h1 className="text-2xl font-semibold mb-6 text-center text-gray-800">
         Thông Tin Giao Hàng
       </h1>

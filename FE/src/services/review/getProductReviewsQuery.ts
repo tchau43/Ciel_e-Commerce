@@ -20,12 +20,6 @@ interface ReviewData {
   updatedAt: string;
 }
 
-/**
- * Hook to get reviews for a specific product
- * @param productId The ID of the product to get reviews for
- * @param options Additional query options
- * @returns Query result with reviews data
- */
 export const useGetProductReviewsQuery = (
   productId: string,
   options?: any

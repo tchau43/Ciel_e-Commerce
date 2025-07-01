@@ -1,4 +1,3 @@
-// src/services/updateDb/updateproduct1.js
 require('dotenv').config();
 const mongoose = require('mongoose');
 

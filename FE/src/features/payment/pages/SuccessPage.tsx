@@ -13,12 +13,10 @@ const SuccessPage = () => {
   const { userInfo } = getAuthCredentials();
   const [latestInvoice, setLatestInvoice] = useState<Invoice | null>(null);
 
-  // Get invoices for the current user
   const { data: invoices, isLoading } = useGetInvoiceQuery(userInfo?._id || "");
 
   useEffect(() => {
     if (invoices && invoices.length > 0) {
-      // Get the most recent invoice
       const sortedInvoices = [...invoices].sort(
         (a, b) =>
           new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
@@ -49,7 +47,6 @@ const SuccessPage = () => {
   return (
     <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-3xl mx-auto">
-        {/* Success Header */}
         <div className="text-center mb-12">
           <CheckCircle2 className="mx-auto h-16 w-16 text-green-500" />
           <h1 className="mt-4 text-3xl font-bold text-gray-900">
@@ -60,7 +57,6 @@ const SuccessPage = () => {
           </p>
         </div>
 
-        {/* Order Summary Card */}
         <Card className="bg-white shadow-lg rounded-lg overflow-hidden mb-8">
           <div className="p-6">
             <div className="flex items-center justify-between mb-6">
@@ -72,7 +68,6 @@ const SuccessPage = () => {
               </span>
             </div>
 
-            {/* Order Items */}
             <div className="space-y-4 mb-6">
               {latestInvoice.items.map((item, index) => (
                 <div
@@ -104,7 +99,6 @@ const SuccessPage = () => {
               ))}
             </div>
 
-            {/* Price Summary */}
             <div className="space-y-2">
               <div className="flex justify-between text-sm text-gray-600">
                 <span>Subtotal</span>
@@ -130,7 +124,6 @@ const SuccessPage = () => {
           </div>
         </Card>
 
-        {/* Shipping Information */}
         <Card className="bg-white shadow-lg rounded-lg overflow-hidden mb-8">
           <div className="p-6">
             <div className="flex items-center space-x-2 mb-4">
@@ -153,7 +146,6 @@ const SuccessPage = () => {
           </div>
         </Card>
 
-        {/* Action Buttons */}
         <div className="flex justify-between items-center">
           <Button
             variant="outline"

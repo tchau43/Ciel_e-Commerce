@@ -34,7 +34,6 @@ const Product = () => {
     enabled: !!id,
   });
 
-  // Fetch reviews for this product - used by the Reviews component via Outlet
   useGetProductReviewsQuery(id!, {
     enabled: !!id,
   });

@@ -1,16 +1,12 @@
-// controllers/reviewController.js
-const reviewService = require('../services/reviewService'); // Adjust path
+const reviewService = require('../services/reviewService');
 
 const createReview = async (req, res) => {
     try {
-        // userId should come from authentication middleware (req.user)
         if (!req.user || !req.user._id) {
             return res.status(401).json({ message: "Authentication required." });
         }
         const userId = req.user._id;
 
-        // Review data comes from request body
-        // Expecting: { productId: "...", variantId: "..." (optional), rating: N, comment: "..." }
         const reviewData = req.body;
 
         if (!reviewData.productId || !reviewData.rating) {
@@ -26,11 +22,10 @@ const createReview = async (req, res) => {
 
     } catch (error) {
         console.error("Error in createReview controller:", error);
-        // Handle specific errors thrown by the service
         if (error.message.includes("eligible") || error.message.includes("already submitted")) {
-            res.status(403).json({ message: error.message }); // Forbidden or Conflict (409 maybe for already submitted)
+            res.status(403).json({ message: error.message });
         } else if (error.message.includes("Invalid") || error.message.includes("required")) {
-            res.status(400).json({ message: error.message }); // Bad Request
+            res.status(400).json({ message: error.message });
         }
         else {
             res.status(500).json({ message: error.message || "Failed to submit review." });
@@ -41,12 +36,12 @@ const createReview = async (req, res) => {
 const getReviewsForProduct = async (req, res) => {
     try {
         const { productId } = req.params;
-        const { page, limit, sort } = req.query; // Get pagination/sort options from query
+        const { page, limit, sort } = req.query;
 
         const options = {
             page: page,
             limit: limit,
-            sort: sort // Add logic to parse sort string if needed (e.g., 'rating:desc')
+            sort: sort
         };
 
         const reviews = await reviewService.getReviewsByProductService(productId, options);
@@ -62,7 +57,6 @@ const getReviewsForProduct = async (req, res) => {
         }
     }
 };
-
 
 module.exports = {
     createReview,
