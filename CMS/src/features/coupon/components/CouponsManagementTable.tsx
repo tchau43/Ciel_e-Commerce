@@ -65,7 +65,6 @@ const CouponsManagementTable = ({ data }: CouponsManagementTableProps) => {
   const deleteCouponMutation = useDeleteCouponMutation();
   const itemsPerPage = 8;
 
-  // Sorting logic
   const sortedData = useMemo(() => {
     const sortableData = [...data];
     if (sortConfig.key) {
@@ -89,7 +88,6 @@ const CouponsManagementTable = ({ data }: CouponsManagementTableProps) => {
     return sortableData;
   }, [data, sortConfig]);
 
-  // Pagination
   const startIndex = (currentPage - 1) * itemsPerPage;
   const paginatedData = sortedData.slice(startIndex, startIndex + itemsPerPage);
   const totalPages = Math.ceil(sortedData.length / itemsPerPage);
@@ -140,7 +138,6 @@ const CouponsManagementTable = ({ data }: CouponsManagementTableProps) => {
     }).format(amount);
   };
 
-  // Helper for sort icons
   const SortIcon = ({ columnKey }: { columnKey: keyof CouponData }) => {
     if (sortConfig.key !== columnKey) {
       return <ArrowUpDown className="ml-2 h-3 w-3 text-muted-foreground/70" />;
@@ -152,7 +149,6 @@ const CouponsManagementTable = ({ data }: CouponsManagementTableProps) => {
     );
   };
 
-  // Reset page when data changes
   useEffect(() => {
     setCurrentPage(1);
   }, [data]);
@@ -320,7 +316,6 @@ const CouponsManagementTable = ({ data }: CouponsManagementTableProps) => {
         </CardFooter>
       )}
 
-      {/* Edit Modal */}
       {selectedCoupon && (
         <EditCoupon
           open={isEditModalOpen}
@@ -329,7 +324,6 @@ const CouponsManagementTable = ({ data }: CouponsManagementTableProps) => {
         />
       )}
 
-      {/* Delete Confirmation Dialog */}
       <AlertDialog
         open={isDeleteDialogOpen}
         onOpenChange={setIsDeleteDialogOpen}

@@ -1,16 +1,12 @@
-// src/features/admin/pages/InvoicesManagementPage.tsx
-
 import React, { useState } from "react";
 import { useDebounce } from "use-debounce";
 
-// Hooks and Services
 import {
   useGetAllInvoicesQuery,
   AdminInvoiceFilterParams,
 } from "@/services/invoice/getAllInvoicesQuery";
 import { useUpdateInvoiceStatusMutation } from "@/services/invoice/updateInvoiceStatusMutation";
 
-// Components UI
 import InvoicesManagementTable from "@/features/invoice/components/InvoicesManagementTable";
 import {
   Pagination,
@@ -39,7 +35,6 @@ import {
 } from "@/components/ui/popover";
 import { format } from "date-fns";
 
-// Icons and Types
 import { AlertCircle, Search, Calendar as CalendarIcon } from "lucide-react";
 import {
   UpdateInvoiceStatusInput,
@@ -48,7 +43,6 @@ import {
 } from "@/types/dataTypes";
 
 const InvoicesManagementPage = () => {
-  // Filter states
   const [filters, setFilters] = useState<AdminInvoiceFilterParams>({
     page: 1,
     limit: 10,
@@ -60,7 +54,6 @@ const InvoicesManagementPage = () => {
   const [showFilterPanel] = useState(false);
   const [debouncedSearchTerm] = useDebounce(searchTerm, 500);
 
-  // Update filters with debounced search term
   React.useEffect(() => {
     setFilters((prev) => ({
       ...prev,
@@ -69,13 +62,11 @@ const InvoicesManagementPage = () => {
     }));
   }, [debouncedSearchTerm]);
 
-  // Fetch data using our enhanced query
   const { data, isLoading, isError, isFetching } =
     useGetAllInvoicesQuery(filters);
 
   const updateStatusMutation = useUpdateInvoiceStatusMutation();
 
-  // --- Handlers ---
   const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(event.target.value);
   };
@@ -123,7 +114,6 @@ const InvoicesManagementPage = () => {
     }
   };
 
-  // --- Render Logic ---
   if (isLoading && !data) {
     return (
       <div className="flex justify-center items-center h-40">
@@ -186,7 +176,6 @@ const InvoicesManagementPage = () => {
         </div>
       </div>
 
-      {/* Filter panel */}
       {showFilterPanel && (
         <div className="bg-muted/30 dark:bg-muted/20 border border-border/10 dark:border-border/20 p-4 rounded-md">
           <div className="flex justify-between items-center mb-4">
@@ -204,7 +193,6 @@ const InvoicesManagementPage = () => {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {/* Order Status filter */}
             <div className="space-y-2">
               <label className="text-sm font-medium text-foreground/90 dark:text-foreground/80">
                 Trạng thái đơn hàng
@@ -239,7 +227,6 @@ const InvoicesManagementPage = () => {
               </Select>
             </div>
 
-            {/* Payment Status filter */}
             <div className="space-y-2">
               <label className="text-sm font-medium text-foreground/90 dark:text-foreground/80">
                 Trạng thái thanh toán
@@ -274,7 +261,6 @@ const InvoicesManagementPage = () => {
               </Select>
             </div>
 
-            {/* From Date filter */}
             <div className="space-y-2">
               <label className="text-sm font-medium text-foreground/90 dark:text-foreground/80">
                 Từ ngày
@@ -309,7 +295,6 @@ const InvoicesManagementPage = () => {
               </Popover>
             </div>
 
-            {/* To Date filter */}
             <div className="space-y-2">
               <label className="text-sm font-medium text-foreground/90 dark:text-foreground/80">
                 Đến ngày
@@ -344,7 +329,6 @@ const InvoicesManagementPage = () => {
               </Popover>
             </div>
 
-            {/* Min Amount filter */}
             <div className="space-y-2">
               <label className="text-sm font-medium text-foreground/90 dark:text-foreground/80">
                 Giá trị tối thiểu
@@ -363,7 +347,6 @@ const InvoicesManagementPage = () => {
               />
             </div>
 
-            {/* Max Amount filter */}
             <div className="space-y-2">
               <label className="text-sm font-medium text-foreground/90 dark:text-foreground/80">
                 Giá trị tối đa
@@ -382,7 +365,6 @@ const InvoicesManagementPage = () => {
               />
             </div>
 
-            {/* Sort options */}
             <div className="space-y-2">
               <label className="text-sm font-medium text-foreground/90 dark:text-foreground/80">
                 Sắp xếp theo
@@ -452,14 +434,12 @@ const InvoicesManagementPage = () => {
         </div>
       )}
 
-      {/* Status text */}
       {isFetching && (
         <p className="text-sm text-muted-foreground/70 dark:text-muted-foreground/60 animate-pulse">
           Đang tải dữ liệu...
         </p>
       )}
 
-      {/* Invoices Table */}
       <InvoicesManagementTable
         data={data?.invoices || []}
         onUpdateStatus={handleUpdateStatus}
@@ -472,7 +452,6 @@ const InvoicesManagementPage = () => {
         </p>
       )}
 
-      {/* Pagination using backend pagination */}
       {data?.totalPages && data.totalPages > 1 && (
         <Pagination>
           <PaginationContent>
@@ -491,7 +470,6 @@ const InvoicesManagementPage = () => {
               />
             </PaginationItem>
 
-            {/* First page */}
             {data.currentPage > 2 && (
               <PaginationItem>
                 <PaginationLink
@@ -506,14 +484,12 @@ const InvoicesManagementPage = () => {
               </PaginationItem>
             )}
 
-            {/* Ellipsis for start */}
             {data.currentPage > 3 && (
               <PaginationItem>
                 <PaginationEllipsis />
               </PaginationItem>
             )}
 
-            {/* Previous page */}
             {data.currentPage > 1 && (
               <PaginationItem>
                 <PaginationLink
@@ -528,7 +504,6 @@ const InvoicesManagementPage = () => {
               </PaginationItem>
             )}
 
-            {/* Current page */}
             <PaginationItem>
               <PaginationLink
                 href="#"
@@ -539,7 +514,6 @@ const InvoicesManagementPage = () => {
               </PaginationLink>
             </PaginationItem>
 
-            {/* Next page */}
             {data.currentPage < data.totalPages && (
               <PaginationItem>
                 <PaginationLink
@@ -554,14 +528,12 @@ const InvoicesManagementPage = () => {
               </PaginationItem>
             )}
 
-            {/* Ellipsis for end */}
             {data.currentPage < data.totalPages - 2 && (
               <PaginationItem>
                 <PaginationEllipsis />
               </PaginationItem>
             )}
 
-            {/* Last page */}
             {data.currentPage < data.totalPages - 1 && (
               <PaginationItem>
                 <PaginationLink

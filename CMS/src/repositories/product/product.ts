@@ -1,5 +1,3 @@
-// src/repositories/product/product.ts
-// Import the correct type 'Product'
 import { Product as ProductType, VariantInput } from "@/types/dataTypes";
 import Base from "../base";
 
@@ -27,7 +25,6 @@ interface UpdateVariantData {
 }
 
 class ProductRepository extends Base {
-  // Renamed class for clarity
   getAllProducts = async (url: string) => {
     return this.http<ProductType[]>(url, "get");
   };
@@ -64,12 +61,10 @@ class ProductRepository extends Base {
     );
   };
 
-  // Thêm phương thức lấy sản phẩm nổi bật
   getFeaturedProducts = async (url: string) => {
     return this.http<ProductType[]>(url, "get");
   };
 
-  // Variant methods
   getVariantById = async (url: string) => {
     return this.http<ProductType>(url, "get");
   };
@@ -90,6 +85,4 @@ class ProductRepository extends Base {
     return this.http<void>(url, "delete");
   };
 }
-
-// Export instance with the new class name
 export default new ProductRepository();

@@ -9,7 +9,8 @@ export const useGetAllCouponsQuery = () => {
       const response = await couponRepository.getAllCoupons(
         API_ENDPOINTS.ADMIN_GET_ALL_COUPONS
       );
-      return response.coupons;
+      // console.log("-----------------------response.coupons", response);
+      return response;
     },
   });
 };

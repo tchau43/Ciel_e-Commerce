@@ -1,6 +1,3 @@
-// src/pages/admin/UserManagementPage.tsx
-// LƯU Ý: Đảm bảo tên file không có khoảng trắng ở cuối (".tsx" thay vì ".tsx ")
-
 import React, { useState } from "react";
 import { useUsersQuery } from "@/services/admin/getUsersQuery";
 import UserManagementTable from "../components/UserManagementTable";
@@ -19,7 +16,7 @@ const UserManagementPage: React.FC = () => {
     refetchOnWindowFocus: false,
   });
 
-  // Filter users based on search term
+
   const filteredUsers = data.filter((user) =>
     Object.values({
       name: user.name,
@@ -79,7 +76,6 @@ const UserManagementPage: React.FC = () => {
             size="sm"
             className="flex items-center gap-2"
             onClick={() => {
-              /* Handle add user */
             }}
           >
             <Plus className="h-4 w-4" />

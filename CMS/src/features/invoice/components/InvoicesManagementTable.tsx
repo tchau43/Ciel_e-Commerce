@@ -1,4 +1,4 @@
-// src/features/admin/components/InvoicesManagementTable.tsx
+
 
 import { useMemo, useState } from "react";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
@@ -33,7 +33,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
-// --- Interface Props ---
+
 interface InvoicesManagementTableProps {
   data: Invoice[];
   onUpdateStatus: (
@@ -43,7 +43,7 @@ interface InvoicesManagementTableProps {
   isUpdatingStatus: boolean;
 }
 
-// --- Helper Functions (Giữ nguyên) ---
+
 const formatCurrency = (amount: number) => {
   return new Intl.NumberFormat("vi-VN", {
     style: "currency",
@@ -126,7 +126,7 @@ const translatePaymentStatus = (status: PaymentStatus): string => {
   }
 };
 
-// --- Component ---
+
 const InvoicesManagementTable = ({
   data,
   onUpdateStatus,
@@ -186,7 +186,7 @@ const InvoicesManagementTable = ({
     return sortableData;
   }, [data, sortConfig]);
 
-  // Pagination
+  
   const startIndex = (currentPage - 1) * itemsPerPage;
   const paginatedData = sortedData.slice(startIndex, startIndex + itemsPerPage);
   const totalPages = Math.ceil(sortedData.length / itemsPerPage);

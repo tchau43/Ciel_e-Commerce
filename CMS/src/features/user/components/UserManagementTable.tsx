@@ -1,10 +1,10 @@
-// src/features/admin/components/UserManagementTable.tsx
+
 
 import { useState, useMemo, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-// Removed CardHeader, CardTitle as we integrate the title differently or assume it's outside
+
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import {
   Table,
@@ -39,7 +39,7 @@ const UserManagementTable = ({ data }: UserManagementTableProps) => {
   }>({ key: null, direction: "asc" });
   const itemsPerPage = 8;
 
-  // Sorting logic
+  
   const sortedData = useMemo(() => {
     const sortableData = [...data];
     if (sortConfig.key) {
@@ -75,7 +75,6 @@ const UserManagementTable = ({ data }: UserManagementTableProps) => {
     setCurrentPage(1);
   };
 
-  // Pagination
   const startIndex = (currentPage - 1) * itemsPerPage;
   const paginatedData = sortedData.slice(startIndex, startIndex + itemsPerPage);
   const totalPages = Math.ceil(sortedData.length / itemsPerPage);
@@ -90,7 +89,7 @@ const UserManagementTable = ({ data }: UserManagementTableProps) => {
     navigate(`/editUser/${id}`);
   };
 
-  // Helper for sort icons
+  
   const SortIcon = ({ columnKey }: { columnKey: keyof User | "role" }) => {
     if (sortConfig.key !== columnKey) {
       return <ArrowUpDown className="ml-2 h-3 w-3 text-muted-foreground/70" />;
@@ -101,13 +100,11 @@ const UserManagementTable = ({ data }: UserManagementTableProps) => {
       <ArrowDown className="ml-2 h-3 w-3" />
     );
   };
-
-  // Reset page when data changes
+  
   useEffect(() => {
     setCurrentPage(1);
   }, [data]);
-
-  // Helper functions for badge variants
+  
   const getStatusVariant = (status: boolean): "default" | "destructive" => {
     return status ? "default" : "destructive";
   };

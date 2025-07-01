@@ -28,11 +28,9 @@ function App() {
     <Router>
       <Suspense fallback={<LoadingSpinner />}>
         <Routes>
-          {/* Route for LandingPage, Login, Register - not require authenticated */}
           <Route path="/landing" element={<LandingPage />} />
           <Route path="/login" element={<LoginPage />} />
 
-          {/* Route for admin */}
           <Route
             path="/*"
             element={
