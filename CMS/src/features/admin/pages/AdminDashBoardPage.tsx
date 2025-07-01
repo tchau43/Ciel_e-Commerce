@@ -32,7 +32,6 @@ import {
 } from "date-fns";
 import { vi } from "date-fns/locale";
 
-// Cập nhật bảng màu cho dark mode
 const COLORS = {
   light: [
     "rgba(79, 70, 229, 1)",
@@ -50,29 +49,6 @@ const COLORS = {
   ],
 };
 
-// Thêm một số màu gradient cho biểu đồ
-// const CHART_COLORS = {
-//   light: {
-//     primary: "rgba(79, 70, 229, 1)",
-//     success: "rgba(16, 185, 129, 1)",
-//     warning: "rgba(245, 158, 11, 1)",
-//     error: "rgba(239, 68, 68, 1)",
-//     purple: "rgba(139, 92, 246, 1)",
-//     gradientFrom: "rgba(79, 70, 229, 1)",
-//     gradientTo: "rgba(129, 140, 248, 1)",
-//   },
-//   dark: {
-//     primary: "rgba(129, 140, 248, 1)",
-//     success: "rgba(52, 211, 153, 1)",
-//     warning: "rgba(252, 211, 77, 1)",
-//     error: "rgba(248, 113, 113, 1)",
-//     purple: "rgba(167, 139, 250, 1)",
-//     gradientFrom: "rgba(129, 140, 248, 1)",
-//     gradientTo: "rgba(199, 210, 254, 1)",
-//   },
-// };
-
-// Add interface definition at the top
 interface Invoice {
   createdAt: string | Date;
   paymentStatus: string;
@@ -84,7 +60,6 @@ interface Invoice {
   orderStatus: string;
 }
 
-// Add interfaces for chart data
 interface RevenueDataPoint {
   date: string;
   revenue: number;
@@ -109,12 +84,11 @@ const AdminDashboardPage = () => {
   const [orderCount, setOrderCount] = useState(0);
   const [orderStatusData, setOrderStatusData] = useState<StatusDataPoint[]>([]);
 
-  // Fetch all invoices with a large limit to get comprehensive data
   const { data } = useGetAllInvoicesQuery({
     limit: 1000,
     sortBy: "createdAt",
     sortOrder: "desc",
-    paymentStatus: "paid", // Only consider paid invoices for revenue
+    paymentStatus: "paid",
   });
 
   useEffect(() => {
@@ -124,7 +98,6 @@ const AdminDashboardPage = () => {
   }, [data, period]);
 
   const processInvoiceData = (invoices: Invoice[]) => {
-    // Calculate date ranges based on selected period
     const today = new Date();
     let startDate: Date;
     let endDate: Date;
@@ -144,7 +117,6 @@ const AdminDashboardPage = () => {
       dateFormat = "MMM";
     }
 
-    // Filter invoices by date range
     const filteredInvoices = invoices.filter((invoice) => {
       const invoiceDate = new Date(invoice.createdAt);
       return (
@@ -153,14 +125,12 @@ const AdminDashboardPage = () => {
       );
     });
 
-    // Calculate total revenue
     const total = filteredInvoices.reduce(
       (sum, invoice) => sum + invoice.totalAmount,
       0
     );
     setTotalRevenue(total);
 
-    // Calculate today's revenue
     const todayStart = new Date();
     todayStart.setHours(0, 0, 0, 0);
     const todayEnd = new Date();
@@ -179,10 +149,8 @@ const AdminDashboardPage = () => {
     );
     setOrderCount(filteredInvoices.length);
 
-    // Create revenue by date data
     const revenueByDate: Record<string, number> = {};
 
-    // Initialize all dates in range
     let current = new Date(startDate);
     while (current <= endDate) {
       const dateKey = format(current, dateFormat, { locale: vi });
@@ -190,7 +158,6 @@ const AdminDashboardPage = () => {
       current.setDate(current.getDate() + 1);
     }
 
-    // Fill with actual data
     filteredInvoices.forEach((invoice) => {
       const invoiceDate = new Date(invoice.createdAt);
       const dateKey = format(invoiceDate, dateFormat, { locale: vi });
@@ -198,7 +165,6 @@ const AdminDashboardPage = () => {
         (revenueByDate[dateKey] || 0) + invoice.totalAmount;
     });
 
-    // Convert to array format for charts
     const revenueDataArray = Object.keys(revenueByDate).map((date) => ({
       date,
       revenue: revenueByDate[date],
@@ -206,7 +172,6 @@ const AdminDashboardPage = () => {
 
     setRevenueData(revenueDataArray);
 
-    // Process products data (top selling)
     const productSales: Record<string, number> = {};
     filteredInvoices.forEach((invoice) => {
       invoice.items.forEach((item) => {
@@ -216,15 +181,13 @@ const AdminDashboardPage = () => {
       });
     });
 
-    // Convert to array and sort
     const productDataArray = Object.keys(productSales)
       .map((name) => ({ name, sales: productSales[name] }))
       .sort((a, b) => b.sales - a.sales)
-      .slice(0, 5); // Top 5 products
+      .slice(0, 5);
 
     setProductData(productDataArray);
 
-    // Process order status data
     const statusCounts: Record<string, number> = {};
     invoices.forEach((invoice) => {
       statusCounts[invoice.orderStatus] =
@@ -239,7 +202,6 @@ const AdminDashboardPage = () => {
     setOrderStatusData(statusDataArray);
   };
 
-  // Format currency
   const formatCurrency = (amount: number | string): string => {
     return new Intl.NumberFormat("vi-VN", {
       style: "currency",

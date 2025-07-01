@@ -103,7 +103,6 @@ const CreateProduct = () => {
     setLoading(true);
     console.log("formData", formData);
     try {
-      // Validate form data
       if (!formData.name.trim()) {
         toast.error("Tên sản phẩm không được để trống");
         setLoading(false);
@@ -125,7 +124,6 @@ const CreateProduct = () => {
         return;
       }
 
-      // Prepare data for submission
       const submitData = {
         name: formData.name.trim(),
         base_price: formData.base_price,
@@ -138,7 +136,6 @@ const CreateProduct = () => {
 
       console.log("Data to be sent:", submitData);
 
-      // Submit data directly
       const response = await createProduct.mutateAsync(submitData);
       console.log("Server response:", response);
 
@@ -157,9 +154,7 @@ const CreateProduct = () => {
       <Card className="border border-border/10 dark:border-border/20 bg-card/95 dark:bg-card/90">
         <form onSubmit={handleSubmit} className="p-6">
           <div className="space-y-6">
-            {/* Basic Information */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Name Input */}
               <div className="col-span-2">
                 <label className="block text-sm font-medium text-foreground/90 dark:text-foreground/80 mb-1.5">
                   Tên sản phẩm
@@ -175,7 +170,6 @@ const CreateProduct = () => {
                 />
               </div>
 
-              {/* Base Price Input */}
               <div>
                 <label className="block text-sm font-medium text-foreground/90 dark:text-foreground/80 mb-1.5">
                   Giá cơ bản
@@ -197,7 +191,6 @@ const CreateProduct = () => {
                 </div>
               </div>
 
-              {/* Brand Input */}
               <div>
                 <label className="block text-sm font-medium text-foreground/90 dark:text-foreground/80 mb-1.5">
                   Thương hiệu
@@ -213,7 +206,6 @@ const CreateProduct = () => {
                 />
               </div>
 
-              {/* Category Selection */}
               <div>
                 <label className="block text-sm font-medium text-foreground/90 dark:text-foreground/80 mb-1.5">
                   Danh mục
@@ -234,7 +226,6 @@ const CreateProduct = () => {
                 </select>
               </div>
 
-              {/* Description Input */}
               <div className="col-span-2">
                 <label className="block text-sm font-medium text-foreground/90 dark:text-foreground/80 mb-1.5">
                   Mô tả
@@ -258,7 +249,6 @@ const CreateProduct = () => {
                     </Button>
                   </div>
 
-                  {/* Description List */}
                   {formData.description && formData.description.length > 0 && (
                     <div className="mt-4 space-y-2">
                       {formData.description.map((desc, index) => (
@@ -283,7 +273,6 @@ const CreateProduct = () => {
                 </div>
               </div>
 
-              {/* Tags Input */}
               <div className="col-span-2">
                 <label className="block text-sm font-medium text-foreground/90 dark:text-foreground/80 mb-1.5">
                   Tags
@@ -299,7 +288,6 @@ const CreateProduct = () => {
               </div>
             </div>
 
-            {/* Variants Section */}
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <h3 className="text-lg font-medium">Biến thể sản phẩm</h3>
@@ -313,7 +301,6 @@ const CreateProduct = () => {
                 </Button>
               </div>
 
-              {/* Variant Form */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-foreground/90 dark:text-foreground/80 mb-1.5">
@@ -364,7 +351,6 @@ const CreateProduct = () => {
                 </div>
               </div>
 
-              {/* Variants List */}
               {formData.variants && formData.variants.length > 0 && (
                 <div className="mt-4 space-y-2">
                   {formData.variants.map((v, index) => (
@@ -399,7 +385,6 @@ const CreateProduct = () => {
               )}
             </div>
 
-            {/* Submit Button */}
             <div className="flex justify-end">
               <Button
                 type="submit"

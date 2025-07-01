@@ -16,7 +16,6 @@ const CategoriesList = ({
   const navigate = useNavigate();
   const [checkedCate, setCheckedCate] = useState<string[]>([]);
 
-  // When a checkbox is toggled, update checkedCate and update the URL accordingly.
   const handleCheckboxChange = (cateId: string) => {
     setCheckedCate((prev) => {
       const newCheckedCate = prev.includes(cateId)
@@ -29,14 +28,8 @@ const CategoriesList = ({
 
   const changeCateParams = (cateList: string[]) => {
     const params = new URLSearchParams(queryParams || "");
-
-    // Clear existing categories first
     params.delete("category");
-
-    // Add new categories
     cateList.forEach((c) => params.append("category", c));
-
-    // Preserve search text
     const newParams = params.toString();
     setQueryParams(newParams);
     navigate(`?${newParams}`, { replace: true });
@@ -70,11 +63,6 @@ const CategoriesList = ({
       />
       <label
         htmlFor="category-all"
-        // className={
-        //   checkedCate.length === data.length
-        //     ? "text-[rgba(213,106,54,1)]"
-        //     : "text-white" + "hover:cursor-pointer"
-        // }
         className={`${
           checkedCate.length === data.length
             ? "text-[rgba(213,106,54,1)]"

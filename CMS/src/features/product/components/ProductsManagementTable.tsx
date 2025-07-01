@@ -1,8 +1,8 @@
-// src/features/admin/components/ProductsManagementTable.tsx
+
 
 import { useState, useMemo, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"; // For product images
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"; 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import {
@@ -13,23 +13,23 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-// Corrected import: Use Product instead of ProductData
+
 import { Product } from "@/types/dataTypes";
 import {
   Pencil,
   ChevronLeft,
   ChevronRight,
-  ArrowUpDown, // For sort indicator placeholder
-  ArrowUp, // For ascending sort
-  ArrowDown, // For descending sort
+  ArrowUpDown, 
+  ArrowUp, 
+  ArrowDown, 
 } from "lucide-react";
 
 interface ProductsManagementTableProps {
-  data: Product[]; // Use the correct Product type
+  data: Product[]; 
   title?: string;
 }
 
-// Helper function to format currency (Vietnamese Dong)
+
 const formatCurrency = (amount: number) => {
   return new Intl.NumberFormat("vi-VN", {
     style: "currency",
@@ -41,12 +41,12 @@ const ProductsManagementTable = ({ data }: ProductsManagementTableProps) => {
   const navigate = useNavigate();
   const [currentPage, setCurrentPage] = useState(1);
   const [sortConfig, setSortConfig] = useState<{
-    key: keyof Product | "category.name" | "brand.name" | null; // Allow nested keys
+    key: keyof Product | "category.name" | "brand.name" | null; 
     direction: "asc" | "desc";
   }>({ key: null, direction: "asc" });
-  const itemsPerPage = 8; // Adjust as needed
+  const itemsPerPage = 8; 
 
-  // Sorting logic
+  
   const sortedData = useMemo(() => {
     const sortableData = [...data];
     if (sortConfig.key) {
@@ -54,7 +54,7 @@ const ProductsManagementTable = ({ data }: ProductsManagementTableProps) => {
         let aVal: any;
         let bVal: any;
 
-        // Handle nested and direct properties for sorting
+        
         if (sortConfig.key === "category.name") {
           aVal = a.category?.name?.toLowerCase() || "";
           bVal = b.category?.name?.toLowerCase() || "";
@@ -68,12 +68,12 @@ const ProductsManagementTable = ({ data }: ProductsManagementTableProps) => {
           aVal = a.name.toLowerCase();
           bVal = b.name.toLowerCase();
         } else {
-          // Fallback for other direct keys (add more specific cases if needed)
+          
           aVal = a[sortConfig.key as keyof Product];
           bVal = b[sortConfig.key as keyof Product];
         }
 
-        // Comparison logic
+        
         if (aVal < bVal) return sortConfig.direction === "asc" ? -1 : 1;
         if (aVal > bVal) return sortConfig.direction === "asc" ? 1 : -1;
         return 0;
@@ -87,10 +87,10 @@ const ProductsManagementTable = ({ data }: ProductsManagementTableProps) => {
       key,
       direction: prev.key === key && prev.direction === "asc" ? "desc" : "asc",
     }));
-    setCurrentPage(1); // Reset to first page on sort
+    setCurrentPage(1); 
   };
 
-  // Pagination
+  
   const startIndex = (currentPage - 1) * itemsPerPage;
   const paginatedData = sortedData.slice(startIndex, startIndex + itemsPerPage);
   const totalPages = Math.ceil(sortedData.length / itemsPerPage);
@@ -105,7 +105,7 @@ const ProductsManagementTable = ({ data }: ProductsManagementTableProps) => {
     navigate(`/editProduct/${_id}`);
   };
 
-  // Helper for sort icons
+  
   const SortIcon = ({
     columnKey,
   }: {
@@ -121,15 +121,15 @@ const ProductsManagementTable = ({ data }: ProductsManagementTableProps) => {
     );
   };
 
-  // Reset page when data changes
+  
   useEffect(() => {
     setCurrentPage(1);
   }, [data]);
 
   return (
     <Card className="border border-border/10 dark:border-border/20 bg-card/95 dark:bg-card/90 backdrop-blur-sm">
-      {/* Optional Title outside or via prop */}
-      {/* <h2 className="text-xl font-semibold p-4">{title}</h2> */}
+      
+      
 
       <CardContent className="p-0">
         <Table>
@@ -170,9 +170,9 @@ const ProductsManagementTable = ({ data }: ProductsManagementTableProps) => {
                   Thương hiệu <SortIcon columnKey="brand.name" />
                 </div>
               </TableHead>
-              {/* Add other sortable columns like quantity if needed */}
-              {/* <TableHead className="text-center text-muted-foreground w-[100px]">Tồn kho</TableHead> */}
-              {/* <TableHead className="text-center text-muted-foreground w-[100px]">Trạng thái</TableHead> */}
+              
+              
+              
               <TableHead className="text-right w-20 pr-6 text-muted-foreground/70 dark:text-muted-foreground/60">
                 Sửa
               </TableHead>
@@ -214,13 +214,9 @@ const ProductsManagementTable = ({ data }: ProductsManagementTableProps) => {
                   <TableCell className="text-muted-foreground/70 dark:text-muted-foreground/60 py-2 align-top">
                     {product.brand?.name || "Chưa phân loại"}
                   </TableCell>
-                  {/* Add other cells like quantity, status if needed */}
-                  {/* <TableCell className="text-center text-muted-foreground py-2 align-top">{product.variants.reduce((sum, v) => sum + v.stock, 0)}</TableCell> */}
-                  {/* <TableCell className="text-center py-2 align-top">
-                    <Badge variant={product.status ? "default" : "outline"} className="capitalize text-xs px-2 py-0.5">
-                      {product.status ? "Đang bán" : "Ngừng bán"}
-                    </Badge>
-                  </TableCell> */}
+                  
+                  
+                  
                   <TableCell className="text-right pr-6 py-2 align-top">
                     <Button
                       variant="ghost"
