@@ -59,7 +59,6 @@ const AddressSelect = ({
   const [zipCode, setZipCode] = useState(defaultAddress?.zipCode || "");
 
   useEffect(() => {
-    // Fetch provinces from API with districts
     const fetchProvinces = async () => {
       try {
         const response = await fetch(
@@ -76,7 +75,6 @@ const AddressSelect = ({
   }, []);
 
   useEffect(() => {
-    // Set default values if provided
     if (defaultAddress?.city && provinces.length > 0) {
       setSelectedProvince(defaultAddress.city);
       const province = provinces.find((p) => p.name === defaultAddress.city);
@@ -94,7 +92,7 @@ const AddressSelect = ({
     const province = provinces.find((p) => p.name === value);
     if (province) {
       setDistricts(province.districts);
-      setSelectedDistrict(""); // Reset district when province changes
+      setSelectedDistrict("");
     }
     updateAddress(value, "", specificAddress, zipCode);
   };

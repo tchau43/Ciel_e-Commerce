@@ -75,7 +75,7 @@ const ProductsPage = () => {
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     setQueryParams(params.toString());
-    setCurrentPage(1); // Reset page when filters change
+    setCurrentPage(1); 
   }, [location.search]);
 
   const {
@@ -90,7 +90,6 @@ const ProductsPage = () => {
     isLoading: productsLoading,
   } = useGetProductBySearchQuery(queryParams);
 
-  // Pagination calculations
   const startIndex = (currentPage - 1) * itemsPerPage;
   const paginatedProducts = products.slice(
     startIndex,

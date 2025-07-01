@@ -8,7 +8,6 @@ interface UpdateUserProfileData {
   address?: string | { street: string };
 }
 
-// For user self-profile updates
 export const useUpdateUserProfileMutation = () => {
   return useMutation({
     mutationFn: (variables: UpdateUserProfileData) => {

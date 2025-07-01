@@ -1,4 +1,4 @@
-// controllers/invoiceController.js
+
 const {
   createInvoiceService,
   getInvoiceService,
@@ -6,14 +6,14 @@ const {
   getAllInvoicesAdminService,
   getDeliveredProductsForUserService,
 } = require("../services/invoiceService");
-const Invoice = require("../models/invoice"); // For enum validation if needed
+const Invoice = require("../models/invoice"); 
 const mongoose = require("mongoose");
 
 const createInvoice = async (req, res) => {
-  // Expect optional couponCode and deliveryFee
+  
   const { userId, productsList, paymentMethod, shippingAddress, couponCode, deliveryFee } = req.body;
 
-  // Basic Validation
+  
   if (!userId || !productsList || !paymentMethod || !shippingAddress) {
     return res.status(400).json({
       message: "Missing required fields (userId, productsList, paymentMethod, shippingAddress).",
@@ -23,14 +23,14 @@ const createInvoice = async (req, res) => {
     return res.status(400).json({ message: "Invalid userId format." });
   }
 
-  // Validate deliveryFee
+  
   const parsedDeliveryFee = typeof deliveryFee === 'string' ? parseFloat(deliveryFee) : deliveryFee;
   if (typeof parsedDeliveryFee !== 'number' || isNaN(parsedDeliveryFee) || parsedDeliveryFee < 0) {
     return res.status(400).json({ message: "Invalid delivery fee. Must be a non-negative number." });
   }
 
   try {
-    // Pass all necessary data to the service
+    
     const createdInvoice = await createInvoiceService(
       userId,
       productsList,
@@ -46,7 +46,7 @@ const createInvoice = async (req, res) => {
     });
   } catch (error) {
     console.error("Invoice Creation Controller Error:", error);
-    // Check for specific user-friendly errors from the service
+    
     if (
       error.message.includes("Coupon code") ||
       error.message.includes("Insufficient stock") ||
@@ -66,12 +66,12 @@ const createInvoice = async (req, res) => {
   }
 };
 
-// Get User's Invoices
+
 const getInvoice = async (req, res) => {
   const { userId } = req.params;
-  const authenticatedUserId = req.user?._id; // Assuming verifyToken adds req.user
+  const authenticatedUserId = req.user?._id; 
 
-  // Security check: User can only get their own invoices (or admin bypass needed)
+  
   if (!authenticatedUserId || authenticatedUserId.toString() !== userId) {
     return res
       .status(403)
@@ -79,7 +79,7 @@ const getInvoice = async (req, res) => {
   }
 
   try {
-    // Pass all query parameters directly to the service
+    
     const data = await getInvoiceService(userId, req.query);
     res.status(200).json(data);
   } catch (error) {
@@ -94,13 +94,13 @@ const getInvoice = async (req, res) => {
   }
 };
 
-// Admin Update Invoice Status
+
 const updateInvoiceStatus = async (req, res) => {
   try {
     const { invoiceId } = req.params;
-    const statusUpdates = req.body; // e.g., { "orderStatus": "shipped", "paymentStatus": "paid" }
+    const statusUpdates = req.body; 
 
-    // Validation is handled within the service now
+    
     const updatedInvoice = await updateInvoiceStatusService(
       invoiceId,
       statusUpdates
@@ -119,9 +119,9 @@ const updateInvoiceStatus = async (req, res) => {
       error.message.includes("not found") ||
       error.message.includes("Invalid")
     ) {
-      res.status(404).json({ message: error.message }); // Not found or Invalid ID
+      res.status(404).json({ message: error.message }); 
     } else if (error.message.includes("No valid status")) {
-      res.status(400).json({ message: error.message }); // Bad Request
+      res.status(400).json({ message: error.message }); 
     } else {
       res
         .status(500)
@@ -132,11 +132,11 @@ const updateInvoiceStatus = async (req, res) => {
 
 const getAllInvoicesAdmin = async (req, res) => {
   try {
-    // Lấy các query params từ request (ví dụ: /admin/invoices?searchTerm=john&page=1&limit=20)
+    
     const queryParams = req.query;
     console.log("-------------------------queryParams", queryParams);
     const data = await getAllInvoicesAdminService(queryParams);
-    res.status(200).json(data); // Trả về object chứa invoices và thông tin phân trang
+    res.status(200).json(data); 
   } catch (error) {
     console.error("Admin Get All Invoices Controller Error:", error);
     res
@@ -145,12 +145,12 @@ const getAllInvoicesAdmin = async (req, res) => {
   }
 };
 
-// Get User's Delivered Products
+
 const getDeliveredProducts = async (req, res) => {
   const { userId } = req.params;
-  const authenticatedUserId = req.user?._id; // Assuming verifyToken adds req.user
+  const authenticatedUserId = req.user?._id; 
 
-  // Security check: User can only get their own delivered products (or admin bypass needed)
+  
   if (!authenticatedUserId || (authenticatedUserId.toString() !== userId && req.user?.role !== 'ADMIN')) {
     return res
       .status(403)

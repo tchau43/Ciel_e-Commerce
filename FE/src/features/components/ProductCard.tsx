@@ -1,33 +1,25 @@
-// src/components/shared/ProductCard.tsx
-import { IoCartOutline } from "react-icons/io5"; // Or your preferred cart icon
+import { IoCartOutline } from "react-icons/io5";
 import React, { useState, useRef, MouseEvent } from "react";
-import { useNavigate } from "react-router-dom"; // <-- Import useNavigate
+import { useNavigate } from "react-router-dom";
 import {
   Card,
   CardHeader,
   CardTitle,
   CardDescription,
   CardContent,
-  CardBorder, // Import the border wrapper
+  CardBorder,
 } from "@/components/ui/card";
-// import { ProductData } from "@/types/dataTypes"; // <-- Change this
-import { Product } from "@/types/dataTypes"; // <-- Use the correct type 'Product'
-import { cn } from "@/lib/utils"; //
 
-// --- Helper: Price Formatting (Updated for VND) ---
+import { Product } from "@/types/dataTypes";
+import { cn } from "@/lib/utils";
+
 const formatPrice = (price: number) => {
-  // return new Intl.NumberFormat("en-US", { // <-- Old version
-  //   style: "currency",
-  //   currency: "USD", // Adjust currency as needed
-  // }).format(price);
   return new Intl.NumberFormat("vi-VN", {
-    // <-- Use Vietnamese locale
     style: "currency",
-    currency: "VND", // <-- Use VND currency
+    currency: "VND",
   }).format(price);
 };
 
-// --- Helper: Format Purchase Quantity ---
 const formatPurchaseQuantity = (quantity: number) => {
   if (quantity >= 1000000) {
     return `${(quantity / 1000000).toFixed(1)}M`;
@@ -37,7 +29,6 @@ const formatPurchaseQuantity = (quantity: number) => {
   return quantity.toString();
 };
 
-// --- Helper: Placeholder Icons (Keep as is) ---
 const StarIcon = ({ className }: { className?: string }) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
@@ -70,21 +61,18 @@ const BagIcon = ({ className }: { className?: string }) => (
   </svg>
 );
 
-// --- Product Card Component ---
 interface ProductCardProps {
-  // product: ProductData; // <-- Change this
-  product: Product; // <-- Use the correct type 'Product'
+  product: Product;
   className?: string;
 }
 
 const ProductCard: React.FC<ProductCardProps> = ({ product, className }) => {
   const cardRef = useRef<HTMLDivElement>(null);
   const [rotate, setRotate] = useState({ x: 0, y: 0 });
-  const navigate = useNavigate(); // <-- Initialize useNavigate
+  const navigate = useNavigate();
 
-  // --- Click Handler for Navigation ---
   const handleCardClick = () => {
-    navigate(`/product/${product._id}`); // Navigate to product detail page
+    navigate(`/product/${product._id}`);
   };
 
   const handleMouseMove = (e: MouseEvent<HTMLDivElement>) => {
@@ -105,10 +93,9 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, className }) => {
   const imageUrl = product.images?.[0] || "/placeholder-image.png";
 
   const handleAddToCartClick = (e: React.MouseEvent) => {
-    e.stopPropagation(); // Prevent card click navigation when clicking button
+    e.stopPropagation();
     e.preventDefault();
     console.log(`Add ${product.name} (ID: ${product._id}) to cart`);
-    // Add actual add to cart logic here
   };
 
   return (
@@ -178,7 +165,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, className }) => {
         <div className="flex flex-col p-2 sm:p-3">
           {/* Product Info */}
           <CardHeader className="space-y-1 p-0">
-            <CardTitle className="line-clamp-2 min-h-[32px] text-xs font-semibold transition-colors duration-300 group-hover/card:text-blue-600 sm:min-h-[40px] sm:text-sm">
+            <CardTitle className="line-clamp-2 min-h-[32px] text-xs font-semibold text-gray-900 dark:text-gray-100 transition-colors duration-300 group-hover/card:text-blue-600 sm:min-h-[40px] sm:text-sm">
               {product.name}
             </CardTitle>
             {product.category?.name && (

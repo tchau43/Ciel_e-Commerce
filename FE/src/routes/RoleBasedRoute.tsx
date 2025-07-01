@@ -17,14 +17,14 @@ const RoleBasedRoute = ({ allowedRoles, children }: RoleBasedRouteProps) => {
   const { role } = getAuthCredentials();
 
   useEffect(() => {
-    // Check authentication on mount and when dependencies change
+    
     if (!isAuthenticated()) {
       clearAuthCredentials();
       navigate("/landing", { replace: true });
     }
   }, [navigate]);
 
-  // Handle root path
+  
   if (window.location.pathname === "/") {
     if (role === Role.CUSTOMER) {
       return <>{children}</>;
@@ -33,33 +33,33 @@ const RoleBasedRoute = ({ allowedRoles, children }: RoleBasedRouteProps) => {
     return <Navigate to="/landing" replace />;
   }
 
-  // Check if the current route is a public route
+  
   const isPublicRoute =
     window.location.pathname === "/landing" ||
     window.location.pathname === "/auth";
 
-  // Allow access to public routes without authentication
+  
   if (isPublicRoute) {
-    // If user is already authenticated and tries to access auth page, redirect to home
+    
     if (isAuthenticated() && window.location.pathname === "/auth") {
       return <Navigate to="/" replace />;
     }
     return <>{children}</>;
   }
 
-  // If not authenticated, clear any existing credentials and redirect to landing
+  
   if (!isAuthenticated()) {
     clearAuthCredentials();
     return <Navigate to="/landing" replace />;
   }
 
-  // If the user doesn't have the required role, clear credentials and redirect to landing
+  
   if (!role || !allowedRoles.includes(role)) {
     clearAuthCredentials();
     return <Navigate to="/landing" replace />;
   }
 
-  // If the user is authenticated and has the correct role, render the children
+  
   return children ? <>{children}</> : <Outlet />;
 };
 

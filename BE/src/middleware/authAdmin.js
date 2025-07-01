@@ -5,9 +5,7 @@ const verifyAdmin = (req, res, next) => {
     const whiteList = ["/", '/register', "/login"];
 
     if (whiteList.includes(req.path)) {
-        // if (whiteList.find(path => `/v1/api` + path) === req.path) {
         return next();
-        // next();
     }
 
     const authHeader = req.headers.authorization;
@@ -20,10 +18,8 @@ const verifyAdmin = (req, res, next) => {
         return res.status(401).json({ message: "Token is missing." });
     }
 
-    // console.log("req", req);
     try {
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
-        // Attach the decoded token (user data) to req.user
         req.user = decoded;
         console.log(req.user);
         return next();
@@ -31,7 +27,6 @@ const verifyAdmin = (req, res, next) => {
         console.error("Token verification error:", error);
         return res.status(403).json({ message: "Invalid token." });
     }
-
 }
 
 module.exports = verifyAdmin;

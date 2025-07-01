@@ -2,14 +2,8 @@ const FAQ = require('../models/faq');
 const FaqCategory = require('../models/faqCategory');
 const mongoose = require('mongoose');
 
-/**
- * Create a new FAQ
- * @param {Object} faqData - FAQ data (question, answer, category, etc)
- * @returns {Promise<Object>} Created FAQ document
- */
 const createFaqService = async (faqData) => {
     try {
-        // Verify that the category exists
         if (faqData.category) {
             const categoryExists = await FaqCategory.exists({ _id: faqData.category });
             if (!categoryExists) {
@@ -26,12 +20,6 @@ const createFaqService = async (faqData) => {
     }
 };
 
-/**
- * Get all FAQs with optional filtering
- * @param {Object} filters - Optional filters (category, isPublished, etc)
- * @param {Object} options - Optional pagination and sorting options
- * @returns {Promise<Array>} List of FAQs
- */
 const getAllFaqsService = async (filters = {}, options = {}) => {
     try {
         const {
@@ -43,13 +31,11 @@ const getAllFaqsService = async (filters = {}, options = {}) => {
 
         const query = { ...filters };
 
-        // Handle category filter by slug
         if (filters.categorySlug) {
             const category = await FaqCategory.findOne({ slug: filters.categorySlug });
             if (category) {
                 query.category = category._id;
             } else {
-                // Return empty results if category not found
                 return {
                     faqs: [],
                     totalFaqs: 0,
@@ -61,9 +47,7 @@ const getAllFaqsService = async (filters = {}, options = {}) => {
             delete query.categorySlug;
         }
 
-        // Handle category filter by name
         if (filters.categoryName) {
-            // Case insensitive search for category name
             const category = await FaqCategory.findOne({
                 name: { $regex: new RegExp('^' + filters.categoryName + '$', 'i') }
             });
@@ -71,7 +55,6 @@ const getAllFaqsService = async (filters = {}, options = {}) => {
             if (category) {
                 query.category = category._id;
             } else {
-                // Return empty results if category not found
                 return {
                     faqs: [],
                     totalFaqs: 0,
@@ -107,11 +90,6 @@ const getAllFaqsService = async (filters = {}, options = {}) => {
     }
 };
 
-/**
- * Get FAQ by ID
- * @param {string} faqId - FAQ document ID
- * @returns {Promise<Object>} FAQ document
- */
 const getFaqByIdService = async (faqId) => {
     try {
         if (!mongoose.Types.ObjectId.isValid(faqId)) {
@@ -123,7 +101,6 @@ const getFaqByIdService = async (faqId) => {
             throw new Error(`FAQ with ID '${faqId}' not found`);
         }
 
-        // Increment view count but don't wait for it to complete
         faq.incrementViewCount().catch(err => {
             console.error('Error incrementing view count:', err);
         });
@@ -135,19 +112,12 @@ const getFaqByIdService = async (faqId) => {
     }
 };
 
-/**
- * Update an existing FAQ
- * @param {string} faqId - FAQ document ID
- * @param {Object} updateData - Data to update
- * @returns {Promise<Object>} Updated FAQ document
- */
 const updateFaqService = async (faqId, updateData) => {
     try {
         if (!mongoose.Types.ObjectId.isValid(faqId)) {
             throw new Error('Invalid FAQ ID format');
         }
 
-        // Verify that the category exists if it's being updated
         if (updateData.category) {
             const categoryExists = await FaqCategory.exists({ _id: updateData.category });
             if (!categoryExists) {
@@ -172,11 +142,6 @@ const updateFaqService = async (faqId, updateData) => {
     }
 };
 
-/**
- * Delete a FAQ
- * @param {string} faqId - FAQ document ID
- * @returns {Promise<Object>} Deleted FAQ document
- */
 const deleteFaqService = async (faqId) => {
     try {
         if (!mongoose.Types.ObjectId.isValid(faqId)) {
@@ -196,30 +161,22 @@ const deleteFaqService = async (faqId) => {
     }
 };
 
-/**
- * Get FAQs by category
- * @param {string} categoryId - Category ID
- * @param {number} limit - Maximum number of results
- * @returns {Promise<Array>} List of FAQs in the category
- */
 const getFaqsByCategoryService = async (categoryId, limit = 20) => {
     try {
         if (!mongoose.Types.ObjectId.isValid(categoryId)) {
             throw new Error('Invalid category ID format');
         }
 
-        // Check if category exists
         const categoryExists = await FaqCategory.exists({ _id: categoryId });
         if (!categoryExists) {
             throw new Error(`Category with ID '${categoryId}' not found`);
         }
 
-        // Thay vì gọi static method, truy vấn trực tiếp
         const faqs = await FAQ.find({
             category: categoryId,
             isPublished: true
         })
-            .populate('category') // Thêm populate để lấy thông tin category
+            .populate('category')
             .sort({ displayOrder: 1 })
             .limit(limit);
 
@@ -230,15 +187,8 @@ const getFaqsByCategoryService = async (categoryId, limit = 20) => {
     }
 };
 
-/**
- * Get FAQs by category slug
- * @param {string} slug - Category slug
- * @param {number} limit - Maximum number of results
- * @returns {Promise<Array>} List of FAQs in the category
- */
 const getFaqsByCategorySlugService = async (slug, limit = 20) => {
     try {
-        // Find category by slug
         const category = await FaqCategory.findOne({ slug });
         if (!category) {
             throw new Error(`Category with slug '${slug}' not found`);
@@ -251,12 +201,6 @@ const getFaqsByCategorySlugService = async (slug, limit = 20) => {
     }
 };
 
-/**
- * Search FAQs by query text
- * @param {string} searchQuery - Text to search for
- * @param {number} limit - Maximum number of results
- * @returns {Promise<Array>} List of matching FAQs
- */
 const searchFaqsService = async (searchQuery, limit = 10) => {
     try {
         if (!searchQuery || searchQuery.trim().length < 3) {
@@ -270,11 +214,6 @@ const searchFaqsService = async (searchQuery, limit = 10) => {
     }
 };
 
-/**
- * Get popular FAQs
- * @param {number} limit - Maximum number of results
- * @returns {Promise<Array>} List of popular FAQs
- */
 const getPopularFaqsService = async (limit = 5) => {
     try {
         return await FAQ.findPopular(limit);
@@ -284,12 +223,6 @@ const getPopularFaqsService = async (limit = 5) => {
     }
 };
 
-/**
- * Rate FAQ helpfulness
- * @param {string} faqId - FAQ document ID
- * @param {boolean} isHelpful - Whether the FAQ was helpful
- * @returns {Promise<Object>} Updated FAQ document
- */
 const rateFaqHelpfulnessService = async (faqId, isHelpful) => {
     try {
         if (!mongoose.Types.ObjectId.isValid(faqId)) {
@@ -321,4 +254,4 @@ module.exports = {
     searchFaqsService,
     getPopularFaqsService,
     rateFaqHelpfulnessService
-}; 
+};

@@ -1,29 +1,22 @@
-// services/deliveryService.js
-// SIMULATED delivery fee calculation based on destination from Hanoi.
-// IMPORTANT: Replace with actual shipping provider API calls for production!
-
-const axios = require('axios'); // Keep for potential future API calls
+const axios = require('axios');
 const { formatCurrencyVND } = require('../utils/helper');
 
-// Hàm chuẩn hóa tên địa điểm: bỏ dấu, bỏ khoảng trống, chuyển về chữ thường
 function normalizeLocationName(name) {
     if (typeof name !== 'string') return '';
     return name
         .toLowerCase()
         .normalize("NFD")
-        .replace(/[\u0300-\u036f]/g, "") // bỏ dấu
+        .replace(/[\u0300-\u036f]/g, "")
         .replace(/đ/g, "d")
-        .replace(/\s+/g, "") // bỏ khoảng trống
-        .replace(/^(thanhpho|tp\.?|tinh|quan|q\.?|huyen)\s*/i, '') // bỏ prefix
+        .replace(/\s+/g, "")
+        .replace(/^(thanhpho|tp\.?|tinh|quan|q\.?|huyen)\s*/i, '')
         .trim();
 }
 
-// Cache cho dữ liệu provinces để tránh gọi API nhiều lần
 let provincesCache = null;
 let lastFetchTime = null;
-const CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 giờ
+const CACHE_DURATION = 24 * 60 * 60 * 1000;
 
-// Hàm lấy dữ liệu provinces từ API hoặc cache
 async function getProvinces() {
     const now = Date.now();
     if (provincesCache && lastFetchTime && (now - lastFetchTime < CACHE_DURATION)) {
@@ -44,7 +37,6 @@ async function getProvinces() {
     }
 }
 
-// Hàm tìm province và district từ tên đã chuẩn hóa
 async function findLocationInfo(cityName, districtName) {
     const provinces = await getProvinces();
     const normalizedCity = normalizeLocationName(cityName);
@@ -63,7 +55,6 @@ async function findLocationInfo(cityName, districtName) {
     return { province, district };
 }
 
-// Các vùng địa lý và phí cơ bản (đã bỏ khoảng trống trong tên)
 const REGIONS = {
     NORTH: {
         provinces: ['hanoi', 'haiphong', 'quangninh', 'haiduong', 'hungyen', 'thaibinh', 'hanam', 'namdinh', 'ninhbinh', 'vinhphuc', 'bacninh', 'bacgiang'],
@@ -87,26 +78,17 @@ const REGIONS = {
     }
 };
 
-/**
- * SIMULATED function to calculate delivery fee based on destination from HANOI.
- * Replace with actual API calls to a Vietnamese delivery provider (GHN, GHTK, ViettelPost etc.).
- *
- * @param {object} shippingAddress - The destination address object { city, state/province, ... }
- * @returns {Promise<number>} The SIMULATED delivery fee in VND.
- */
 const getDeliveryFeeService = async (shippingAddress) => {
     try {
-        // Tìm thông tin province và district
         const locationInfo = await findLocationInfo(shippingAddress.city, shippingAddress.state);
         if (!locationInfo) {
             console.warn(`Location not found for city: ${shippingAddress.city}, district: ${shippingAddress.state}`);
-            return 45000; // Phí mặc định nếu không tìm thấy địa điểm
+            return 45000;
         }
 
         const { province } = locationInfo;
         const normalizedProvinceName = normalizeLocationName(province.name);
 
-        // Xác định vùng và phí cơ bản
         let region = null;
         for (const [regionName, regionData] of Object.entries(REGIONS)) {
             if (regionData.provinces.includes(normalizedProvinceName)) {
@@ -117,30 +99,26 @@ const getDeliveryFeeService = async (shippingAddress) => {
 
         if (!region) {
             console.warn(`Region not found for province: ${province.name}`);
-            return 45000; // Phí mặc định nếu không tìm thấy vùng
+            return 45000;
         }
 
         let fee = region.baseFee;
 
-        // Điều chỉnh phí dựa trên các yếu tố khác
-        // 1. Phụ phí cho địa điểm đặc biệt
         if (normalizedProvinceName === 'hanoi') {
             const innerDistricts = ['hoankiem', 'badinh', 'dongda', 'haibatrung', 'caugiay', 'thanhxuan', 'tayho'];
             const normalizedDistrict = normalizeLocationName(shippingAddress.state);
             if (innerDistricts.includes(normalizedDistrict)) {
-                fee -= 5000; // Giảm phí cho khu vực nội thành Hà Nội
+                fee -= 5000;
             }
         }
 
-        // 2. Phụ phí cho đảo và vùng xa
         const islandProvinces = ['phuquoc', 'condao', 'hoangsa', 'truongsa'];
         if (islandProvinces.some(island => normalizedProvinceName.includes(island))) {
-            fee += 50000; // Phụ phí cho đảo
+            fee += 50000;
         }
 
-        // 3. Điều chỉnh theo mùa (có thể thêm logic theo mùa nếu cần)
         const currentMonth = new Date().getMonth() + 1;
-        if ([1, 2, 12].includes(currentMonth)) { // Mùa Tết
+        if ([1, 2, 12].includes(currentMonth)) {
             fee += 10000;
         }
 
@@ -149,7 +127,7 @@ const getDeliveryFeeService = async (shippingAddress) => {
 
     } catch (error) {
         console.error('Error calculating delivery fee:', error);
-        return 45000; // Phí mặc định nếu có lỗi
+        return 45000;
     }
 };
 

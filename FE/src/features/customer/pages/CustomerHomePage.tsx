@@ -1,5 +1,3 @@
-// src/features/customer/pages/CustomerHomePage.tsx
-
 import React, { useState, useEffect, useRef, useLayoutEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -79,7 +77,7 @@ const CustomerHomePage: React.FC = () => {
 
   const { data: allProducts } = useGetAllProductsQuery({});
 
-  // Tính toán số lượng sản phẩm cho mỗi danh mục
+  //
   const categoryProductCounts = React.useMemo(() => {
     if (!allProducts) return {};
 
@@ -92,7 +90,6 @@ const CustomerHomePage: React.FC = () => {
     }, {});
   }, [allProducts]);
 
-  // Xử lý khi click vào danh mục
   const handleCategoryClick = (category: Category) => {
     navigate(`/products?category=${category._id}`);
   };
@@ -122,7 +119,6 @@ const CustomerHomePage: React.FC = () => {
       const descriptionElement = item.querySelector(".feature-description");
       const buttonElement = item.querySelector(".feature-button");
 
-      // Initially hide description and button
       if (descriptionElement && buttonElement) {
         gsap.set([descriptionElement, buttonElement], {
           opacity: 0,
@@ -131,21 +127,18 @@ const CustomerHomePage: React.FC = () => {
         });
       }
 
-      // Set initial state
       gsap.set(item, {
         flexGrow: NORMAL_FLEX_GROW,
         width: `${100 / featureItems.length}%`,
       });
 
       item.addEventListener("mouseenter", () => {
-        // Expand hovered item
         gsap.to(item, {
           flexGrow: EXPAND_FLEX_GROW,
           duration: DURATION,
           ease: "power2.inOut",
         });
 
-        // Show description and button
         if (descriptionElement && buttonElement) {
           gsap.to([descriptionElement, buttonElement], {
             opacity: 1,
@@ -157,7 +150,6 @@ const CustomerHomePage: React.FC = () => {
           });
         }
 
-        // Shrink other items
         featureItems.forEach((otherItem) => {
           if (otherItem !== item) {
             gsap.to(otherItem, {
@@ -170,14 +162,12 @@ const CustomerHomePage: React.FC = () => {
       });
 
       item.addEventListener("mouseleave", () => {
-        // Reset hovered item
         gsap.to(item, {
           flexGrow: NORMAL_FLEX_GROW,
           duration: DURATION,
           ease: "power2.inOut",
         });
 
-        // Hide description and button
         if (descriptionElement && buttonElement) {
           gsap.to([descriptionElement, buttonElement], {
             opacity: 0,
@@ -188,7 +178,6 @@ const CustomerHomePage: React.FC = () => {
           });
         }
 
-        // Reset other items
         featureItems.forEach((otherItem) => {
           if (otherItem !== item) {
             gsap.to(otherItem, {
@@ -238,11 +227,16 @@ const CustomerHomePage: React.FC = () => {
   }
 
   const renderSkeletonCard = (key: number) => (
-    <div key={key} className="space-y-2">
+    <div key={key} className="flex flex-col space-y-3 p-3 bg-white rounded-lg">
       <Skeleton className="aspect-square w-full rounded-lg" />
-      <Skeleton className="h-4 w-3/4" />
-      <Skeleton className="h-4 w-1/2" />
-      <Skeleton className="h-6 w-1/3" />
+      <div className="space-y-2 flex-grow">
+        <Skeleton className="h-4 w-[85%]" />
+        <Skeleton className="h-4 w-[65%]" />
+      </div>
+      <div className="space-y-2">
+        <Skeleton className="h-6 w-[40%]" />
+        <Skeleton className="h-8 w-full rounded-md" />
+      </div>
     </div>
   );
 
@@ -363,10 +357,10 @@ const CustomerHomePage: React.FC = () => {
       </section>
 
       <section className="container mx-auto px-4">
-        <h2 className="text-xl md:text-2xl font-semibold text-center mb-6 md:mb-8">
+        <h2 className="text-xl md:text-2xl lg:text-3xl font-semibold text-center mb-6 md:mb-8 lg:mb-10">
           {shouldUseRecommendations ? "Dành cho bạn" : "Hàng Mới Về"}
         </h2>
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
+        <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-5 gap-3 xs:gap-4 sm:gap-5 lg:gap-6">
           {isLoadingProducts ? (
             Array.from({ length: MAX_PRODUCTS_TO_SHOW }).map((_, i) =>
               renderSkeletonCard(i)
@@ -375,20 +369,49 @@ const CustomerHomePage: React.FC = () => {
             productsToShowSource
               .slice(0, MAX_PRODUCTS_TO_SHOW)
               .map((product) => (
-                <ProductCard key={product._id} product={product} />
+                <div
+                  key={product._id}
+                  className="flex flex-col h-full transform transition-transform duration-200 hover:scale-[1.02] hover:shadow-lg rounded-lg"
+                >
+                  <ProductCard product={product} />
+                </div>
               ))
           ) : (
-            <p className="col-span-full text-center text-gray-500 py-8">
-              Không tìm thấy sản phẩm phù hợp.
-            </p>
+            <div className="col-span-full flex flex-col items-center justify-center py-10 md:py-16">
+              <Package className="w-16 h-16 text-gray-400 mb-4" />
+              <p className="text-gray-500 text-center text-base md:text-lg">
+                Không tìm thấy sản phẩm phù hợp.
+              </p>
+            </div>
           )}
         </div>
         {!isLoadingProducts &&
           productsToShowSource &&
           productsToShowSource.length > 0 && (
-            <div className="text-center mt-8 md:mt-10">
-              <Button variant="outline" size="lg" asChild>
-                <Link to="/products">Xem tất cả sản phẩm</Link>
+            <div className="text-center mt-8 md:mt-10 lg:mt-12">
+              <Button
+                variant="outline"
+                size="lg"
+                className="hover:bg-primary hover:text-white transition-colors duration-200"
+                asChild
+              >
+                <Link to="/products" className="inline-flex items-center gap-2">
+                  Xem tất cả sản phẩm
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    strokeWidth={1.5}
+                    stroke="currentColor"
+                    className="w-5 h-5"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M17.25 8.25L21 12m0 0l-3.75 3.75M21 12H3"
+                    />
+                  </svg>
+                </Link>
               </Button>
             </div>
           )}

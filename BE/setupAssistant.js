@@ -1,4 +1,3 @@
-// BE/setupAssistant.js
 require('dotenv').config();
 const { setupAssistant } = require('./src/config/createAssistant');
 

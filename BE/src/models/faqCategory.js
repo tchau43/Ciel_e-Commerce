@@ -1,9 +1,5 @@
 const mongoose = require('mongoose');
 
-/**
- * FAQ Category Schema
- * Represents categories for the FAQ system
- */
 const faqCategorySchema = new mongoose.Schema(
     {
         name: {
@@ -49,12 +45,10 @@ const faqCategorySchema = new mongoose.Schema(
     }
 );
 
-// Indexes for better performance
 faqCategorySchema.index({ slug: 1 });
 faqCategorySchema.index({ displayOrder: 1 });
 faqCategorySchema.index({ isActive: 1 });
 
-// Virtual for FAQ count
 faqCategorySchema.virtual('faqCount', {
     ref: 'FAQ',
     localField: '_id',

@@ -1,17 +1,12 @@
-// controllers/couponController.js
-const couponService = require('../services/couponService'); // Adjust path if needed
+const couponService = require('../services/couponService');
 const mongoose = require('mongoose');
 
-// --- Admin Controllers ---
-
-// POST /admin/coupons
 const createCoupon = async (req, res) => {
     try {
         const newCoupon = await couponService.createCouponService(req.body);
         res.status(201).json({ message: "Coupon created successfully", coupon: newCoupon });
     } catch (error) {
         console.error("Error creating coupon:", error);
-        // Check for specific errors from service (validation, duplicate)
         if (error.message.includes("already exists") || error.message.includes("required") || error.name === 'ValidationError') {
             res.status(400).json({ message: error.message });
         } else {
@@ -20,10 +15,8 @@ const createCoupon = async (req, res) => {
     }
 };
 
-// GET /admin/coupons
 const getAllCoupons = async (req, res) => {
     try {
-        // Pass query params like ?isActive=true&limit=10 to the service
         const coupons = await couponService.getAllCouponsService(req.query);
         res.status(200).json(coupons);
     } catch (error) {
@@ -32,7 +25,6 @@ const getAllCoupons = async (req, res) => {
     }
 };
 
-// GET /admin/coupons/:id
 const getCouponById = async (req, res) => {
     try {
         const { id } = req.params;
@@ -51,7 +43,6 @@ const getCouponById = async (req, res) => {
     }
 }
 
-// PATCH /admin/coupons/:id
 const updateCoupon = async (req, res) => {
     try {
         const { id } = req.params;
@@ -70,7 +61,6 @@ const updateCoupon = async (req, res) => {
     }
 };
 
-// DELETE /admin/coupons/:id
 const deleteCoupon = async (req, res) => {
     try {
         const { id } = req.params;
@@ -79,7 +69,6 @@ const deleteCoupon = async (req, res) => {
             return res.status(404).json({ message: "Coupon not found." });
         }
         res.status(200).json({ message: "Coupon deleted successfully.", deletedCoupon });
-        // OR use res.status(204).send(); for no content response
     } catch (error) {
         console.error(`Error deleting coupon ${req.params.id}:`, error);
         if (error.message.includes("Invalid Coupon ID")) {
@@ -90,9 +79,6 @@ const deleteCoupon = async (req, res) => {
     }
 };
 
-// --- User-Facing Controller ---
-
-// GET /coupons/validate?code=XYZ&subtotal=12345
 const validateCouponForUser = async (req, res) => {
     try {
         const { code, subtotal } = req.query;
@@ -105,7 +91,7 @@ const validateCouponForUser = async (req, res) => {
         }
 
         const validationResult = await couponService.validateCouponForUserViewService(code, subtotalNum);
-        res.status(200).json(validationResult); // Returns { valid: boolean, reason?, coupon? }
+        res.status(200).json(validationResult);
 
     } catch (error) {
         console.error(`Error validating coupon code ${req.query.code}:`, error);
@@ -113,14 +99,11 @@ const validateCouponForUser = async (req, res) => {
     }
 };
 
-
 module.exports = {
-    // Admin
     createCoupon,
     getAllCoupons,
     getCouponById,
     updateCoupon,
     deleteCoupon,
-    // User
     validateCouponForUser
 };

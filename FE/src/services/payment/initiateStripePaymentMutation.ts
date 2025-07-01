@@ -1,4 +1,3 @@
-// src/services/invoice/initiateStripePaymentMutation.ts (Should look like this)
 import Invoice from "@/repositories/invoice/invoice";
 import { Address, InvoiceItemInput } from "@/types/dataTypes";
 import { API_ENDPOINTS } from "@/utils/api/endpoint";
@@ -25,8 +24,6 @@ export const useInitiateStripePaymentMutation = () => {
     { variables: InitiatePaymentVariables }
   >({
     mutationFn: ({ variables }: { variables: InitiatePaymentVariables }) => {
-      // Make sure Invoice.initiateStripePayment calls the correct backend endpoint
-      // e.g., POST /invoice/initiate-stripe with the variables payload
       return Invoice.initiateStripePayment(
         API_ENDPOINTS.INITIATE_STRIPE_PAYMENT,
         variables

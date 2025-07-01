@@ -43,22 +43,18 @@ function App() {
     <Router>
       <Suspense fallback={<LoadingSpinner />}>
         <Routes>
-          {/* Redirect root to landing page */}
           <Route path="/" element={<Navigate to="/landing" replace />} />
 
-          {/* Public routes with LandingLayout */}
           <Route element={<LandingLayout />}>
             <Route path="/landing" element={<LandingPage />} />
             <Route path="/auth" element={<AuthPage />} />
           </Route>
 
-          {/* Product routes with dynamic layout */}
           <Route element={<ProductLayoutWrapper />}>
             <Route path="/products/*" element={<ProductsPage />} />
             <Route path="/product/:id/*" element={<Product />} />
           </Route>
 
-          {/* Protected customer routes */}
           <Route
             path="/*"
             element={
@@ -85,7 +81,6 @@ function App() {
             <Route path="order-success/:id" element={<SuccessPage />} />
           </Route>
 
-          {/* Test route */}
           <Route path="test/:id" element={<TestPage />} />
           <Route path="test2/:id" element={<TestPage2 />} />
         </Routes>

@@ -37,7 +37,6 @@ const reviewSchema = new mongoose.Schema({
     },
 }, { timestamps: true });
 
-// Compound index to ensure a user can review a product-variant combo only once per invoice
 reviewSchema.index({ user: 1, product: 1, variant: 1, invoice: 1 }, { unique: true });
 
 const Review = mongoose.model('Review', reviewSchema);

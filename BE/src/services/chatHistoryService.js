@@ -1,84 +1,116 @@
-// src/services/chatHistoryService.js
 const mongoose = require('mongoose');
 const ChatSession = require('../models/chatSession');
 const ChatMessage = require('../models/chatMessage');
-const { v4: uuidv4 } = require('uuid');
-const logger = require('../config/logger'); //
+const logger = require('../config/logger');
 
-const getOrCreateSession = async (userId = null, guestSessionId = null) => {
+const getOrCreateSession = async (userId, threadId) => {
     try {
         let session;
-        let query = { isActive: true };
 
-        if (userId && mongoose.Types.ObjectId.isValid(userId)) {
-            query.userId = userId;
-            session = await ChatSession.findOne(query);
+        if (userId) {
+            if (!mongoose.Types.ObjectId.isValid(userId)) {
+                throw new Error('Invalid userId format');
+            }
+
+            session = await ChatSession.findOne({ userId, isActive: true });
             if (!session) {
-                logger.info(`Creating new session for user ${userId}`);
-                session = new ChatSession({ userId: userId });
+                session = new ChatSession({
+                    userId: new mongoose.Types.ObjectId(userId),
+                    threadId: threadId || new mongoose.Types.ObjectId().toString(),
+                    isActive: true
+                });
                 await session.save();
             }
-        } else if (guestSessionId) {
-            query.guestSessionId = guestSessionId;
-            session = await ChatSession.findOne(query);
+        } else if (threadId) {
+            session = await ChatSession.findOne({ threadId, isActive: true });
             if (!session) {
-                logger.info(`Creating new guest session ${guestSessionId}`);
-                // Kiểm tra xem guestId này có bị trùng không (hiếm khi xảy ra với UUID)
-                const existingGuest = await ChatSession.findOne({ guestSessionId: guestSessionId });
-                if (existingGuest) {
-                    logger.warn(`Guest session ID ${guestSessionId} conflict. Generating new one.`);
-                    guestSessionId = uuidv4(); // Tạo ID mới nếu trùng
-                }
-                session = new ChatSession({ guestSessionId: guestSessionId });
+                session = new ChatSession({
+                    threadId,
+                    isActive: true
+                });
                 await session.save();
             }
         } else {
-            const newGuestId = uuidv4();
-            logger.info(`Creating new guest session (auto-generated ID) ${newGuestId}`);
-            session = new ChatSession({ guestSessionId: newGuestId });
+            const newThreadId = new mongoose.Types.ObjectId().toString();
+            session = new ChatSession({
+                threadId: newThreadId,
+                isActive: true
+            });
             await session.save();
         }
-        return session.toObject();
+
+        return session;
     } catch (error) {
-        logger.error(`Error getting or creating chat session: ${error.message}`, error);
+        logger.error(`Error in getOrCreateSession: ${error.message}`);
         throw error;
     }
 };
 
-const saveMessage = async (sessionId, sender, message, options = {}) => {
+const saveMessage = async (sessionId, sender, message) => {
     try {
         if (!mongoose.Types.ObjectId.isValid(sessionId)) {
-            throw new Error("Invalid sessionId format for saving message.");
+            throw new Error('Invalid sessionId format');
         }
 
         const chatMessage = new ChatMessage({
-            sessionId: sessionId,
-            sender: sender,
-            message: message,
-            nluData: options.nluData,
-            contextData: options.contextData
+            sessionId: new mongoose.Types.ObjectId(sessionId),
+            sender,
+            message
         });
-        const savedMessage = await chatMessage.save();
-        logger.debug(`Saved message ${savedMessage._id} for session ${sessionId}`); //
-        return savedMessage.toObject();
+        return await chatMessage.save();
     } catch (error) {
-        logger.error(`Error saving chat message for session ${sessionId}: ${error.message}`, error);
-        return null;
+        logger.error(`Error in saveMessage: ${error.message}`);
+        throw error;
     }
 };
 
 const getMessagesForSession = async (sessionId, limit = 50) => {
     try {
         if (!mongoose.Types.ObjectId.isValid(sessionId)) {
-            throw new Error("Invalid sessionId format for getting messages.");
+            throw new Error('Invalid sessionId format');
         }
-        const messages = await ChatMessage.find({ sessionId: sessionId })
+
+        const messages = await ChatMessage.find({
+            sessionId: new mongoose.Types.ObjectId(sessionId)
+        })
             .sort({ createdAt: -1 })
             .limit(limit)
             .lean();
         return messages.reverse();
     } catch (error) {
-        logger.error(`Error getting messages for session ${sessionId}: ${error.message}`, error);
+        logger.error(`Error in getMessagesForSession: ${error.message}`);
+        throw error;
+    }
+};
+
+const deactivateSession = async (sessionId) => {
+    try {
+        if (!mongoose.Types.ObjectId.isValid(sessionId)) {
+            throw new Error('Invalid sessionId format');
+        }
+
+        await ChatSession.findByIdAndUpdate(
+            new mongoose.Types.ObjectId(sessionId),
+            { isActive: false }
+        );
+    } catch (error) {
+        logger.error(`Error in deactivateSession: ${error.message}`);
+        throw error;
+    }
+};
+
+const updateSessionThreadId = async (sessionId, newThreadId) => {
+    try {
+        if (!mongoose.Types.ObjectId.isValid(sessionId)) {
+            throw new Error('Invalid sessionId format');
+        }
+
+        await ChatSession.findByIdAndUpdate(
+            new mongoose.Types.ObjectId(sessionId),
+            { threadId: newThreadId }
+        );
+    } catch (error) {
+        logger.error(`Error in updateSessionThreadId: ${error.message}`);
         throw error;
     }
 };
@@ -86,5 +118,7 @@ const getMessagesForSession = async (sessionId, limit = 50) => {
 module.exports = {
     getOrCreateSession,
     saveMessage,
-    getMessagesForSession
+    getMessagesForSession,
+    deactivateSession,
+    updateSessionThreadId
 };

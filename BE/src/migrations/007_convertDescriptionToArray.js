@@ -3,19 +3,14 @@
 
 require("dotenv").config();
 const mongoose = require("mongoose");
+const { Product } = require("../models/product");
 
-// --- Đảm bảo đường dẫn này trỏ đúng đến file model Product của bạn ---
-// QUAN TRỌNG: Model Product PHẢI được cập nhật với description: [String]
-const { Product } = require("../models/product"); // <<< KIỂM TRA ĐƯỜNG DẪN NÀY
-
-// --- Cấu hình ---
 const MONGODB_URI = process.env.MONGODB_URI;
 if (!MONGODB_URI) {
   console.error("Lỗi: Không tìm thấy MONGODB_URI trong file .env.");
   process.exit(1);
 }
 
-// --- Logic Migration Chính ---
 async function runMigration() {
   console.log("!!! QUAN TRỌNG !!!");
   console.log(
@@ -31,7 +26,6 @@ async function runMigration() {
     "---------------------------------------------------------------------------------------------"
   );
 
-  // Bước xác nhận
   const readline = require("readline").createInterface({
     input: process.stdin,
     output: process.stdout,
@@ -49,7 +43,6 @@ async function runMigration() {
       }
     );
   });
-  // Kết thúc Bước xác nhận
 
   let connection;
   let processedProductCount = 0;
@@ -64,7 +57,6 @@ async function runMigration() {
 
     console.log("Bắt đầu chuyển đổi trường description...");
 
-    // Tìm tất cả sản phẩm có trường 'description' là kiểu 'string'
     productCursor = Product.find(
       { description: { $type: "string" } },
       { _id: 1, name: 1, description: 1 }
@@ -76,30 +68,23 @@ async function runMigration() {
       async (product) => {
         processedProductCount++;
         const productId = product._id;
-        const originalDescription = product.description; // Lấy giá trị description
+        const originalDescription = product.description;
         console.log(
           `\nĐang xử lý Product ID: ${productId} (Tên: ${product.name})`
         );
         console.log(
           `  -> Giá trị description lấy từ cursor:`,
           originalDescription
-        ); // Log giá trị gốc
+        );
         console.log(
           `  -> Kiểu dữ liệu (typeof) của description khi lấy từ cursor: ${typeof originalDescription}`
-        ); // Log kiểu dữ liệu
+        );
 
-        // *** THAY ĐỔI CHÍNH: Bỏ qua kiểm tra typeof ở đây ***
-        // if (typeof originalDescription !== 'string') {
-        //      console.log(`  -> Bỏ qua: description không phải là string (Kiểu: ${typeof originalDescription}).`);
-        //      return;
-        // }
-
-        // Cố gắng ép kiểu sang String để đảm bảo phần tử đầu tiên là chuỗi
         const descriptionAsString = String(originalDescription);
 
         try {
           const newDescriptionArray = [
-            descriptionAsString, // Sử dụng giá trị đã ép kiểu
+            descriptionAsString,
             "description2",
             "description 3",
           ];
@@ -109,7 +94,6 @@ async function runMigration() {
             newDescriptionArray
           );
 
-          // Cập nhật document sản phẩm
           const updateResult = await Product.updateOne(
             { _id: productId },
             { $set: { description: newDescriptionArray } }
@@ -170,7 +154,6 @@ async function runMigration() {
       console.log("Kết nối cơ sở dữ liệu đã đóng hoặc gặp lỗi trước đó.");
     }
 
-    // --- Mã Thoát ---
     if (errorCount > 0) {
       console.warn(
         `\nMigration hoàn thành với ${errorCount} lỗi. Vui lòng kiểm tra log cẩn thận.`
@@ -185,7 +168,7 @@ async function runMigration() {
       console.log(
         `\nĐã kiểm tra ${processedProductCount} sản phẩm nhưng không có sản phẩm nào được cập nhật thành công. Vui lòng kiểm tra lại Schema và log.`
       );
-      process.exit(1); // Thoát với lỗi vì không cập nhật được gì
+      process.exit(1);
     } else {
       console.log("\nMigration hoàn thành thành công.");
       process.exit(0);
@@ -193,5 +176,4 @@ async function runMigration() {
   }
 }
 
-// --- Chạy Migration ---
 runMigration();

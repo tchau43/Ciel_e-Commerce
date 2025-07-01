@@ -9,7 +9,7 @@ import FaqSearch from "../components/FaqSearch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
 
-// Define Category interface
+
 interface Category {
   _id: string;
   name: string;
@@ -25,7 +25,7 @@ interface FAQ {
   _id: string;
   question: string;
   answer: string;
-  category: Category | string; // Category can be an object or string ID
+  category: Category | string; 
   isPublished: boolean;
   displayOrder: number;
   viewCount: number;
@@ -43,7 +43,7 @@ const FaqPage = () => {
   const [categories, setCategories] = useState<string[]>([]);
   const [displayedFaqs, setDisplayedFaqs] = useState<FAQ[]>([]);
 
-  // Queries
+  
   const { data: allFaqsResponse, isLoading: isLoadingAll } =
     useGetAllFaqsQuery();
 
@@ -56,20 +56,20 @@ const FaqPage = () => {
   const { data: searchResultsResponse, isLoading: isLoadingSearch } =
     useSearchFaqsQuery(searchQuery);
 
-  // Extract unique categories from all FAQs
+  
   useEffect(() => {
     if (allFaqsResponse?.faqs && allFaqsResponse.faqs.length > 0) {
-      // Extract category IDs or slugs, handling both object and string formats
+      
       const uniqueCategories = [
         ...new Set(
           allFaqsResponse.faqs.map((faq) => {
-            // If category is an object, use its ID or slug
+            
             if (typeof faq.category === "object" && faq.category !== null) {
-              // Use type assertion to tell TypeScript this is a Category object
+              
               const categoryObj = faq.category as Category;
               return categoryObj.slug || categoryObj._id;
             }
-            // If it's a string (ID), use it directly
+            
             return faq.category;
           })
         ),
@@ -78,10 +78,10 @@ const FaqPage = () => {
     }
   }, [allFaqsResponse]);
 
-  // Set displayed FAQs based on active tab, category, and search
+  
   useEffect(() => {
     if (searchQuery.length >= 2 && searchResultsResponse?.faqs) {
-      // Search results take precedence
+      
       setDisplayedFaqs(searchResultsResponse.faqs);
       return;
     }
@@ -111,13 +111,13 @@ const FaqPage = () => {
 
   const handleCategoryChange = (category: string) => {
     setActiveCategory(category);
-    // Reset search when changing category
+    
     setSearchQuery("");
   };
 
   const handleSearch = (query: string) => {
     setSearchQuery(query);
-    // Reset to "all" tab when searching
+    
     setActiveTab("all");
   };
 
@@ -127,7 +127,7 @@ const FaqPage = () => {
     (activeCategory !== "all" && isLoadingCategory) ||
     (searchQuery.length >= 2 && isLoadingSearch);
 
-  // Helper function to get category name or slug
+  
   const getCategoryName = (category: Category | string): string => {
     if (typeof category === "object" && category !== null) {
       return category.name || category.slug || "Unknown";
@@ -135,11 +135,11 @@ const FaqPage = () => {
     return category.toString();
   };
 
-  // Render FAQ list based on loading state and data availability
+  
   const renderFaqList = () => {
     if (isLoading) {
       return (
-        // Loading skeleton
+        
         <>
           {[...Array(4)].map((_, index) => (
             <div key={index} className="mb-4">
@@ -152,7 +152,7 @@ const FaqPage = () => {
 
     if (displayedFaqs && displayedFaqs.length > 0) {
       return (
-        // Display FAQs
+        
         displayedFaqs.map((faq: FAQ) => (
           <FaqItem
             key={faq._id}
@@ -169,7 +169,7 @@ const FaqPage = () => {
 
     if (searchQuery) {
       return (
-        // No search results
+        //
         <div className="text-center py-8">
           <p className="text-gray-500">
             Không tìm thấy câu hỏi nào phù hợp với "{searchQuery}".
@@ -183,7 +183,7 @@ const FaqPage = () => {
     }
 
     return (
-      // No FAQs in selected category
+      
       <div className="text-center py-8">
         <p className="text-gray-500">
           Không có câu hỏi nào trong danh mục này.
@@ -227,7 +227,6 @@ const FaqPage = () => {
         </Tabs>
       </div>
 
-      {/* Contact information */}
       <div className="mt-12 bg-gray-50 rounded-lg p-6 border border-gray-200">
         <h2 className="text-xl font-semibold mb-4">
           Bạn không tìm thấy câu trả lời?

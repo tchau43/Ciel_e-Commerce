@@ -1,4 +1,3 @@
-// models/invoice.js
 const mongoose = require('mongoose');
 
 const invoiceSchema = new mongoose.Schema({
@@ -15,11 +14,11 @@ const invoiceSchema = new mongoose.Schema({
     priceAtPurchase: { type: Number, min: 0, required: true },
   }],
 
-  subtotal: { type: Number, required: true, min: 0 }, // Sum of item prices * quantity BEFORE discounts/fees
-  couponCode: { type: String, trim: true, uppercase: true, sparse: true, index: true }, // Store the code used (optional)
-  discountAmount: { type: Number, default: 0, min: 0 }, // Amount deducted by coupon
-  deliveryFee: { type: Number, default: 0, min: 0 },   // Delivery charge
-  totalAmount: { type: Number, required: true, min: 0 }, // Final amount: subtotal - discount + deliveryFee
+  subtotal: { type: Number, required: true, min: 0 },
+  couponCode: { type: String, trim: true, uppercase: true, sparse: true, index: true },
+  discountAmount: { type: Number, default: 0, min: 0 },
+  deliveryFee: { type: Number, default: 0, min: 0 },
+  totalAmount: { type: Number, required: true, min: 0 },
 
   paymentStatus: {
     type: String, enum: ["pending", "paid", "failed", "refunded", "cancelled"], default: "pending", required: true
@@ -39,14 +38,6 @@ const invoiceSchema = new mongoose.Schema({
     sparse: true
   }
 }, { timestamps: true });
-
-
-// Optional: Add pre-save hook to ensure totalAmount calculation is correct
-// invoiceSchema.pre('save', function (next) {
-//   const calculatedTotal = (this.subtotal || 0) - (this.discountAmount || 0) + (this.deliveryFee || 0);
-//   this.totalAmount = Math.max(0, calculatedTotal); // Ensure total isn't negative
-//   next();
-// });
 
 const Invoice = mongoose.model('Invoice', invoiceSchema);
 
