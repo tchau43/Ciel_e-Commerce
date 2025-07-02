@@ -6,10 +6,7 @@ const ChatSession = require('../models/chatSession');
 const handleOpenAIChat = async (req, res) => {
     const { message, threadId } = req.body;
     const userId = req.user?._id;
-    console.log("--------------------userId", userId);
-    console.log("--------------------threadId", threadId);
-    console.log("--------------------message", message);
-    console.log("--------------------req.user", req.user);
+
     if (!message) {
         return res.status(400).json({
             success: false,
@@ -18,16 +15,29 @@ const handleOpenAIChat = async (req, res) => {
     }
 
     try {
-        const session = await getOrCreateSession(userId, threadId);
+        let session;
+        let currentThreadId;
 
-        await saveMessage(session._id, 'user', message);
+        // Authenticated user flow
+        if (userId) {
+            session = await getOrCreateSession(userId);
+            currentThreadId = await getOrCreateThread(session.threadId);
 
-        const currentThreadId = await getOrCreateThread(session.threadId);
+            if (currentThreadId !== session.threadId) {
+                await updateSessionThreadId(session._id, currentThreadId);
+            }
+        }
+        // Unauthenticated user flow
+        else {
+            session = await getOrCreateSession(null, threadId);
+            currentThreadId = await getOrCreateThread(threadId || session.threadId);
 
-        if (currentThreadId !== session.threadId) {
-            await updateSessionThreadId(session._id, currentThreadId);
+            if (currentThreadId !== session.threadId) {
+                await updateSessionThreadId(session._id, currentThreadId);
+            }
         }
 
+        await saveMessage(session._id, 'user', message);
         await addMessageToThread(currentThreadId, message);
         const assistantReply = await runAssistantAndGetResponse(currentThreadId);
 
@@ -58,18 +68,16 @@ const getChatHistory = async (req, res) => {
         const userId = req.user?._id;
         const { threadId } = req.params;
 
-        console.log("--------------------userId", userId);
-        console.log("--------------------req.user", req.user);
-
         let session;
+        // Authenticated user flow
         if (userId) {
-            // If user is logged in, get their most recent active session
             session = await ChatSession.findOne({
                 userId: userId,
                 isActive: true
             }).sort({ createdAt: -1 });
-        } else if (threadId) {
-            // For guest users, use threadId
+        }
+        // Unauthenticated user flow
+        else if (threadId) {
             session = await getOrCreateSession(null, threadId);
         } else {
             return res.status(400).json({

@@ -160,7 +160,7 @@ routerAPI.get("/faq-categories/slug/:slug", getFaqCategoryBySlug);
 
 routerAPI.post("/delivery/calculate", getDeliveryFee);
 
-routerAPI.post("/openai-chat", handleOpenAIChat);
+routerAPI.post("/openai-chat", optionalAuth, handleOpenAIChat);
 routerAPI.get("/chat/history/:threadId", optionalAuth, getChatHistory);
 
 // User
