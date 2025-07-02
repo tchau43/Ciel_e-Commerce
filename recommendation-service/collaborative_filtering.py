@@ -17,7 +17,6 @@ class CollaborativeFiltering:
 
     def fetch_user_item_matrix(self, user_id):
         try:
-            # Get current user's purchases
             user_purchases = requests.get(
                 f"{self.NODE_API_URL}/user/{user_id}/purchased-products",
                 headers=self.headers,
@@ -26,7 +25,6 @@ class CollaborativeFiltering:
             user_purchases.raise_for_status()
             user_data = user_purchases.json()
 
-            # Get similar products based on categories
             category_ids = list(set(
                 [str(item['categoryId']) for item in user_data
                 if item.get('categoryId')]
@@ -35,7 +33,6 @@ class CollaborativeFiltering:
             if not category_ids:
                 return {}
 
-            # Get products from same categories
             similar_products = requests.get(
                 f"{self.NODE_API_URL}/productsByCategory",
                 params={'category': ','.join(category_ids)},
@@ -45,12 +42,10 @@ class CollaborativeFiltering:
             similar_products.raise_for_status()
             products_data = similar_products.json()
 
-            # Create a simplified user-item matrix
             matrix_data = {
                 user_id: {str(item['productId']): 1 for item in user_data}
             }
 
-            # Add pseudo-users based on category relationships
             for product in products_data:
                 pseudo_user_id = f"category_{product.get('category')}"
                 if pseudo_user_id not in matrix_data:
