@@ -66,11 +66,8 @@ class ContentBasedRecommender:
                 logger.warning(f"Product {product_id} not found")
                 return []
             
-            # Get similarity scores for the product
             sim_scores = list(enumerate(self.cosine_sim[idx]))
-            # Sort products by similarity score
             sim_scores = sorted(sim_scores, key=lambda x: x[1], reverse=True)
-            # Get top k most similar products (excluding itself)
             sim_scores = [s for s in sim_scores if s[0] != idx][:k]
             
             # Get product indices and return product data
