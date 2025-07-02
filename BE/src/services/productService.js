@@ -52,13 +52,6 @@ const createProductService = async (productData) => {
         brand = await Brand.findOne({ name: brandInput }).lean();
       }
 
-
-
-
-
-
-
-
       if (brand && brand._id) {
         resolvedBrandId = brand._id;
       } else if (typeof brandInput === "string") {
@@ -71,7 +64,6 @@ const createProductService = async (productData) => {
         throw new Error(`Invalid brand identifier provided: ${brandInput}`);
       }
     }
-
 
     const newProduct = new Product({
       ...mainProductData,
@@ -182,7 +174,6 @@ const getProductsByNameService = async (name) => {
     throw new Error("Error fetching products by name: " + error.message);
   }
 };
-
 
 const updateProductService = async (id, productData) => {
   try {
@@ -356,9 +347,7 @@ const getProductsByCategoryService = async (categoryIds) => {
 };
 
 const searchProductService = async (searchText, categories = []) => {
-
   try {
-
     let productQuery = {};
     const validCategoryIds = categories
       .map((cat) => (typeof cat === "string" ? cat.trim() : cat))
@@ -438,7 +427,6 @@ const searchProductService = async (searchText, categories = []) => {
   }
 };
 
-
 const getVariantByIdService = async (variantId) => {
   if (!mongoose.Types.ObjectId.isValid(variantId)) {
     throw new Error("Invalid Variant ID format");
@@ -469,8 +457,6 @@ const updateVariantService = async (variantId, updateData) => {
   if (!updatedVariant) {
     throw new Error("Variant not found for update.");
   }
-
-
   return updatedVariant;
 };
 
@@ -490,7 +476,6 @@ const deleteVariantService = async (variantId) => {
   console.log(
     `Removed variant ref ${variantId} from product ${variantToDelete.product}`
   );
-
 
   return variantToDelete;
 };
@@ -629,7 +614,6 @@ const getProductsByPriceRangeService = async (minPrice = 0, maxPrice = Number.MA
 
 const searchProductsByPriceAndNeedsService = async (minPrice = 0, maxPrice = Number.MAX_SAFE_INTEGER, keywords) => {
   try {
-    // Vì description là array nên cần dùng $elemMatch
     const textQuery = keywords ?
       {
         $or: [
