@@ -18,7 +18,6 @@ const handleOpenAIChat = async (req, res) => {
         let session;
         let currentThreadId;
 
-        // Authenticated user flow
         if (userId) {
             session = await getOrCreateSession(userId);
             currentThreadId = await getOrCreateThread(session.threadId);
@@ -27,7 +26,6 @@ const handleOpenAIChat = async (req, res) => {
                 await updateSessionThreadId(session._id, currentThreadId);
             }
         }
-        // Unauthenticated user flow
         else {
             session = await getOrCreateSession(null, threadId);
             currentThreadId = await getOrCreateThread(threadId || session.threadId);
@@ -69,14 +67,12 @@ const getChatHistory = async (req, res) => {
         const { threadId } = req.params;
 
         let session;
-        // Authenticated user flow
         if (userId) {
             session = await ChatSession.findOne({
                 userId: userId,
                 isActive: true
             }).sort({ createdAt: -1 });
         }
-        // Unauthenticated user flow
         else if (threadId) {
             session = await getOrCreateSession(null, threadId);
         } else {

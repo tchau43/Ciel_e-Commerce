@@ -7,7 +7,6 @@ const getOrCreateSession = async (userId, threadId) => {
     try {
         let session;
 
-        // For authenticated users - only use userId
         if (userId) {
             if (!mongoose.Types.ObjectId.isValid(userId)) {
                 throw new Error('Invalid userId format');
@@ -21,7 +20,7 @@ const getOrCreateSession = async (userId, threadId) => {
             if (!session) {
                 session = new ChatSession({
                     userId: new mongoose.Types.ObjectId(userId),
-                    threadId: new mongoose.Types.ObjectId().toString(), // Generate new threadId
+                    threadId: new mongoose.Types.ObjectId().toString(),
                     isActive: true
                 });
                 await session.save();
@@ -29,12 +28,10 @@ const getOrCreateSession = async (userId, threadId) => {
             return session;
         }
 
-        // For unauthenticated users - only use threadId
         if (threadId) {
-            // First try to find existing session
             session = await ChatSession.findOne({
                 threadId,
-                userId: null, // Ensure we only get guest sessions
+                userId: null,
                 isActive: true
             });
 
@@ -42,7 +39,6 @@ const getOrCreateSession = async (userId, threadId) => {
                 return session;
             }
 
-            // If no session exists, create new one with the provided threadId
             try {
                 session = new ChatSession({
                     threadId,
@@ -51,9 +47,7 @@ const getOrCreateSession = async (userId, threadId) => {
                 await session.save();
                 return session;
             } catch (saveError) {
-                if (saveError.code === 11000) { // Duplicate key error
-                    // If we get a duplicate key error, someone else created the session
-                    // Try to find it one more time
+                if (saveError.code === 11000) {
                     session = await ChatSession.findOne({
                         threadId,
                         userId: null,
@@ -64,7 +58,6 @@ const getOrCreateSession = async (userId, threadId) => {
                         return session;
                     }
                 }
-                // If we still can't find it or got a different error, create new session with new threadId
                 session = new ChatSession({
                     threadId: new mongoose.Types.ObjectId().toString(),
                     isActive: true
@@ -74,7 +67,6 @@ const getOrCreateSession = async (userId, threadId) => {
             }
         }
 
-        // New session for unauthenticated user without threadId
         const newThreadId = new mongoose.Types.ObjectId().toString();
         session = new ChatSession({
             threadId: newThreadId,
@@ -148,14 +140,11 @@ const updateSessionThreadId = async (sessionId, newThreadId) => {
             throw new Error('Invalid sessionId format');
         }
 
-        // First check if there's already a session with this threadId
         const existingSession = await ChatSession.findOne({ threadId: newThreadId });
         if (existingSession) {
-            // If the existing session is the same as the one we're trying to update, no need to do anything
             if (existingSession._id.toString() === sessionId.toString()) {
                 return;
             }
-            // If there's a different session with this threadId, generate a new one
             newThreadId = new mongoose.Types.ObjectId().toString();
         }
 
