@@ -12,7 +12,11 @@ const getOrCreateSession = async (userId, threadId) => {
                 throw new Error('Invalid userId format');
             }
 
-            session = await ChatSession.findOne({ userId, isActive: true });
+            session = await ChatSession.findOne({
+                userId,
+                isActive: true
+            });
+
             if (!session) {
                 session = new ChatSession({
                     userId: new mongoose.Types.ObjectId(userId),
@@ -21,8 +25,17 @@ const getOrCreateSession = async (userId, threadId) => {
                 });
                 await session.save();
             }
-        } else if (threadId) {
-            session = await ChatSession.findOne({ threadId, isActive: true });
+            return session;
+        }
+
+        // For unauthenticated users
+        if (threadId) {
+            session = await ChatSession.findOne({
+                threadId,
+                userId: null,  // Ensure we don't get an authenticated user's session
+                isActive: true
+            });
+
             if (!session) {
                 session = new ChatSession({
                     threadId,
@@ -30,16 +43,18 @@ const getOrCreateSession = async (userId, threadId) => {
                 });
                 await session.save();
             }
-        } else {
-            const newThreadId = new mongoose.Types.ObjectId().toString();
-            session = new ChatSession({
-                threadId: newThreadId,
-                isActive: true
-            });
-            await session.save();
+            return session;
         }
 
+        // New session for unauthenticated user without threadId
+        const newThreadId = new mongoose.Types.ObjectId().toString();
+        session = new ChatSession({
+            threadId: newThreadId,
+            isActive: true
+        });
+        await session.save();
         return session;
+
     } catch (error) {
         logger.error(`Error in getOrCreateSession: ${error.message}`);
         throw error;

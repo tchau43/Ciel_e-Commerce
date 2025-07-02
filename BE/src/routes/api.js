@@ -1,5 +1,6 @@
 const express = require("express");
 const mongoose = require("mongoose");
+const jwt = require("jsonwebtoken");
 
 const { verifyToken, verifyAdmin } = require("../middleware/auth");
 
@@ -110,8 +111,21 @@ const { getDeliveryFee } = require("../controllers/deliveryController");
 const routerAPI = express.Router();
 
 const optionalAuth = (req, res, next) => {
+  const authHeader = req.headers.authorization;
+
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return next();
+  }
+
+  const token = authHeader.split(" ")[1];
+  if (!token) {
+    return next();
+  }
+
   try {
-    verifyToken(req, res, next);
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    req.user = decoded;
+    next();
   } catch (error) {
     next();
   }
@@ -146,7 +160,7 @@ routerAPI.get("/faq-categories/slug/:slug", getFaqCategoryBySlug);
 
 routerAPI.post("/delivery/calculate", getDeliveryFee);
 
-routerAPI.post("/openai-chat", optionalAuth, handleOpenAIChat);
+routerAPI.post("/openai-chat", handleOpenAIChat);
 routerAPI.get("/chat/history/:threadId", optionalAuth, getChatHistory);
 
 // User

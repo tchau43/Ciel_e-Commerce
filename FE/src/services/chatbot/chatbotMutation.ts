@@ -11,6 +11,7 @@ import { toast } from "sonner";
 export const useChatbotMutation = () => {
   return useMutation<ChatbotResponse, Error, ChatbotInput>({
     mutationFn: (input: ChatbotInput) => {
+      console.log("--------------------input", input);
       return chatbotRepository.sendMessage(API_ENDPOINTS.CHATBOT, input);
     },
     onError: (error: any) => {

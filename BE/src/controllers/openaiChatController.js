@@ -16,6 +16,7 @@ const handleOpenAIChat = async (req, res) => {
             message: "Message is required"
         });
     }
+
     try {
         const session = await getOrCreateSession(userId, threadId);
 
