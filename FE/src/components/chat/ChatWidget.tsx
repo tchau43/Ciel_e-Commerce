@@ -29,9 +29,7 @@ export default function ChatWidget() {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputMessage, setInputMessage] = useState("");
-  const [threadId, setThreadId] = useState<string>(() => {
-    return localStorage.getItem("chatThreadId") || "";
-  });
+  const [threadId, setThreadId] = useState<string>("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { user } = useAuth();
 
@@ -40,10 +38,12 @@ export default function ChatWidget() {
     useChatHistoryByThread(threadId);
 
   useEffect(() => {
-    if (threadId) {
-      localStorage.setItem("chatThreadId", threadId);
+    // Load threadId from localStorage
+    const savedThreadId = localStorage.getItem("chatThreadId");
+    if (savedThreadId) {
+      setThreadId(savedThreadId);
     }
-  }, [threadId]);
+  }, []);
 
   useEffect(() => {
     setMessages([]);
@@ -112,20 +112,17 @@ export default function ChatWidget() {
         threadId: threadId,
       });
 
-      if (response.success) {
-        if (response.threadId && !threadId) {
-          setThreadId(response.threadId);
-        }
-
-        const botMessage = {
-          text: response.reply,
-          isUser: false,
-          timestamp: getCurrentTime(),
-        };
-        setMessages((prev) => [...prev, botMessage]);
-      } else {
-        throw new Error(response.reply);
+      if (response.threadId && response.threadId !== threadId) {
+        setThreadId(response.threadId);
+        localStorage.setItem("chatThreadId", response.threadId);
       }
+
+      const botMessage = {
+        text: response.reply,
+        isUser: false,
+        timestamp: getCurrentTime(),
+      };
+      setMessages((prev) => [...prev, botMessage]);
     } catch (error) {
       const errorMessage = {
         text: "Xin lỗi, hiện tại tôi không thể trả lời. Vui lòng thử lại sau.",

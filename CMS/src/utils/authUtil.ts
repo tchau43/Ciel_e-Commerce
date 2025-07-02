@@ -1,18 +1,15 @@
-
-import { Role, UserReference } from "../types/dataTypes"; 
-
+import { Role, UserReference } from "../types/dataTypes";
 
 const AUTH_TOKEN_KEY = "access_token";
 const AUTH_ROLE_KEY = "role";
 const AUTH_USER_INFO_KEY = "userInfo";
-
+const THREAD_ID_KEY = "chatThreadId";
 
 export interface AuthCredentials {
   token: string | null;
   role: Role | null;
-  userInfo: UserReference | null; 
+  userInfo: UserReference | null;
 }
-
 
 function isValidCMSRole(role: string | null): boolean {
   return role === Role.ADMIN;
@@ -27,10 +24,8 @@ export function getAuthCredentials(): AuthCredentials {
     token = localStorage.getItem(AUTH_TOKEN_KEY);
     const roleString = localStorage.getItem(AUTH_ROLE_KEY);
 
-    
     if (roleString && Object.values(Role).includes(roleString as Role)) {
       if (!isValidCMSRole(roleString)) {
-        
         clearAuthCredentials();
         return { token: null, role: null, userInfo: null };
       }
@@ -41,7 +36,7 @@ export function getAuthCredentials(): AuthCredentials {
     if (userInfoString) {
       try {
         const parsedInfo = JSON.parse(userInfoString);
-        
+
         if (
           parsedInfo &&
           typeof parsedInfo === "object" &&
@@ -49,7 +44,6 @@ export function getAuthCredentials(): AuthCredentials {
           "name" in parsedInfo &&
           "email" in parsedInfo
         ) {
-          
           userInfo = parsedInfo as UserReference;
         } else {
           console.error("Stored userInfo format is invalid");
@@ -64,7 +58,6 @@ export function getAuthCredentials(): AuthCredentials {
     }
   }
 
-  
   if (token && (!role || !userInfo)) {
     clearAuthCredentials();
     return { token: null, role: null, userInfo: null };
@@ -73,13 +66,11 @@ export function getAuthCredentials(): AuthCredentials {
   return { token, role, userInfo };
 }
 
-
 export function setAuthCredentials(
   token: string,
   role: Role,
-  userInfo: UserReference 
+  userInfo: UserReference
 ): void {
-  
   if (!isValidCMSRole(role)) {
     console.error("Invalid role for CMS application");
     clearAuthCredentials();
@@ -95,15 +86,14 @@ export function setAuthCredentials(
   }
 }
 
-
 export function clearAuthCredentials(): void {
   if (typeof window !== "undefined" && window.localStorage) {
     localStorage.removeItem(AUTH_TOKEN_KEY);
     localStorage.removeItem(AUTH_ROLE_KEY);
     localStorage.removeItem(AUTH_USER_INFO_KEY);
+    localStorage.removeItem(THREAD_ID_KEY);
   }
 }
-
 
 export function isAuthenticated(): boolean {
   const { token, role, userInfo } = getAuthCredentials();
