@@ -75,7 +75,7 @@ const ProductsPage = () => {
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     setQueryParams(params.toString());
-    setCurrentPage(1); 
+    setCurrentPage(1);
   }, [location.search]);
 
   const {
@@ -128,7 +128,6 @@ const ProductsPage = () => {
     <div className="">
       <div className="container mx-auto px-4">
         <div className="flex flex-col md:flex-row gap-8">
-          {/* Filter Button for Mobile */}
           <button
             onClick={() => setIsSidebarOpen(true)}
             className="md:hidden fixed bottom-6 right-6 z-30 p-4 bg-gradient-to-r from-ch-blue to-ch-blue-600 text-white rounded-full shadow-lg hover:shadow-ch-blue/50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-ch-blue transition-all duration-500 hover:scale-110 animate-pulse"
@@ -137,7 +136,6 @@ const ProductsPage = () => {
             <FilterIcon className="w-6 h-6" />
           </button>
 
-          {/* Overlay for Mobile Sidebar */}
           {isSidebarOpen && (
             <div
               onClick={() => setIsSidebarOpen(false)}
@@ -146,10 +144,8 @@ const ProductsPage = () => {
             />
           )}
 
-          {/* Main Content */}
           <main className="flex-1">
-            {/* Categories Horizontal Bar */}
-            <div className="sticky top-20 z-30 bg-white/80 backdrop-blur-md border-b border-ch-blue/10 px-2 py-3 mb-6 w-full">
+            <div className="sticky top-20 z-30 bg-white/50 backdrop-blur-md border-b border-ch-blue/10 px-2 py-3 mb-6 w-full">
               <div className="max-w-full overflow-x-auto">
                 <div className="flex items-center gap-2 sm:gap-4">
                   <FilterIcon className="w-5 h-5 text-ch-blue flex-shrink-0" />
@@ -161,7 +157,7 @@ const ProductsPage = () => {
                 </div>
               </div>
             </div>
-            <div className="backdrop-blur-xl bg-white/90 p-3 sm:p-4 md:p-6 lg:p-8 rounded-2xl shadow-lg border border-white/20">
+            <div className="backdrop-blur-xl bg-white/50 p-3 sm:p-4 md:p-6 lg:p-8 rounded-2xl shadow-lg border border-white/20">
               {productsLoading && (
                 <div className="grid grid-cols-1 xs:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-4 lg:gap-5">
                   {[...Array(10)].map((_, i) => (
