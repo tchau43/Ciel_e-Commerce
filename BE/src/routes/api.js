@@ -71,7 +71,11 @@ const {
 const {
   sendPaymentConfirmationEmail,
 } = require("../controllers/emailController");
-const { initiateStripePayment } = require("../controllers/stripeController");
+const {
+  initiateStripePayment,
+  handleStripeWebhook,
+  checkPaymentStatus,
+} = require("../controllers/stripeController");
 
 const {
   createFaq,
@@ -83,7 +87,7 @@ const {
   getFaqsByCategorySlug,
   searchFaqs,
   getPopularFaqs,
-  rateFaqHelpfulness
+  rateFaqHelpfulness,
 } = require("../controllers/faqController");
 
 const {
@@ -92,7 +96,7 @@ const {
   getFaqCategoryById,
   getFaqCategoryBySlug,
   updateFaqCategory,
-  deleteFaqCategory
+  deleteFaqCategory,
 } = require("../controllers/faqCategoryController");
 
 const { Product } = require("../models/product");
@@ -104,7 +108,10 @@ const {
   updateCoupon,
   deleteCoupon,
 } = require("../controllers/couponController");
-const { handleOpenAIChat, getChatHistory } = require("../controllers/openaiChatController");
+const {
+  handleOpenAIChat,
+  getChatHistory,
+} = require("../controllers/openaiChatController");
 
 const { getDeliveryFee } = require("../controllers/deliveryController");
 
@@ -113,7 +120,7 @@ const routerAPI = express.Router();
 const optionalAuth = (req, res, next) => {
   const authHeader = req.headers.authorization;
 
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+  if (!authHeader || !authHeader.startsWith("Bearer ")) {
     return next();
   }
 
@@ -134,6 +141,12 @@ const optionalAuth = (req, res, next) => {
 // Public
 routerAPI.post("/register", createUser);
 routerAPI.post("/login", userLogin);
+
+// Stripe webhook endpoint (must be public and raw body)
+routerAPI.post("/stripe/webhook", handleStripeWebhook);
+
+// Test endpoint to check payment status
+routerAPI.get("/stripe/payment-status/:paymentIntentId", checkPaymentStatus);
 
 routerAPI.get("/products", getAllProducts);
 routerAPI.get("/products/featured", getFeaturedProducts);
@@ -165,7 +178,6 @@ routerAPI.get("/chat/history/:threadId", optionalAuth, getChatHistory);
 
 // User
 routerAPI.use(verifyToken);
-
 
 routerAPI.put("/user/profile", updateUserProfile);
 routerAPI.put("/user/change-password", changePassword);
@@ -211,10 +223,8 @@ routerAPI.post("/products/batch", async (req, res) => {
   }
 });
 
-
 // Admin
 routerAPI.use(verifyAdmin);
-
 
 routerAPI.get("/admin/users", getAllUsers);
 routerAPI.put("/admin/updateUserById/:id", updateUserbyId);
