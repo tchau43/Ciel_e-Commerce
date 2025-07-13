@@ -75,7 +75,7 @@ const ProductsPage = () => {
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     setQueryParams(params.toString());
-    setCurrentPage(1); // Reset page when filters change
+    setCurrentPage(1);
   }, [location.search]);
 
   const {
@@ -90,7 +90,6 @@ const ProductsPage = () => {
     isLoading: productsLoading,
   } = useGetProductBySearchQuery(queryParams);
 
-  // Pagination calculations
   const startIndex = (currentPage - 1) * itemsPerPage;
   const paginatedProducts = products.slice(
     startIndex,
@@ -126,10 +125,9 @@ const ProductsPage = () => {
   }
 
   return (
-    <div className=" pt-20 ">
+    <div className="">
       <div className="container mx-auto px-4">
         <div className="flex flex-col md:flex-row gap-8">
-          {/* Filter Button for Mobile */}
           <button
             onClick={() => setIsSidebarOpen(true)}
             className="md:hidden fixed bottom-6 right-6 z-30 p-4 bg-gradient-to-r from-ch-blue to-ch-blue-600 text-white rounded-full shadow-lg hover:shadow-ch-blue/50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-ch-blue transition-all duration-500 hover:scale-110 animate-pulse"
@@ -138,7 +136,6 @@ const ProductsPage = () => {
             <FilterIcon className="w-6 h-6" />
           </button>
 
-          {/* Overlay for Mobile Sidebar */}
           {isSidebarOpen && (
             <div
               onClick={() => setIsSidebarOpen(false)}
@@ -147,52 +144,20 @@ const ProductsPage = () => {
             />
           )}
 
-          {/* Sidebar */}
-          <aside
-            className={cn(
-              "backdrop-blur-xl bg-white/80 rounded-2xl",
-              "fixed inset-y-0 left-0 w-72 sm:w-80 transform transition-all duration-500 ease-out z-20",
-              isSidebarOpen ? "translate-x-0" : "-translate-x-full",
-              "md:static md:translate-x-0 md:w-80 md:flex-shrink-0 md:block",
-              "border border-white/20 shadow-[0_8px_32px_0_rgba(31,38,135,0.37)]",
-              "hover:shadow-[0_8px_32px_0_rgba(31,38,135,0.57)] transition-all duration-500"
-            )}
-          >
-            <div className="sticky top-20 p-8">
-              <div className="flex items-center space-x-3 mb-8 group">
-                <div className="p-3 rounded-xl bg-gradient-to-br from-ch-blue to-ch-blue-600 shadow-lg transform transition-all duration-300 group-hover:scale-110">
-                  <FilterIcon className="w-6 h-6 text-white transform transition-transform duration-300 group-hover:rotate-180" />
-                </div>
-                <h3 className="text-2xl font-bold bg-gradient-to-r from-ch-blue via-ch-blue-600 to-ch-blue bg-size-200 bg-pos-0 hover:bg-pos-100 bg-clip-text text-transparent transition-all duration-500">
-                  Danh mục sản phẩm
-                </h3>
-              </div>
-
-              <div className="relative group">
-                {/* Animated border gradient */}
-                <div className="absolute -inset-0.5 bg-gradient-to-r from-ch-blue via-ch-blue-600 to-ch-blue rounded-xl blur opacity-30 group-hover:opacity-100 transition duration-1000 group-hover:duration-300 animate-gradient-xy"></div>
-
-                {/* Glass container */}
-                <div className="relative backdrop-blur-xl bg-white/80 rounded-xl p-6 ring-1 ring-white/50 shadow-lg">
-                  {/* Inner glow */}
-                  <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-white/50 via-transparent to-transparent opacity-50"></div>
-
-                  {/* Content */}
-                  <div className="relative">
-                    <CategoriesList
-                      data={categoriesData}
-                      queryParams={queryParams}
-                      setQueryParams={setQueryParams}
-                    />
-                  </div>
+          <main className="flex-1">
+            <div className="sticky top-20 z-30 bg-white/50 backdrop-blur-md border-b border-ch-blue/10 px-2 py-3 mb-6 w-full">
+              <div className="max-w-full overflow-x-auto">
+                <div className="flex items-center gap-2 sm:gap-4">
+                  <FilterIcon className="w-5 h-5 text-ch-blue flex-shrink-0" />
+                  <CategoriesList
+                    data={categoriesData}
+                    queryParams={queryParams}
+                    setQueryParams={setQueryParams}
+                  />
                 </div>
               </div>
             </div>
-          </aside>
-
-          {/* Main Content */}
-          <main className="flex-1">
-            <div className="backdrop-blur-xl bg-white/90 p-3 sm:p-4 md:p-6 lg:p-8 rounded-2xl shadow-lg border border-white/20">
+            <div className="backdrop-blur-xl bg-white/50 p-3 sm:p-4 md:p-6 lg:p-8 rounded-2xl shadow-lg border border-white/20">
               {productsLoading && (
                 <div className="grid grid-cols-1 xs:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-4 lg:gap-5">
                   {[...Array(10)].map((_, i) => (

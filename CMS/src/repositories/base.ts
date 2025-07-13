@@ -1,13 +1,12 @@
 import http from "../utils/api/axios.ts";
 
-// export default class Base<C, U> {
 export default class Base {
-  http = async <T>(
+  http = async <TResponse, TVariables = any>(
     url: string,
     type: string,
-    variables: T | null = null,
+    variables?: TVariables | null,
     options?: any
   ) => {
-    return (http as any)[type](url, variables, options);
+    return (http as any)[type](url, variables, options) as Promise<TResponse>;
   };
 }

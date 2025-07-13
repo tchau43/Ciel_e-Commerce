@@ -11,10 +11,8 @@ import { Link } from "react-router-dom";
 const Footer = () => {
   return (
     <footer className="bg-gray-900 text-gray-300 w-full min-w-full">
-      {/* Main Footer */}
       <div className="w-full max-w-[1440px] mx-auto px-4 py-12">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8 md:gap-12">
-          {/* Logo & Description */}
           <div className="space-y-4 md:pr-8">
             <img className="h-12" src="/CLogo.png" alt="Ciel Store Logo" />
             <p className="text-sm text-gray-400 leading-relaxed">
@@ -43,7 +41,6 @@ const Footer = () => {
             </div>
           </div>
 
-          {/* Quick Links */}
           <div className="md:px-4">
             <h3 className="text-lg font-semibold text-white mb-4">
               Liên Kết Nhanh
@@ -84,7 +81,6 @@ const Footer = () => {
             </ul>
           </div>
 
-          {/* Categories */}
           <div className="md:px-4">
             <h3 className="text-lg font-semibold text-white mb-4">
               Danh Mục Sản Phẩm
@@ -125,7 +121,6 @@ const Footer = () => {
             </ul>
           </div>
 
-          {/* Contact Info */}
           <div className="md:pl-4">
             <h3 className="text-lg font-semibold text-white mb-4">
               Thông Tin Liên Hệ
@@ -167,7 +162,6 @@ const Footer = () => {
         </div>
       </div>
 
-      {/* Bottom Bar */}
       <div className="border-t border-gray-800 w-full">
         <div className="w-full max-w-[1440px] mx-auto px-4 py-6">
           <div className="flex flex-col md:flex-row justify-between items-center gap-4">

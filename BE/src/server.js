@@ -10,7 +10,6 @@ appConfig(app);
 
 (async () => {
   try {
-    //using mongoose
     await connection();
 
     app.listen(port, () => {
@@ -21,5 +20,3 @@ appConfig(app);
     console.log(">>> Error connect to DB: ", error);
   }
 })();
-
-

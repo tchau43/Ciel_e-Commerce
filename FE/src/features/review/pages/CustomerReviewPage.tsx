@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/dialog";
 import { useQueryClient } from "@tanstack/react-query";
 
-// Define the expected type for delivered products
+
 interface DeliveredProductItem {
   invoice: {
     _id: string;
@@ -75,7 +75,7 @@ const CustomerReviewPage = () => {
 
   useEffect(() => {
     if (deliveredProducts?.length > 0) {
-      // Log all products with their review status for debugging
+      
       console.log(
         "All delivered products with review status:",
         deliveredProducts.map((p: DeliveredProductItem) => ({
@@ -92,7 +92,7 @@ const CustomerReviewPage = () => {
     variantId: string,
     invoiceId: string
   ) => {
-    // Find the product to get its name for the modal
+    
     const product = deliveredProducts?.find(
       (p: DeliveredProductItem) =>
         p.product._id === productId &&
@@ -115,7 +115,7 @@ const CustomerReviewPage = () => {
   const handleReviewSuccess = () => {
     setReviewModalOpen(false);
     setSelectedProduct(null);
-    // Invalidate queries to refresh the data
+    
     queryClient.invalidateQueries({
       queryKey: ["userDeliveredProducts", userId],
     });
@@ -123,12 +123,12 @@ const CustomerReviewPage = () => {
   };
 
   const handleViewReview = (reviewId: string) => {
-    // Find the product with this review
+    
     const productWithReview = deliveredProducts?.find(
       (p: DeliveredProductItem) => p.reviewStatus?.reviewId === reviewId
     );
 
-    // Log for debugging
+    
     console.log("Selected review:", reviewId);
     console.log("Product with review:", productWithReview);
     console.log("Review status:", productWithReview?.reviewStatus);
@@ -143,7 +143,7 @@ const CustomerReviewPage = () => {
       });
       setViewReviewModalOpen(true);
 
-      // Log the selected review data being set
+      
       console.log("Setting selected review:", {
         reviewId,
         rating: productWithReview.reviewStatus?.rating,
@@ -186,7 +186,7 @@ const CustomerReviewPage = () => {
     );
   }
 
-  // Filter products based on review status
+  
   const allProducts = deliveredProducts || [];
   const pendingReviews = allProducts.filter(
     (p: DeliveredProductItem) => !p.reviewStatus?.isReviewed
@@ -195,7 +195,7 @@ const CustomerReviewPage = () => {
     (p: DeliveredProductItem) => p.reviewStatus?.isReviewed
   );
 
-  // Get the appropriate products list based on the active tab
+  
   const productsToDisplay =
     activeTab === "pending"
       ? pendingReviews
@@ -260,7 +260,6 @@ const CustomerReviewPage = () => {
         )}
       </div>
 
-      {/* Write Review Form Dialog */}
       <Dialog open={reviewModalOpen} onOpenChange={setReviewModalOpen}>
         <DialogContent className="sm:max-w-[500px]">
           <DialogHeader>
@@ -285,7 +284,6 @@ const CustomerReviewPage = () => {
         </DialogContent>
       </Dialog>
 
-      {/* View Review Dialog */}
       <Dialog open={viewReviewModalOpen} onOpenChange={setViewReviewModalOpen}>
         <DialogContent className="sm:max-w-[500px]">
           <DialogHeader>
@@ -300,7 +298,6 @@ const CustomerReviewPage = () => {
           </DialogHeader>
           {selectedReview && (
             <div className="space-y-4">
-              {/* Rating display */}
               <div>
                 <p className="font-medium mb-2">Đánh giá của bạn</p>
                 <div className="flex items-center">
@@ -322,7 +319,6 @@ const CustomerReviewPage = () => {
                 </div>
               </div>
 
-              {/* Comment display */}
               {selectedReview.comment && (
                 <div>
                   <p className="font-medium mb-2">Nhận xét của bạn</p>

@@ -216,25 +216,23 @@
 // });
 
 
-
-// scripts/removeOldFields.js
-require('dotenv').config(); // Load environment variables FIRST
+require('dotenv').config(); 
 
 const mongoose = require('mongoose');
 
-// --- Minimal Product Model Definition (for this script) ---
-// We need a model to interact with the collection.
-// Define at least the collection name. Using 'strict: false' is helpful
-// here as we don't care about the full schema, just removing fields.
-const productSchemaMinimal = new mongoose.Schema({}, {
-    strict: false, // Allows interaction even if fields aren't defined here
-    collection: 'products' // Explicitly specify the collection name
-});
-const Product = mongoose.model('ProductMinimal', productSchemaMinimal); // Use a unique model name for this script if needed
 
-// --- Main Async Function ---
+
+
+
+const productSchemaMinimal = new mongoose.Schema({}, {
+    strict: false, 
+    collection: 'products' 
+});
+const Product = mongoose.model('ProductMinimal', productSchemaMinimal); 
+
+
 async function removeOldProductFields() {
-    // 1. Connect to MongoDB
+    
     if (!process.env.MONGODB_URI) {
         console.error("Error: MONGODB_URI environment variable is not set.");
         process.exit(1);
@@ -245,28 +243,28 @@ async function removeOldProductFields() {
         console.log('Successfully connected to MongoDB.');
     } catch (err) {
         console.error("Error connecting to MongoDB:", err);
-        process.exit(1); // Exit if connection fails
+        process.exit(1); 
     }
 
-    // 2. Perform the Field Removal
+    
     console.log('\nAttempting to remove category_name and brand_name fields from ALL products...');
     try {
         const cleanupResult = await Product.updateMany(
-            { // Filter: Find documents that have EITHER field present
-                // No filter is needed if you want to apply to ALL documents regardless
-                // But filtering for existence is slightly safer/more targeted
+            { 
+                
+                
                 $or: [
                     { category_name: { $exists: true } },
                     { brand_name: { $exists: true } }
                 ]
             },
-            { // Update: Use $unset to remove both fields
+            { 
                 $unset: {
-                    category_name: "", // The value "" is arbitrary for $unset
+                    category_name: "", 
                     brand_name: ""
                 }
             }
-            // { multi: true } // Not needed for updateMany, it applies to all matches by default
+            
         );
 
         console.log(`\n--- Cleanup Results ---`);
@@ -281,25 +279,24 @@ async function removeOldProductFields() {
 
     } catch (error) {
         console.error('\nERROR during field removal operation:', error);
-        // Decide if you want to exit on error or just log it before disconnecting
+        
     } finally {
-        // 3. Disconnect from MongoDB
+        
         await mongoose.disconnect();
         console.log('\nDisconnected from MongoDB.');
     }
 }
 
-// --- Warnings and Execution ---
+
 console.log("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
 console.log("!!! WARNING: This script will permanently delete fields! !!!");
 console.log("!!! Make sure you have a backup of your 'products' collection! !!!");
 console.log("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
-// Optional: Add a small delay or prompt before running
-// setTimeout(() => {
+
+
 console.log("Starting field removal script...");
 removeOldProductFields().catch(err => {
     console.error("Unhandled error executing script:", err);
-    mongoose.disconnect(); // Ensure disconnect even on unhandled errors
+    mongoose.disconnect(); 
     process.exit(1);
 });
-// }, 3000); // Example 3-second delay

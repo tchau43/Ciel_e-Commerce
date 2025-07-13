@@ -1,6 +1,5 @@
 const axios = require('axios');
 const logger = require('../config/logger');
-// const logger = require('../config/logger');
 
 const getUserRecommendations = async (req, res) => {
     const userId = req.query.userId;

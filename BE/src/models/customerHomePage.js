@@ -1,6 +1,5 @@
 const mongoose = require("mongoose");
 
-// Define schema for the homepage configuration
 const customerHomePage = new mongoose.Schema({
   banners: {
     type: [
@@ -8,7 +7,7 @@ const customerHomePage = new mongoose.Schema({
         photo_url: { type: String, required: true },
       },
     ],
-    validate: [arrayLimit, "{PATH} must have at least one element"], // Validation to ensure at least one banner
+    validate: [arrayLimit, "{PATH} must have at least one element"],
   },
   videos: {
     type: [
@@ -19,7 +18,7 @@ const customerHomePage = new mongoose.Schema({
         photo_thumb: { type: String, required: true },
       },
     ],
-    validate: [arrayLimit, "{PATH} must have at least one video"], // Validation to ensure at least one video
+    validate: [arrayLimit, "{PATH} must have at least one video"],
   },
   features: {
     type: [
@@ -29,11 +28,10 @@ const customerHomePage = new mongoose.Schema({
         description: { type: String, required: true },
       },
     ],
-    validate: [arrayLimit, "{PATH} must have at least one feature"], // Validation to ensure at least one feature
+    validate: [arrayLimit, "{PATH} must have at least one feature"],
   },
 });
 
-// Custom validator to ensure arrays have at least one element
 function arrayLimit(val) {
   return val.length > 0;
 }

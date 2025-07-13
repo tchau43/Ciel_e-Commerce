@@ -27,7 +27,7 @@ const storage = multer.diskStorage({
     console.log(">>>>>>>>>>>>>>>>>>>>>>storage");
     try {
       const productId = req.params.id;
-      const product = await Product.findById(productId); // Assume Product is your model
+      const product = await Product.findById(productId); 
       if (!product) throw new Error("Product not found");
       const productName = product.name;
       const uploadPath = createProductFolder(productName);

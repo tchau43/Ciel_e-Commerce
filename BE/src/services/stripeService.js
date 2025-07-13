@@ -1,8 +1,7 @@
 const Stripe = require("stripe");
 const User = require("../models/user");
-const stripe = Stripe(process.env.STRIPE_SECRET_KEY); // Use environment variable for the secret key
+const stripe = Stripe(process.env.STRIPE_SECRET_KEY);
 
-// Create a customer
 const stripePaymentService = async (id) => {
   try {
     const user = await User.findOne({ _id: id });
@@ -10,10 +9,6 @@ const stripePaymentService = async (id) => {
     const customer = await stripe.customers.create({
       name: user.name,
       email: user.email,
-      //   metadata: {
-      //     // Store custom data in metadata
-      //     userId: user._id, // Store your userId in metadata
-      //   },
       phone: user.phoneNumber,
       description: "New customer",
     });
@@ -25,18 +20,34 @@ const stripePaymentService = async (id) => {
   }
 };
 
-const createPaymentIntentService = async (amount) => {
+const createPaymentIntentService = async (amount, metadata = {}) => {
   try {
     const paymentIntent = await stripe.paymentIntents.create({
       amount,
       currency: "vnd",
       payment_method_types: ["card"],
+      metadata: metadata,
+      capture_method: "automatic",
     });
-    return paymentIntent; // Returns the full paymentIntent object
+    return paymentIntent;
   } catch (error) {
-    console.error(error);
-    throw error; // Propagate the error for better debugging
+    console.error("Error creating payment intent:", error);
+    throw error;
   }
 };
 
-module.exports = { stripePaymentService, createPaymentIntentService };
+const getPaymentIntentStatus = async (paymentIntentId) => {
+  try {
+    const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
+    return paymentIntent.status;
+  } catch (error) {
+    console.error("Error retrieving payment intent:", error);
+    throw error;
+  }
+};
+
+module.exports = {
+  stripePaymentService,
+  createPaymentIntentService,
+  getPaymentIntentStatus,
+};

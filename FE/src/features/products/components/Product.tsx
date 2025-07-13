@@ -1,13 +1,14 @@
 import { useGetProductByIdQuery } from "@/services/product/getProductByIdQuery";
 import { useGetProductReviewsQuery } from "@/services/review/getProductReviewsQuery";
 import { Outlet, useNavigate, useParams } from "react-router-dom";
-import ProductByCategory from "./ProductByCategory";
+import ProductByCategory from "../components/ProductByCategory";
 import { useEffect, useState, useRef } from "react";
 import { getAuthCredentials } from "@/utils/authUtil";
 import { useAddProductToCartMutation } from "@/services/cart/addProductToCartMutation";
 import { Product as ProductType, Variant } from "@/types/dataTypes";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
+import ProductReviews from "./ProductReviews";
 
 const Product = () => {
   const navigate = useNavigate();
@@ -22,7 +23,8 @@ const Product = () => {
   );
   const columnARef = useRef<HTMLDivElement>(null);
   const columnBRef = useRef<HTMLDivElement>(null);
-
+  const columnAHeight = columnARef.current?.offsetHeight ?? 0;
+  const columnBHeight = columnBRef.current?.offsetHeight ?? 0;
   const {
     data: product,
     isLoading,
@@ -32,7 +34,6 @@ const Product = () => {
     enabled: !!id,
   });
 
-  // Fetch reviews for this product - used by the Reviews component via Outlet
   useGetProductReviewsQuery(id!, {
     enabled: !!id,
   });
@@ -150,8 +151,10 @@ const Product = () => {
         typeof imgUrl === "string" && imgUrl.trim() !== ""
     ) ?? [];
 
+  const columnSticky = "sticky top-28";
+
   return (
-    <div className="min-h-screen pt-16 bg-ch-pink-10">
+    <div className="min-h-screen">
       <div className="container mx-auto px-4">
         {/* Breadcrumb */}
         <nav className="py-4">
@@ -181,10 +184,15 @@ const Product = () => {
         </nav>
 
         {/* Product Content */}
-        <div className="bg-white rounded-xl shadow-sm overflow-hidden">
-          <div className="flex flex-col md:flex-row gap-8 p-6">
+        <div className="bg-white rounded-xl shadow-sm">
+          <div className="flex md:flex-row gap-8 p-6">
             {/* Left Column - Images */}
-            <div ref={columnARef} className="w-full md:w-3/5 lg:w-3/5">
+            <div
+              ref={columnARef}
+              className={`w-full md:w-3/5 lg:w-3/5 h-fit ${
+                columnAHeight > columnBHeight ? "" : columnSticky
+              }`}
+            >
               <div className="flex gap-4">
                 {/* Thumbnails */}
                 <div className="h-[404px] 2xl:h-[600px] flex-shrink-0 w-24 flex flex-col gap-y-2 overflow-y-auto pr-2 snap-y snap-mandatory scroll-smooth custom-scrollbar">
@@ -253,8 +261,13 @@ const Product = () => {
             </div>
 
             {/* Right Column - Product Info */}
-            <div ref={columnBRef} className="w-full md:w-2/5 lg:w-2/5">
-              <div className="sticky top-24">
+            <div
+              ref={columnBRef}
+              className={`w-full md:w-2/5 lg:w-2/5 h-fit ${
+                columnAHeight > columnBHeight ? columnSticky : ""
+              } `}
+            >
+              <div className="">
                 <h1 className="text-2xl lg:text-3xl font-bold text-gray-800 mb-4">
                   {typedProduct.name}
                 </h1>
@@ -367,6 +380,7 @@ const Product = () => {
               </div>
             </div>
           </div>
+          <ProductReviews productId={typedProduct._id} />
         </div>
 
         {/* Reviews Section */}

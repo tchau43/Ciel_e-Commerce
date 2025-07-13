@@ -7,11 +7,6 @@ const {
     deleteFaqCategoryService
 } = require('../services/faqCategoryService');
 
-/**
- * Create a new FAQ Category
- * @route POST /api/faq-categories
- * @access Private/Admin
- */
 const createFaqCategory = async (req, res) => {
     try {
         const categoryData = req.body;
@@ -29,11 +24,6 @@ const createFaqCategory = async (req, res) => {
     }
 };
 
-/**
- * Get all FAQ Categories
- * @route GET /api/faq-categories
- * @access Public
- */
 const getAllFaqCategories = async (req, res) => {
     try {
         const {
@@ -45,13 +35,11 @@ const getAllFaqCategories = async (req, res) => {
             includeCount
         } = req.query;
 
-        // Build filters
         const filters = {};
         if (isActive !== undefined) {
             filters.isActive = isActive === 'true';
         }
 
-        // Build options
         const options = {};
         if (page) options.page = parseInt(page, 10);
         if (limit) options.limit = parseInt(limit, 10);
@@ -73,11 +61,6 @@ const getAllFaqCategories = async (req, res) => {
     }
 };
 
-/**
- * Get a single FAQ Category by ID
- * @route GET /api/faq-categories/:id
- * @access Public
- */
 const getFaqCategoryById = async (req, res) => {
     try {
         const category = await getFaqCategoryByIdService(req.params.id);
@@ -94,11 +77,6 @@ const getFaqCategoryById = async (req, res) => {
     }
 };
 
-/**
- * Get a single FAQ Category by slug
- * @route GET /api/faq-categories/slug/:slug
- * @access Public
- */
 const getFaqCategoryBySlug = async (req, res) => {
     try {
         const category = await getFaqCategoryBySlugService(req.params.slug);
@@ -115,11 +93,6 @@ const getFaqCategoryBySlug = async (req, res) => {
     }
 };
 
-/**
- * Update a FAQ Category
- * @route PUT /api/faq-categories/:id
- * @access Private/Admin
- */
 const updateFaqCategory = async (req, res) => {
     try {
         const category = await updateFaqCategoryService(req.params.id, req.body);
@@ -136,11 +109,6 @@ const updateFaqCategory = async (req, res) => {
     }
 };
 
-/**
- * Delete a FAQ Category
- * @route DELETE /api/faq-categories/:id
- * @access Private/Admin
- */
 const deleteFaqCategory = async (req, res) => {
     try {
         const category = await deleteFaqCategoryService(req.params.id);
@@ -164,4 +132,4 @@ module.exports = {
     getFaqCategoryBySlug,
     updateFaqCategory,
     deleteFaqCategory
-}; 
+};

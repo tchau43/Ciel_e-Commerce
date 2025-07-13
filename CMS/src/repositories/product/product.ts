@@ -1,19 +1,35 @@
-// src/repositories/product/product.ts
-// Import the correct type 'Product'
-import { Product as ProductType } from "@/types/dataTypes"; // Changed from ProductData, renamed import
+import { Product as ProductType, VariantInput } from "@/types/dataTypes";
 import Base from "../base";
 
-// Use the correct type 'ProductType'
-type RecommendationsResponse = ProductType[];
+interface RecommendationsResponse {
+  products: ProductType[];
+  message: string;
+}
+
+interface UpdateProductData {
+  name?: string;
+  base_price?: number;
+  description?: string[];
+  category?: string;
+  brand?: string;
+  tags?: string[];
+  images?: string[];
+  url?: string;
+  popularity?: number;
+}
+
+interface UpdateVariantData {
+  types?: string;
+  price?: number;
+  stock?: number;
+}
 
 class ProductRepository extends Base {
-  // Renamed class for clarity
   getAllProducts = async (url: string) => {
     return this.http<ProductType[]>(url, "get");
   };
 
   getProductByCategory = async (url: string) => {
-    // Corrected generic type argument from <string>
     return this.http<ProductType[]>(url, "get");
   };
 
@@ -21,9 +37,16 @@ class ProductRepository extends Base {
     return this.http<ProductType>(url, "get");
   };
 
-  updateProduct = async (url: string, variables: FormData) => {
-    // Adjust <any> if specific response type is known
-    return this.http<any>(url, "put", variables);
+  createProduct = async (url: string, variables: FormData) => {
+    return this.http<ProductType, FormData>(url, "post", variables);
+  };
+
+  updateProduct = async (url: string, variables: UpdateProductData) => {
+    return this.http<ProductType, UpdateProductData>(url, "put", variables);
+  };
+
+  deleteProduct = async (url: string) => {
+    return this.http<void>(url, "delete");
   };
 
   getProductBySearch = async (url: string) => {
@@ -32,14 +55,34 @@ class ProductRepository extends Base {
 
   getRecommendations = async (url: string, userId: string) => {
     const queryParams = new URLSearchParams({ userId });
-    return this.http<RecommendationsResponse>(`${url}?${queryParams}`, "get");
+    return this.http<RecommendationsResponse>(
+      url + "?" + queryParams.toString(),
+      "get"
+    );
   };
 
-  // Thêm phương thức lấy sản phẩm nổi bật
   getFeaturedProducts = async (url: string) => {
     return this.http<ProductType[]>(url, "get");
   };
-}
 
-// Export instance with the new class name
+  getVariantById = async (url: string) => {
+    return this.http<ProductType>(url, "get");
+  };
+
+  addVariant = async (url: string, variables: VariantInput) => {
+    return this.http<ProductType, VariantInput>(url, "post", variables);
+  };
+
+  updateVariant = async (url: string, variables: UpdateVariantData) => {
+    return this.http<ProductType, UpdateVariantData>(url, "patch", variables);
+  };
+
+  updateVariantStock = async (url: string, variables: { stock: number }) => {
+    return this.http<ProductType, { stock: number }>(url, "patch", variables);
+  };
+
+  deleteVariant = async (url: string) => {
+    return this.http<void>(url, "delete");
+  };
+}
 export default new ProductRepository();

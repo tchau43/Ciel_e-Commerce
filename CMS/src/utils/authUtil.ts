@@ -1,19 +1,16 @@
-// src/utils/authUtil.ts (Updated)
-import { Role, UserReference } from "../types/dataTypes"; // Import Role and UPDATED UserReference
+import { Role, UserReference } from "../types/dataTypes";
 
-// Define keys for localStorage for consistency
 const AUTH_TOKEN_KEY = "access_token";
 const AUTH_ROLE_KEY = "role";
 const AUTH_USER_INFO_KEY = "userInfo";
+const THREAD_ID_KEY = "chatThreadId";
 
-// Type for the return value of getAuthCredentials
 export interface AuthCredentials {
   token: string | null;
   role: Role | null;
-  userInfo: UserReference | null; // Uses the updated UserReference
+  userInfo: UserReference | null;
 }
 
-// Function to validate if a role is allowed for the CMS
 function isValidCMSRole(role: string | null): boolean {
   return role === Role.ADMIN;
 }
@@ -27,10 +24,8 @@ export function getAuthCredentials(): AuthCredentials {
     token = localStorage.getItem(AUTH_TOKEN_KEY);
     const roleString = localStorage.getItem(AUTH_ROLE_KEY);
 
-    // Check if role is valid for CMS
     if (roleString && Object.values(Role).includes(roleString as Role)) {
       if (!isValidCMSRole(roleString)) {
-        // If role is not valid for CMS, clear credentials
         clearAuthCredentials();
         return { token: null, role: null, userInfo: null };
       }
@@ -41,7 +36,7 @@ export function getAuthCredentials(): AuthCredentials {
     if (userInfoString) {
       try {
         const parsedInfo = JSON.parse(userInfoString);
-        // Check for core fields, address/image are optional in the type
+
         if (
           parsedInfo &&
           typeof parsedInfo === "object" &&
@@ -49,7 +44,6 @@ export function getAuthCredentials(): AuthCredentials {
           "name" in parsedInfo &&
           "email" in parsedInfo
         ) {
-          // Cast to the updated UserReference type
           userInfo = parsedInfo as UserReference;
         } else {
           console.error("Stored userInfo format is invalid");
@@ -64,7 +58,6 @@ export function getAuthCredentials(): AuthCredentials {
     }
   }
 
-  // If we have a token but no valid role or userInfo, clear everything
   if (token && (!role || !userInfo)) {
     clearAuthCredentials();
     return { token: null, role: null, userInfo: null };
@@ -73,13 +66,11 @@ export function getAuthCredentials(): AuthCredentials {
   return { token, role, userInfo };
 }
 
-// No changes needed to setAuthCredentials signature as it already uses UserReference
 export function setAuthCredentials(
   token: string,
   role: Role,
-  userInfo: UserReference // Uses the updated UserReference
+  userInfo: UserReference
 ): void {
-  // Validate role before setting
   if (!isValidCMSRole(role)) {
     console.error("Invalid role for CMS application");
     clearAuthCredentials();
@@ -95,16 +86,15 @@ export function setAuthCredentials(
   }
 }
 
-// No changes needed to clearAuthCredentials
 export function clearAuthCredentials(): void {
   if (typeof window !== "undefined" && window.localStorage) {
     localStorage.removeItem(AUTH_TOKEN_KEY);
     localStorage.removeItem(AUTH_ROLE_KEY);
     localStorage.removeItem(AUTH_USER_INFO_KEY);
+    localStorage.removeItem(THREAD_ID_KEY);
   }
 }
 
-// New function to check if user is authenticated
 export function isAuthenticated(): boolean {
   const { token, role, userInfo } = getAuthCredentials();
   return !!(token && role && userInfo && isValidCMSRole(role));

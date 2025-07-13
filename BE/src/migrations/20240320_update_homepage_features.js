@@ -1,4 +1,4 @@
-require('dotenv').config({ path: 'BE/.env' }); // Use the correct path to .env file
+require('dotenv').config({ path: 'BE/.env' });
 const mongoose = require('mongoose');
 const CustomerHomePage = require('../models/customerHomePage');
 
@@ -8,7 +8,6 @@ const migration = {
             await mongoose.connect(process.env.MONGODB_URI);
             console.log('Đã kết nối đến database');
 
-            // Tìm document homepage hiện tại
             const homepage = await CustomerHomePage.findOne();
 
             if (!homepage) {
@@ -16,7 +15,6 @@ const migration = {
                 return;
             }
 
-            // Cập nhật với features mới
             homepage.features = [
                 {
                     image_url: "https://images.unsplash.com/photo-1563013544-824ae1b704d3?w=800",
@@ -57,7 +55,6 @@ const migration = {
             await mongoose.connect(process.env.MONGODB_URI);
             console.log('Đã kết nối đến database');
 
-            // Tìm document homepage hiện tại
             const homepage = await CustomerHomePage.findOne();
 
             if (!homepage) {
@@ -65,7 +62,6 @@ const migration = {
                 return;
             }
 
-            // Reset về mảng rỗng hoặc features mặc định
             homepage.features = [];
 
             await homepage.save();
@@ -81,7 +77,6 @@ const migration = {
     }
 };
 
-// Chạy migration khi được gọi trực tiếp từ command line
 if (require.main === module) {
     const command = process.argv[2];
     if (command === 'up') {

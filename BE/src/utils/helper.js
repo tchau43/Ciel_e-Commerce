@@ -1,9 +1,9 @@
 const { sendEmail } = require("../config/mailer");
 const Invoice = require("../models/invoice");
 
-// Helper function to generate all possible combinations of a specific size
 function generateCombinations(array, size) {
     const result = [];
+
     function backtrack(start, current) {
         if (current.length === size) {
             result.push([...current]);
@@ -15,68 +15,63 @@ function generateCombinations(array, size) {
             current.pop();
         }
     }
+
     backtrack(0, []);
     return result;
 }
 
 function slugify(text = '') {
     if (typeof text !== 'string') return '';
+
     return text
         .toString()
         .toLowerCase()
-        .normalize('NFD') // Decompose accented characters
-        .replace(/[\u0300-\u036f]/g, '') // Remove diacritical marks
-        .replace(/\s+/g, '-') // Replace spaces with hyphens
-        .replace(/[^\w-]+/g, '') // Remove all non-word characters except hyphens
-        .replace(/--+/g, '-') // Replace multiple hyphens with single one
-        .replace(/^-+/, '') // Trim hyphens from start
-        .replace(/-+$/, ''); // Trim hyphens from end
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .replace(/\s+/g, '-')
+        .replace(/[^\w-]+/g, '')
+        .replace(/--+/g, '-')
+        .replace(/^-+/, '')
+        .replace(/-+$/, '');
 }
 
 function formatCurrencyVND(amount) {
     if (typeof amount !== 'number' || isNaN(amount)) {
-        return 'N/A'; // Return 'N/A' for invalid input
+        return 'N/A';
     }
+
     try {
-        // Use Intl API for robust currency formatting
         const formatter = new Intl.NumberFormat('vi-VN', {
             style: 'currency',
             currency: 'VND',
-            // maximumFractionDigits: 0 // Optional: Remove decimals if preferred for VND
         });
         return formatter.format(amount);
     } catch (error) {
         console.error("Currency formatting error:", error);
-        return String(amount); // Fallback to simple string conversion
+        return String(amount);
     }
 }
 
-// --- Helper function to build and send the email ---
-// Takes the saved invoice object. Gets recipient email from invoice.user.
-// --- Helper function to build and send the order confirmation email ---
-// --- Helper function to build and send the Order Confirmation email ---
-async function triggerOrderConfirmationEmail(savedInvoice) { // Takes saved invoice object or ID
+async function triggerOrderConfirmationEmail(savedInvoice) {
     console.log(`Attempting email trigger for Invoice ${savedInvoice?._id}`);
+
     if (!savedInvoice?._id) {
         console.error("triggerOrderConfirmationEmail called with invalid savedInvoice object");
         return;
     }
 
     try {
-        // Fetch the necessary data with population
         const invoiceForEmail = await Invoice.findById(savedInvoice._id)
             .populate({ path: "user", select: "name email" })
             .populate({
                 path: "items.product",
-                select: "name images", // Fetch images needed for email
-                // No need for base_price here as we use priceAtPurchase
+                select: "name images",
             })
             .populate({
                 path: "items.variant",
-                select: "types", // Fetch variant description
-                // No need for price here as we use priceAtPurchase
+                select: "types",
             })
-            .lean(); // Get plain object
+            .lean();
 
         if (!invoiceForEmail) throw new Error(`Invoice ${savedInvoice._id} not found for email.`);
         if (!invoiceForEmail.user || !invoiceForEmail.user.email) {
@@ -84,7 +79,6 @@ async function triggerOrderConfirmationEmail(savedInvoice) { // Takes saved invo
             return;
         }
 
-        // Extract data for email content
         const recipientEmail = invoiceForEmail.user.email;
         const userName = invoiceForEmail.user.name || 'Valued Customer';
         const orderId = invoiceForEmail._id.toString();
@@ -92,12 +86,11 @@ async function triggerOrderConfirmationEmail(savedInvoice) { // Takes saved invo
         const subtotal = invoiceForEmail.subtotal;
         const discountAmount = invoiceForEmail.discountAmount || 0;
         const deliveryFee = invoiceForEmail.deliveryFee || 0;
-        const totalAmount = invoiceForEmail.totalAmount; // Use the final calculated total
+        const totalAmount = invoiceForEmail.totalAmount;
         const couponCode = invoiceForEmail.couponCode;
         const shippingAddress = invoiceForEmail.shippingAddress || {};
         const paymentMethod = invoiceForEmail.paymentMethod || 'N/A';
 
-        // Format values
         const formattedSubtotal = formatCurrencyVND(subtotal);
         const formattedDiscount = formatCurrencyVND(discountAmount);
         const formattedDeliveryFee = formatCurrencyVND(deliveryFee);
@@ -109,16 +102,13 @@ async function triggerOrderConfirmationEmail(savedInvoice) { // Takes saved invo
             ${shippingAddress.country || ''}
         `.trim().replace(/(\n\s*<br>)+/g, '<br>').replace(/^<br>|<br>$/g, '');
 
-        // Generate HTML for items table rows
         const itemsHtml = items.map(item => {
             const product = item.product || {};
             const variant = item.variant || {};
             const price = item.priceAtPurchase;
             const formattedPrice = formatCurrencyVND(price);
             const itemSubtotal = formatCurrencyVND(price * item.quantity);
-            // Construct image URL properly - depends on how you store/serve images
-            // If stored as relative path like "images/product/...", prepend your base URL
-            const imageUrl = product.images?.[0] ? `${process.env.YOUR_BASE_URL || ''}/${product.images[0].replace(/^\//, '')}` : ''; // Example construction
+            const imageUrl = product.images?.[0] ? `${process.env.YOUR_BASE_URL || ''}/${product.images[0]}` : '';
 
             return `
                 <tr>
@@ -136,7 +126,6 @@ async function triggerOrderConfirmationEmail(savedInvoice) { // Takes saved invo
             `;
         }).join('');
 
-        // --- Generate full HTML Body with New Data ---
         const htmlVersion = `
             <div style="font-family: Arial, Helvetica, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 20px auto; border: 1px solid #ddd; padding: 25px;">
                 <h2 style="color: #444; border-bottom: 2px solid #eee; padding-bottom: 10px; margin-top: 0;">Order Confirmation</h2>
@@ -181,24 +170,22 @@ async function triggerOrderConfirmationEmail(savedInvoice) { // Takes saved invo
                         </tr>
                     </tfoot>
                 </table>
-                 <hr style="border: none; border-top: 1px solid #eee;">
+                <hr style="border: none; border-top: 1px solid #eee;">
 
                 <h3 style="color: #444;">Shipping Address:</h3>
                 <div style="margin-left: 15px; padding: 10px; background-color: #fdfdfd; border: 1px solid #eee; margin-bottom: 20px;">
                     ${formattedShippingAddress || 'Address not provided.'}
                 </div>
-                 <hr style="border: none; border-top: 1px solid #eee;">
+                <hr style="border: none; border-top: 1px solid #eee;">
 
                 <p>We will send another email when your order ships.</p>
                 <p>Thanks again for shopping with us!</p>
-                <p><strong>[Your Company Name]</strong></p> {/* Replace with your actual company name */}
+                <p><strong>[Your Company Name]</strong></p>
                 <hr style="border: none; border-top: 1px solid #eee; margin-top: 20px;">
                 <p style="font-size: 12px; color: #777; text-align: center;">If you have any questions, please contact us at [Your Support Email] or call [Your Phone Number].</p>
             </div>
         `;
-        // --- END: Generate full HTML Body ---
 
-        // Simple text version (update with new details)
         const textVersion = `
 Hello ${userName},
 
@@ -224,7 +211,6 @@ Thanks for shopping with us!
 [Your Support Email/Phone]
         `.trim();
 
-        // Set up mail options
         const mailOptions = {
             to: recipientEmail,
             subject: `Your Order Confirmation - #${orderId}`,
@@ -232,14 +218,11 @@ Thanks for shopping with us!
             html: htmlVersion,
         };
 
-        // Send the email
         await sendEmail(mailOptions);
         console.log(`Confirmation email sent successfully to ${recipientEmail} for invoice ${orderId}.`);
-
     } catch (error) {
         console.error(`Error preparing or sending order confirmation email for Invoice ${savedInvoice?._id || 'Unknown ID'}:`, error);
-        // Do not re-throw error here, just log it, as the main invoice creation succeeded.
     }
 }
 
-module.exports = { generateCombinations, formatCurrencyVND, triggerOrderConfirmationEmail, slugify }
+module.exports = { generateCombinations, formatCurrencyVND, triggerOrderConfirmationEmail, slugify };

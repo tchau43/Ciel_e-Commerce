@@ -1,4 +1,3 @@
-// src/pages/auth/LoginForm.tsx
 import React, { useState, ChangeEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import { useLoginMutation } from "@/services/auth/loginMutation";
@@ -9,8 +8,6 @@ import {
   UserReference,
 } from "@/types/dataTypes";
 import { setAuthCredentials } from "@/utils/authUtil";
-
-// Import the UI components
 import {
   Card,
   CardBorder,
@@ -18,10 +15,8 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card"; // Ensure path is correct
+} from "@/components/ui/card";
 import { FloatingLabelInput } from "@/components/ui/floating-label-input";
-
-// Import your FloatingLabelInput component
 
 const LoginForm: React.FC = () => {
   const { mutate: login, isPending } = useLoginMutation();
@@ -46,7 +41,6 @@ const LoginForm: React.FC = () => {
           if (EC === 0 && accessToken && user) {
             if (user.role !== Role.ADMIN) {
               setErrorMsg("Tài khoản hoặc mật khẩu không đúng");
-              // Reset form data
               setFormData({
                 email: "",
                 password: "",
@@ -66,7 +60,6 @@ const LoginForm: React.FC = () => {
             navigate("/");
           } else {
             setErrorMsg(response.message || "Đăng nhập thất bại.");
-            // Reset form data on any other error
             setFormData({
               email: "",
               password: "",
@@ -80,7 +73,6 @@ const LoginForm: React.FC = () => {
             error?.message ||
             "Đã xảy ra lỗi.";
           setErrorMsg(message);
-          // Reset form data on error
           setFormData({
             email: "",
             password: "",
@@ -90,24 +82,14 @@ const LoginForm: React.FC = () => {
     );
   };
 
-  // handleChange remains the same, it relies on input's 'name' attribute
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  // No longer need separate input/label class names here
-  // const inputClassName = ...;
-  // const labelClassName = ...;
-
   return (
-    // Centering container
     <div className="flex items-center justify-center min-h-screen p-4 bg-gray-100 dark:bg-gray-950">
-      {/* CardBorder provides the gradient border effect */}
       <CardBorder className="w-full max-w-md">
-        {/* Card provides the main background and structure */}
         <Card className="relative h-auto bg-white dark:bg-gray-950">
-          {/* Adjusted bg */}
-          {/* Background blur elements */}
           <div
             aria-hidden="true"
             className="absolute inset-0 -top-40 -left-40 h-[350px] w-[350px] bg-[radial-gradient(circle,var(--color-ch-blue-100)_0%,transparent_70%)] blur-[80px] -z-0 dark:opacity-30"
@@ -116,14 +98,12 @@ const LoginForm: React.FC = () => {
             aria-hidden="true"
             className="absolute -bottom-28 -right-40 h-[350px] w-[350px] bg-[radial-gradient(circle,var(--color-ch-pink-100)_2%,transparent_50%)] blur-[80px] -z-0 dark:opacity-30"
           ></div>
-          {/* Form element */}
           <form
             onSubmit={handleSubmit}
-            className="relative z-10 rounded-lg bg-gray-50" // Make form transparent to see Card bg
+            className="relative z-10 rounded-lg bg-gray-50"
           >
             <CardHeader>
               <CardTitle className="text-center text-xl sm:text-2xl text-gray-900 dark:text-gray-100">
-                {/* Adjusted text color */}
                 Đăng nhập
               </CardTitle>
               {errorMsg && (
@@ -133,41 +113,32 @@ const LoginForm: React.FC = () => {
               )}
             </CardHeader>
 
-            {/* Use space-y on CardContent for spacing between inputs */}
             <CardContent className="space-y-6">
-              {/* Increased spacing slightly */}
-              {/* --- Email Input --- */}
               <FloatingLabelInput
-                id="email" // Required: matches label's htmlFor
-                label="Email" // Required: Text for the floating label
-                name="email" // Required for handleChange to identify the field
+                id="email"
+                label="Email"
+                name="email"
                 type="email"
-                value={formData.email} // Controlled component value
-                onChange={handleChange} // Controlled component handler
-                required // HTML5 validation
+                value={formData.email}
+                onChange={handleChange}
+                required
                 autoComplete="email"
-                // className can be used for *additional* input-specific styles if needed
-                // containerClassName can be used for the wrapper div styles
-                // Match floating label background to Card background for cutout effect
-                className="dark:bg-gray-950" // Match input bg to card for consistency if needed
+                className="dark:bg-gray-950"
               />
-              {/* --- Password Input --- */}
               <FloatingLabelInput
-                id="password" // Required
-                label="Mật khẩu" // Required
-                name="password" // Required for handleChange
+                id="password"
+                label="Mật khẩu"
+                name="password"
                 type="password"
-                value={formData.password} // Controlled component value
-                onChange={handleChange} // Controlled component handler
-                required // HTML5 validation
+                value={formData.password}
+                onChange={handleChange}
+                required
                 autoComplete="current-password"
-                // Match floating label background to Card background for cutout effect
-                className="dark:bg-gray-950" // Match input bg to card for consistency if needed
+                className="dark:bg-gray-950"
               />
             </CardContent>
 
             <CardFooter className="flex flex-col pt-5">
-              {/* Adjusted padding */}
               <button
                 type="submit"
                 disabled={isPending}

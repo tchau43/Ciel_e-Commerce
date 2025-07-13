@@ -1,125 +1,94 @@
-// src/utils/api/endpoint.ts
-
-const VITE_API_VERSION = import.meta.env.VITE_API_VERSION || "/v1"; // Default to "/v1" - This is CORRECT based on your appConfig.js
+const VITE_API_VERSION = import.meta.env.VITE_API_VERSION || "/v1";
 
 export const API_ENDPOINTS = {
-  // --- Auth ---
-  LOGIN: `${VITE_API_VERSION}/login`, // POST
-  REGISTER: `${VITE_API_VERSION}/register`, // POST
-  // LOGOUT: `${VITE_API_VERSION}/users/logout`, // No BE route, handled client-side
+  LOGIN: `${VITE_API_VERSION}/login`,
+  REGISTER: `${VITE_API_VERSION}/register`,
 
-  // --- User ---
-  USER: (id: string) => `${VITE_API_VERSION}/user/${id}`, // GET (Auth required)
+  USER: (id: string) => `${VITE_API_VERSION}/user/${id}`,
+  UPDATE_USER: (id: string) => `${VITE_API_VERSION}/admin/updateUserById/${id}`,
   USER_PURCHASES: (userId: string) =>
-    `${VITE_API_VERSION}/user/${userId}/purchased-products`, // GET (Auth required)
+    `${VITE_API_VERSION}/user/${userId}/purchased-products`,
   USER_DELIVERED_PRODUCTS: (userId: string) =>
-    `${VITE_API_VERSION}/user/${userId}/delivered-products`, // GET (Auth required)
-  // INFO: `${VITE_API_VERSION}/users/info`, // No specific BE route, use USER
+    `${VITE_API_VERSION}/user/${userId}/delivered-products`,
 
-  // --- Products ---
-  PRODUCTS: `${VITE_API_VERSION}/products`, // GET
-  PRODUCT_BY_ID: (id: string) => `${VITE_API_VERSION}/product/${id}`, // GET
-  PRODUCTS_BY_CATEGORY: `${VITE_API_VERSION}/productsByCategory`, // GET (Query params expected)
-  PRODUCTS_BY_SEARCH_NAME: `${VITE_API_VERSION}/product/searchName`, // GET (Query param 'name')
-  PRODUCTS_BY_SEARCH_TERM: `${VITE_API_VERSION}/productsBySearch`, // GET (Query param 'searchTerm')
-  PRODUCTS_BATCH: `${VITE_API_VERSION}/products/batch`, // POST (Auth required, expects { ids: [...] } in body)
-  FEATURED_PRODUCTS: `${VITE_API_VERSION}/products/featured`, // GET (Optional query param 'limit')
+  PRODUCTS: `${VITE_API_VERSION}/products`,
+  PRODUCT_BY_ID: (id: string) => `${VITE_API_VERSION}/product/${id}`,
+  PRODUCTS_BY_CATEGORY: `${VITE_API_VERSION}/productsByCategory`,
+  PRODUCTS_BY_SEARCH_NAME: `${VITE_API_VERSION}/product/search`,
+  PRODUCTS_BY_SEARCH_TERM: `${VITE_API_VERSION}/productsBySearch`,
+  PRODUCTS_BATCH: `${VITE_API_VERSION}/products/batch`,
+  FEATURED_PRODUCTS: `${VITE_API_VERSION}/products/featured`,
 
-  // --- Variants ---
   VARIANT_BY_ID: (variantId: string) =>
-    `${VITE_API_VERSION}/variants/${variantId}`, // GET
+    `${VITE_API_VERSION}/variants/${variantId}`,
 
-  // --- Categories ---
-  CATEGORIES: `${VITE_API_VERSION}/categories`, // GET
+  CATEGORIES: `${VITE_API_VERSION}/categories`,
 
-  // --- FAQs ---
-  FAQS: `${VITE_API_VERSION}/faqs`, // GET
-  FAQ_BY_ID: (id: string) => `${VITE_API_VERSION}/faqs/${id}`, // GET
+  FAQS: `${VITE_API_VERSION}/faqs`,
+  FAQ_BY_ID: (id: string) => `${VITE_API_VERSION}/faqs/${id}`,
   FAQS_BY_CATEGORY: (category: string) =>
-    `${VITE_API_VERSION}/faqs/category/${category}`, // GET - Có thể dùng tên hoặc ID
-  FAQS_SEARCH: (query: string) => `${VITE_API_VERSION}/faqs/search/${query}`, // GET
-  FAQS_POPULAR: `${VITE_API_VERSION}/faqs/popular`, // GET
-  FAQ_RATE: (id: string) => `${VITE_API_VERSION}/faqs/${id}/rate`, // POST
+    `${VITE_API_VERSION}/faqs/category/${category}`,
+  FAQS_SEARCH: (query: string) => `${VITE_API_VERSION}/faqs/search/${query}`,
+  FAQS_POPULAR: `${VITE_API_VERSION}/faqs/popular`,
+  FAQ_RATE: (id: string) => `${VITE_API_VERSION}/faqs/${id}/rate`,
 
-  // --- Reviews ---
   REVIEWS_BY_PRODUCT: (productId: string) =>
-    `${VITE_API_VERSION}/products/${productId}/reviews`, // GET
-  CREATE_REVIEW: `${VITE_API_VERSION}/reviews`, // POST (Auth required)
+    `${VITE_API_VERSION}/products/${productId}/reviews`,
+  CREATE_REVIEW: `${VITE_API_VERSION}/reviews`,
 
-  // --- Cart ---
-  // Note: Backend uses one endpoint for add/update/remove
-  CART_ITEM: `${VITE_API_VERSION}/cart/item`, // POST (Auth required - Replaces ADD_TO_CART & UPDATE_CART)
-  CART: (userId: string) => `${VITE_API_VERSION}/cart/${userId}`, // GET (Auth required)
-  DELETE_CART: (userId: string) => `${VITE_API_VERSION}/cart/${userId}`, // DELETE (Auth required)
+  CART_ITEM: `${VITE_API_VERSION}/cart/item`,
+  CART: (userId: string) => `${VITE_API_VERSION}/cart/${userId}`,
+  DELETE_CART: (userId: string) => `${VITE_API_VERSION}/cart/${userId}`,
 
-  // --- Invoice / Order ---
-  INVOICE: `${VITE_API_VERSION}/invoice`, // POST (Auth required - For creating order)
-  GET_INVOICE: (userId: string) => `${VITE_API_VERSION}/invoice/${userId}`, // GET (Auth required)
-  INITIATE_STRIPE_PAYMENT: `${VITE_API_VERSION}/invoice/initiate-stripe`, // POST (Auth required)
+  INVOICE: `${VITE_API_VERSION}/invoice`,
+  GET_INVOICE: (userId: string) => `${VITE_API_VERSION}/invoice/${userId}`,
+  INITIATE_STRIPE_PAYMENT: `${VITE_API_VERSION}/invoice/initiate-stripe`,
 
-  // --- Recommendations ---
-  RECOMMENDATIONS: `${VITE_API_VERSION}/recommendations`, // GET (Auth required - userId likely from token)
+  RECOMMENDATIONS: `${VITE_API_VERSION}/recommendations`,
 
-  // --- Homepage ---
-  CUSTOMER_HOME_PAGE: `${VITE_API_VERSION}/homepage`, // GET
+  CUSTOMER_HOME_PAGE: `${VITE_API_VERSION}/homepage`,
 
-  // --- Coupons ---
-  VALIDATE_COUPON: `${VITE_API_VERSION}/coupons/validate`, // GET (Auth required, query param 'couponCode')
+  VALIDATE_COUPON: `${VITE_API_VERSION}/coupons/validate`,
 
-  // --- Email ---
-  // Likely internal/webhook, not called directly from FE
-  SEND_EMAIL: `${VITE_API_VERSION}/email/payment/notify-success`, // POST (Auth required)
+  SEND_EMAIL: `${VITE_API_VERSION}/email/payment/notify-success`,
 
-  // --- Chatbot ---
-  CHATBOT: `${VITE_API_VERSION}/openai-chat`, // POST (Auth required)
+  CHATBOT: `${VITE_API_VERSION}/openai-chat`,
 
-  // --- Admin: User Management ---
-  ADMIN_USERS: `${VITE_API_VERSION}/admin/users`, // GET (Admin required)
-  ADMIN_UPDATE_USER: (id: string) =>
-    `${VITE_API_VERSION}/admin/updateUserById/${id}`, // PUT (Admin required)
-  ADMIN_USER_PURCHASES_DETAIL: `${VITE_API_VERSION}/admin/users/purchases`, // GET (Admin required)
+  ADMIN_USERS: `${VITE_API_VERSION}/admin/users`,
+  ADMIN_USER_PURCHASES_DETAIL: `${VITE_API_VERSION}/admin/users/purchases`,
 
-  // --- Admin: Product & Variant Management ---
-  ADMIN_CREATE_PRODUCT: `${VITE_API_VERSION}/product`, // POST (Admin required)
-  ADMIN_UPDATE_PRODUCT: (id: string) => `${VITE_API_VERSION}/product/${id}`, // PUT (Admin required)
-  ADMIN_DELETE_PRODUCT: (id: string) => `${VITE_API_VERSION}/product/${id}`, // DELETE (Admin required)
+  ADMIN_CREATE_PRODUCT: `${VITE_API_VERSION}/product`,
+  ADMIN_UPDATE_PRODUCT: (id: string) => `${VITE_API_VERSION}/product/${id}`,
+  ADMIN_DELETE_PRODUCT: (id: string) => `${VITE_API_VERSION}/product/${id}`,
   ADMIN_ADD_VARIANT: (productId: string) =>
-    `${VITE_API_VERSION}/products/${productId}/variants`, // POST (Admin required)
+    `${VITE_API_VERSION}/products/${productId}/variants`,
   ADMIN_UPDATE_VARIANT: (variantId: string) =>
-    `${VITE_API_VERSION}/variants/${variantId}`, // PATCH (Admin required)
+    `${VITE_API_VERSION}/variants/${variantId}`,
   ADMIN_UPDATE_VARIANT_STOCK: (variantId: string) =>
-    `${VITE_API_VERSION}/variants/${variantId}/stock`, // PATCH (Admin required)
+    `${VITE_API_VERSION}/variants/${variantId}/stock`,
   ADMIN_DELETE_VARIANT: (variantId: string) =>
-    `${VITE_API_VERSION}/variants/${variantId}`, // DELETE (Admin required)
+    `${VITE_API_VERSION}/variants/${variantId}`,
 
-  // --- Admin: Category Management ---
-  ADMIN_CREATE_CATEGORY: `${VITE_API_VERSION}/category`, // POST (Admin required)
+  ADMIN_CREATE_CATEGORY: `${VITE_API_VERSION}/category`,
 
-  // --- Admin: Invoice Management ---
   ADMIN_UPDATE_INVOICE_STATUS: (invoiceId: string) =>
-    `${VITE_API_VERSION}/admin/invoices/${invoiceId}/status`, // PATCH (Admin required)
-  ADMIN_GET_ALL_INVOICES: `${VITE_API_VERSION}/admin/invoices`, // GET (Admin required, hỗ trợ query params: searchTerm, page, limit, sortBy, sortOrder) // <-- Endpoint mới
+    `${VITE_API_VERSION}/admin/invoices/${invoiceId}/status`,
+  ADMIN_GET_ALL_INVOICES: `${VITE_API_VERSION}/admin/invoices`,
 
-  // --- Admin: Homepage Management ---
-  ADMIN_UPDATE_BANNER: `${VITE_API_VERSION}/homepage/banner`, // PUT (Admin required)
-  ADMIN_UPDATE_VIDEO: `${VITE_API_VERSION}/homepaginvoicee/video`, // PUT (Admin required)
-  ADMIN_UPDATE_FEATURE: `${VITE_API_VERSION}/homepage/feature`, // PUT (Admin required)
+  ADMIN_UPDATE_BANNER: `${VITE_API_VERSION}/homepage/banner`,
+  ADMIN_UPDATE_VIDEO: `${VITE_API_VERSION}/homepaginvoicee/video`,
+  ADMIN_UPDATE_FEATURE: `${VITE_API_VERSION}/homepage/feature`,
 
-  // --- Admin: Coupon Management ---
-  ADMIN_CREATE_COUPON: `${VITE_API_VERSION}/admin/coupons`, // POST (Admin required)
-  ADMIN_GET_ALL_COUPONS: `${VITE_API_VERSION}/admin/coupons`, // GET (Admin required)
+  ADMIN_CREATE_COUPON: `${VITE_API_VERSION}/admin/coupons`,
+  ADMIN_GET_ALL_COUPONS: `${VITE_API_VERSION}/admin/coupons`,
   ADMIN_GET_COUPON_BY_ID: (id: string) =>
-    `${VITE_API_VERSION}/admin/coupons/${id}`, // GET (Admin required)
+    `${VITE_API_VERSION}/admin/coupons/${id}`,
   ADMIN_UPDATE_COUPON: (id: string) =>
-    `${VITE_API_VERSION}/admin/coupons/${id}`, // PATCH (Admin required)
+    `${VITE_API_VERSION}/admin/coupons/${id}`,
   ADMIN_DELETE_COUPON: (id: string) =>
-    `${VITE_API_VERSION}/admin/coupons/${id}`, // DELETE (Admin required)
+    `${VITE_API_VERSION}/admin/coupons/${id}`,
 
-  // --- Admin: FAQ Management ---
-  ADMIN_CREATE_FAQ: `${VITE_API_VERSION}/admin/faqs`, // POST (Admin required)
-  ADMIN_UPDATE_FAQ: (id: string) => `${VITE_API_VERSION}/admin/faqs/${id}`, // PUT (Admin required)
-  ADMIN_DELETE_FAQ: (id: string) => `${VITE_API_VERSION}/admin/faqs/${id}`, // DELETE (Admin required)
-
-  // --- Admin: Reviews ---
-  // ADMIN_ALL_REVIEWS: `${VITE_API_VERSION}/admin/all-comments`, // Path '/admin/all-comments' not found in api.js
+  ADMIN_CREATE_FAQ: `${VITE_API_VERSION}/admin/faqs`,
+  ADMIN_UPDATE_FAQ: (id: string) => `${VITE_API_VERSION}/admin/faqs/${id}`,
+  ADMIN_DELETE_FAQ: (id: string) => `${VITE_API_VERSION}/admin/faqs/${id}`,
 };

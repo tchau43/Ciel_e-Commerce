@@ -5,7 +5,6 @@ const {
   getHomePageService,
 } = require("../services/customerHomePageService");
 
-// Get the current homepage configuration
 const getHomePage = async (req, res) => {
   try {
     const data = await getHomePageService();
@@ -15,11 +14,9 @@ const getHomePage = async (req, res) => {
   }
 };
 
-// Update Banner: expects { bannerId, photo_url }
 const updateBanner = async (req, res) => {
   const { _id, photo_url } = req.body;
   try {
-    // Pass an object that matches the banner schema
     const data = await updateBannerService(_id, { photo_url });
     res.status(200).json({
       message: "Banner updated successfully",
@@ -30,7 +27,6 @@ const updateBanner = async (req, res) => {
   }
 };
 
-// Update Video: expects { videoId (optional), title, video_youtube, photo_thumb }
 const updateVideo = async (req, res) => {
   const { _id, title, video_youtube, photo_thumb, photo_url } = req.body;
   try {
@@ -49,7 +45,6 @@ const updateVideo = async (req, res) => {
   }
 };
 
-// Update Feature: expects { featureId (optional), title, description }
 const updateFeature = async (req, res) => {
   const { _id, title, description, image_url } = req.body;
   try {

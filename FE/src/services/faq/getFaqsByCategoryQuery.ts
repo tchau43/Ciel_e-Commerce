@@ -11,6 +11,6 @@ export const useGetFaqsByCategoryQuery = (category: string) => {
       );
       return response;
     },
-    enabled: !!category, // Only run the query if category is provided
+    enabled: !!category, 
   });
 };

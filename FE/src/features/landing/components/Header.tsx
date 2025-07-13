@@ -42,14 +42,13 @@ const Header: React.FC = () => {
 
   return (
     <motion.div
-      initial={{ y: -100 }}
-      animate={{ y: 0 }}
-      transition={{ type: "spring", stiffness: 100 }}
-      className="fixed w-full z-50 transition-all duration-300 bg-white/95 backdrop-blur-sm border-b border-gray-200"
+      // initial={{ y: -50 }}
+      // animate={{ y: 0 }}
+      // transition={{ type: "spring", stiffness: 100 }}
+      className="fixed w-full z-50 bg-white/95 backdrop-blur-sm border-b border-gray-200"
     >
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16">
-          {/* Logo */}
           <motion.div
             variants={logoVariants}
             initial="initial"
@@ -63,7 +62,6 @@ const Header: React.FC = () => {
             </NavLink>
           </motion.div>
 
-          {/* Navigation Links */}
           <div className="flex items-center space-x-8">
             <motion.div
               variants={navLinkVariants}

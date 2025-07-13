@@ -6,7 +6,7 @@ const LandingLayout = () => {
   return (
     <div className="min-h-screen flex flex-col">
       <Header />
-      <main className="flex-grow bg-gradient-to-r from-[rgb(255,230,230)] to-[rgb(230,230,255)] z-10">
+      <main className="flex-grow pt-16">
         <Outlet />
       </main>
       <LandingFooter />

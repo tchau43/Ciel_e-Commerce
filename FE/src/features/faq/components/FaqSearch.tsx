@@ -9,13 +9,12 @@ interface FaqSearchProps {
 const FaqSearch = ({ onSearch }: FaqSearchProps) => {
   const [searchQuery, setSearchQuery] = useState("");
 
-  // Debounce search input
   useEffect(() => {
     const timerId = setTimeout(() => {
       if (searchQuery.trim().length >= 2) {
         onSearch(searchQuery.trim());
       } else if (searchQuery.trim() === "") {
-        onSearch(""); // Clear search
+        onSearch(""); 
       }
     }, 300);
 
